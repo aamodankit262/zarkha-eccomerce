@@ -1,0 +1,1 @@
+export { default as MobileVerification } from './MobileVerification';
