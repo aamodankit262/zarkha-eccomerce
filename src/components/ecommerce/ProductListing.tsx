@@ -21,6 +21,8 @@ import { updateUrlFilters } from "@/helper/updateUrlFilters";
 import { SORT_OPTIONS, SortOption } from "@/helper/sort";
 import FilterSkeleton from "../FilterSkeleton";
 import { NoProductsFound } from "../NoProductsFound";
+import ProductCardSkeleton from "../ProductCardSkeleton";
+import { ProductCompactSkeleton } from "../ProductCompactSkeleton";
 type FilterKey = "category" | "subCategory";
 type FilterSectionProps = {
   title: string;
@@ -38,7 +40,7 @@ const ProductListingPage = () => {
   const industryId = searchParams.get("industry");
   const subCategoryId = searchParams.get("sub");
   const { categories, subCategories, fetchCategories, fetchSubCategories, loadingCategories } = useMegaMenuStores();
-  const sortBy = (searchParams.get("sort") as SortOption) || "bestseller";
+  const sortBy = (searchParams.get("sort") as SortOption) || "all";
   const handleSortChange = (value: SortOption) => {
     const params = new URLSearchParams(searchParams);
     params.set("sort", value);
@@ -56,12 +58,47 @@ const ProductListingPage = () => {
     filterByName,
     loading,
   } = useProductStore();
-  const pageTitle =
-    subCategoryId
-      ? filterByName?.subcategory
-      : categoryId
-        ? filterByName?.category
-        : filterByName?.industry;
+  const pageTitle = useMemo(() => {
+    if (loading) return "";
+
+    if (subCategoryId) return filterByName?.subcategory;
+    if (categoryId) return filterByName?.category;
+    if (industryId) return filterByName?.industry;
+
+    return "Products";
+  }, [loading, subCategoryId, categoryId, industryId, filterByName]);
+  const products = productsList?.map((p: any) => {
+    return {
+      id: p._id,
+      image: p.images[0]?.url || '/assets/no_image.jpg',
+      title: p.name,
+      price: p.product_price,
+      originalPrice: p.mrp ? `MRP ₹${p.mrp}` : undefined,
+      discount: p.discount ? `Save ${p.discount}` : undefined,
+      colors: p.color ? p.color.map((c: string) => {
+        switch (c.toLowerCase()) {
+          case "red": return "#FF0000";
+          case "blue": return "#0000FF";
+          case "green": return "#008000";
+          case "yellow": return "#FFFF00";
+          case "black": return "#000000";
+          case "white": return "#FFFFFF";
+          case "pink": return "#FFC0CB";
+          case "purple": return "#800080";
+        }  return "#808080"; // default gray for unknown colors
+      }) : [],
+      isNew: p.isNew || false,
+      isBestSeller: p.isBestSeller || false,
+      hasWishlist: false,
+      rating: p.rating,
+      reviews: p.reviews,
+      selectedSize: p.size && p.size.length > 0 ? p.size[0] : "M",
+      color: p.color && p.color.length > 0 ? p.color[0] : "Default",
+      quantity: 1,
+      createdAt: p.create_at
+    };
+  });
+
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -98,6 +135,38 @@ const ProductListingPage = () => {
   useEffect(() => {
     fetchProducts();
   }, [debouncedFilters, page, fetchProducts]);
+
+  const sortedProducts = useMemo(() => {
+    if (!products || products.length === 0) return [];
+
+    let result = [...products];
+
+    switch (sortBy) {
+      case "all":
+        return result;
+      case "bestseller":
+        return result.filter(p => p.isBestSeller);
+
+      case "price_asc":
+        return result.sort((a, b) => a.price - b.price);
+
+      case "price_desc":
+        return result.sort((a, b) => b.price - a.price);
+
+      case "newest":
+        return result.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() -
+            new Date(a.createdAt).getTime()
+        );
+
+      case "rating":
+        return result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+      default:
+        return result;
+    }
+  }, [products, sortBy]);
 
 
   const filterData = useMemo(() => {
@@ -138,36 +207,7 @@ const ProductListingPage = () => {
   }, [industryId, filters.category, categories, subCategories]);
 
 
-  const products = productsList?.map((p: any) => {
-    return {
-      id: p._id,
-      image: p.images[0]?.url || '/assets/no_image.jpg',
-      title: p.name,
-      price: `₹${p.product_price}`,
-      originalPrice: p.mrp ? `MRP ₹${p.mrp}` : undefined,
-      discount: p.discount ? `Save ${p.discount}` : undefined,
-      colors: p.color ? p.color.map((c: string) => {
-        switch (c.toLowerCase()) {
-          case "red": return "#FF0000";
-          case "blue": return "#0000FF";
-          case "green": return "#008000";
-          case "yellow": return "#FFFF00";
-          case "black": return "#000000";
-          case "white": return "#FFFFFF";
-          case "pink": return "#FFC0CB";
-          case "purple": return "#800080";
-        }  return "#808080"; // default gray for unknown colors
-      }) : [],
-      isNew: p.isNew || false,
-      isBestSeller: p.isBestSeller || false,
-      hasWishlist: false,
-      rating: p.rating,
-      reviews: p.reviews,
-      selectedSize: p.size && p.size.length > 0 ? p.size[0] : "M",
-      color: p.color && p.color.length > 0 ? p.color[0] : "Default",
-      quantity: 1,
-    };
-  });
+
 
   const FilterSection = ({ title, items, filterKey }: FilterSectionProps) => {
     // const [isOpen, setIsOpen] = useState(true);
@@ -606,9 +646,14 @@ const ProductListingPage = () => {
             <div className="flex-1">
               <div className="bg-white shadow-sm rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between mb-4 lg:mb-0">
-                  <h1 className="text-xl font-semibold text-gray-900">
-                    {pageTitle}
+                  <h1 className="text-xl font-semibold text-gray-900 min-h-[28px]">
+                    {loading ? (
+                      <span className="inline-block w-52 h-6 bg-gray-200 rounded animate-pulse" />
+                    ) : (
+                      pageTitle
+                    )}
                   </h1>
+
 
                   <button
                     onClick={() => setShowFilters(true)}
@@ -665,100 +710,81 @@ const ProductListingPage = () => {
                 </div>
               </div>
 
-              {!loading && products.length === 0 ? (
-  <NoProductsFound />
-) : (
-  <div
-    className={
-      viewMode === "grid"
-        ? "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6"
-        : "space-y-4 mb-6"
-    }
-  >
-    {products.map((p) => (
-      <ProductCard key={p.id} product={p} />
-    ))}
-  </div>
-)}
-
-              <div className="bg-white shadow-sm rounded-lg p-4">
-                <div className="flex items-center justify-center gap-2">
-
-                  {/* Previous */}
-                  <button
-                    onClick={() => setPage(page - 1)}
-                    disabled={page === 1}
-                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                  </button>
-
-                  {/* Page Numbers */}
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .slice(Math.max(0, page - 2), page + 1)
-                    .map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p)}
-                        className={`px-3 py-2 text-sm rounded ${page === p
-                          ? "bg-orange-500 text-white"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                          }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-
-                  {/* Next */}
-                  <button
-                    onClick={() => setPage(page + 1)}
-                    disabled={page === totalPages}
-                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-
+              {loading ? (
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6"
+                      : "space-y-4 mb-6"
+                  }
+                >
+                  {[...Array(9)].map((_, i) =>
+                    viewMode === "grid" ? (
+                      <ProductCardSkeleton key={i} />
+                    ) : (
+                      <ProductCompactSkeleton key={i} />
+                    )
+                  )}
                 </div>
-              </div>
-
-              {/* <div className="bg-white shadow-sm rounded-lg p-4">
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                  </button>
-                  {[1, 2, 3].map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 text-sm rounded ${currentPage === page
-                          ? "bg-orange-500 text-white"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                        }`}
-                    >
-                      {page}
-                    </button>
+              ) : sortedProducts.length === 0 ? (
+                <NoProductsFound />
+              ) : (
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6"
+                      : "space-y-4 mb-6"
+                  }
+                >
+                  {sortedProducts.map((p) => (
+                    <ProductCard key={p.id} product={p} />
                   ))}
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, 3))
-                    }
-                    disabled={currentPage === 3}
-                    className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
                 </div>
-              </div> */}
+              )}
+
+              {!loading && sortedProducts.length !== 0 && (
+                <div className="bg-white shadow-sm rounded-lg p-4">
+                  <div className="flex items-center justify-center gap-2">
+
+                    {/* Previous */}
+                    <button
+                      onClick={() => setPage(page - 1)}
+                      disabled={page === 1}
+                      className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </button>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .slice(Math.max(0, page - 2), page + 1)
+                      .map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => setPage(p)}
+                          className={`px-3 py-2 text-sm rounded ${page === p
+                            ? "bg-orange-500 text-white"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                            }`}
+                        >
+                          {p}
+                        </button>
+                      ))}
+
+                    {/* Next */}
+                    <button
+                      onClick={() => setPage(page + 1)}
+                      disabled={page === totalPages}
+                      className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

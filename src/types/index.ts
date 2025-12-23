@@ -3,13 +3,14 @@ export interface Product {
   _id: string;
   images: string[];
   name: string;
-  price: string;
-  originalPrice?: string;
-  discount?: string;
+  price: any;
+  originalPrice?: any;
+  discount?: any;
   rating: number;
   reviews: number;
   color?: string[];
   category?: string;
+  createdAt?: string;
   size?: string[];
   mrp?: number;
   msp?: number;
