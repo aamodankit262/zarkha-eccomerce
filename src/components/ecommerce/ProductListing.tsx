@@ -44,7 +44,7 @@ const ProductListingPage = () => {
   const handleSortChange = (value: SortOption) => {
     const params = new URLSearchParams(searchParams);
     params.set("sort", value);
-    params.set("page", "1"); // reset pagination
+    params.set("page", "1");
     navigate(`/products?${params.toString()}`, { replace: true });
   };
   const {
@@ -67,6 +67,7 @@ const ProductListingPage = () => {
 
     return "Products";
   }, [loading, subCategoryId, categoryId, industryId, filterByName]);
+
   const products = productsList?.map((p: any) => {
     return {
       id: p._id,
@@ -136,7 +137,7 @@ const ProductListingPage = () => {
     fetchProducts();
   }, [debouncedFilters, page, fetchProducts]);
 
-  const sortedProducts = useMemo(() => {
+   const sortedProducts = useMemo(() => {
     if (!products || products.length === 0) return [];
 
     let result = [...products];
@@ -145,7 +146,7 @@ const ProductListingPage = () => {
       case "all":
         return result;
       case "bestseller":
-        return result.filter(p => p.isBestSeller);
+        return result.filter(p => p.isBestSeller===1);
 
       case "price_asc":
         return result.sort((a, b) => a.price - b.price);
@@ -588,6 +589,8 @@ const ProductListingPage = () => {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex gap-6">
+            {(industryId || categoryId) && (
+
             <div
               className="hidden lg:block w-64 bg-white rounded-lg shadow-sm h-fit sticky top-4"
               style={{ top: "11rem" }}
@@ -640,8 +643,11 @@ const ProductListingPage = () => {
                 )}
               </div>
             </div>
+            )}
+          {(industryId || categoryId) && (
 
             <FilterModal />
+          ) }
 
             <div className="flex-1">
               <div className="bg-white shadow-sm rounded-lg p-4 mb-4">
@@ -694,11 +700,7 @@ const ProductListingPage = () => {
                         onChange={(e) => handleSortChange(e.target.value as SortOption)}
                         className="border border-gray-300 px-3 py-1 text-sm bg-white rounded focus:ring-2 focus:ring-orange-500 flex-1 sm:flex-initial"
                       >
-                        {/* <option >Bestsellers</option>
-                        <option>Price: Low to High</option>
-                        <option>Price: High to Low</option>
-                        <option>Newest First</option>
-                        <option>Customer Rating</option> */}
+                        
                         {SORT_OPTIONS?.map((opt) => (
                           <option key={opt.value} value={opt.value}>
                             {opt.label}

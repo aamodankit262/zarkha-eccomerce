@@ -27,14 +27,39 @@ export const CartSlider = () => {
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+  console.log(items, 'items...')
 
-  const handleQuantityChange = (id: string, change: number) => {
-    const item = items.find((item) => item.id === id);
-    if (item) {
-      const newQuantity = Math.max(1, item.quantity + change);
-      updateQuantity(id, newQuantity);
+  const handleQuantityChange = (
+    productId: string,
+    variantId: string,
+    change: number
+  ) => {
+    const item = items.find(
+      (i) =>
+        i.product_id === productId &&
+        i.variant_id === variantId
+    );
+
+    if (!item) return;
+
+    const newQty = item.quantity + change;
+
+    if (newQty <= 0) {
+      removeItem(productId, variantId);
+    } else {
+      updateQuantity(productId, variantId, newQty);
     }
   };
+
+
+
+  // const handleQuantityChange = (id: string, change: number) => {
+  //   const item = items.find((item) => item.id === id);
+  //   if (item) {
+  //     const newQuantity = Math.max(1, item.quantity + change);
+  //     updateQuantity(id, newQuantity);
+  //   }
+  // };
 
   if (!isOpen) return null;
 
@@ -42,22 +67,20 @@ export const CartSlider = () => {
     <>
       <div className="fixed inset-0 bg-black/60 z-50" onClick={closeCart} />
       <div
-        className={`fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <div className="flex items-center gap-3">
             {steps.map((step, index) => (
               <div key={step} className="flex items-center">
                 <span
-                  className={`text-sm ${
-                    index === currentStep
-                      ? "text-orange-500 font-medium"
-                      : index < currentStep
+                  className={`text-sm ${index === currentStep
+                    ? "text-orange-500 font-medium"
+                    : index < currentStep
                       ? "text-green-600"
                       : "text-gray-400"
-                  }`}
+                    }`}
                 >
                   {step}
                 </span>
@@ -82,16 +105,16 @@ export const CartSlider = () => {
             </div>
           ) : (
             <div className="p-4 space-y-4">
-              {items.map((item) => (
+              {items?.map((item) => (
                 <div
-                  key={item.id}
+                  key={item._id}
                   className="bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex gap-4">
                     <div className="w-24 h-24 flex-shrink-0">
                       <img
-                        src={item.image}
-                        alt={item.name}
+                        src={item.product_image || '/assets/no_image.jpg'}
+                        alt={item.product_title}
                         className="w-full h-full object-cover rounded"
                       />
                     </div>
@@ -99,17 +122,17 @@ export const CartSlider = () => {
                       <div>
                         <div className="flex justify-between items-start">
                           <h3 className="font-medium text-sm text-gray-900 mb-1 leading-tight pr-2">
-                            {item.name}
+                            {item.product_title}
                           </h3>
                           <button
-                            onClick={() => removeItem(item.id)}
+                            // onClick={() => removeItem(item.id)}
                             className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                         <div className="text-xs text-gray-600 mb-3">
-                          Size: {item.size}, Color: {item.color}
+                          {/* Size: {item.size}, Color: {item.color} */}
                         </div>
                       </div>
                       <div className="flex items-center justify-between mt-auto">
@@ -119,13 +142,13 @@ export const CartSlider = () => {
                           </div>
                           <div className="flex flex-col border-l border-gray-300 h-full w-[28px]">
                             <button
-                              onClick={() => handleQuantityChange(item.id, 1)}
+                              onClick={() => handleQuantityChange(item.product_id, item.variant_id, 1)}
                               className="flex-1 flex items-center justify-center text-gray-600 hover:bg-gray-100"
                             >
                               <Plus className="h-3 w-3" />
                             </button>
                             <button
-                              onClick={() => handleQuantityChange(item.id, -1)}
+                              onClick={() => handleQuantityChange(item.product_id, item.variant_id, 1)}
                               className="flex-1 flex items-center justify-center text-gray-600 hover:bg-gray-100 border-t border-gray-300"
                             >
                               <Minus className="h-3 w-3" />

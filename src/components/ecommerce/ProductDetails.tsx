@@ -28,18 +28,20 @@ interface ProductDetailsPageProps {
 
 const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const navigate = useNavigate();
-  const [selectedImage, setSelectedImage] = useState(0);
+  // const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState("XL");
+  const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showProductDetails, setShowProductDetails] = useState(true);
   const [showAudioInfo, setShowAudioInfo] = useState(true);
   const [showRatingsReviews, setShowRatingsReviews] = useState(true);
   const [audioProgress, setAudioProgress] = useState(0.5);
   const [showRatingsPage, setShowRatingsPage] = useState(false);
-  const { openCart, getTotalItems, addItem } = useCart();
-  const { data, loading, request } = useApi(productService.getById);
+const [selectedImage, setSelectedImage] = useState<number>(0);
+  const { openCart, addItem } = useCart();
+  const { data, request } = useApi(productService.getById);
   const id = useParams().id || "";
-  console.log("Product ID:", id);
+  // console.log("Product ID:", id);
   useEffect(() => {
     request(id);
   }, []);
@@ -64,7 +66,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const details = data?.body?.product_details;
   const similarProductsRaw = data?.body?.similar_products ?? [];
 
-  console.log("Ratings Count:", ratingsCount);
+  // console.log("Ratings Count:", ratingsCount);
 
   const totalRatings =
     (ratingsCount?.["1"] ?? 0) +
@@ -202,12 +204,12 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const handleAddToCart = () => {
     addItem({
       productId: id,
-      variantId: "variant-123", // Placeholder, replace with actual variant ID
-      name: data?.body?.product_title || "Product Name",
-      image: productImages[selectedImage],
-      size: selectedSize,
-      color: colors[0] || "#000000",
-      price: data?.body?.discount_price || 0,
+      variantId: "6880d46213264ed20606e6e1", // Placeholder, replace with actual variant ID
+      // name: data?.body?.product_title || "Product Name",
+      // image: productImages[selectedImage],
+      // size: selectedSize,
+      // color: colors[0] || "#000000",
+      // price: data?.body?.discount_price || 0,
       quantity: quantity,
     });
     openCart();
@@ -248,8 +250,8 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
               {/* Main Image */}
               <div className="relative">
                 <img
-                  src={productImages[selectedImage]}
-                  alt="Product"
+                  src={productImages?.[activeImage]?.url || "/assets/no_image.jpg"}
+    alt={productImages?.[activeImage]?.alt_text || "Product image"}
                   //  {/* CHANGE: Responsive height for main image */}
                   className="w-full h-[400px] md:h-[500px] object-cover rounded-lg"
                 />
@@ -271,18 +273,19 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
               {/* Thumbnail Images */}
               {/* CHANGE: Horizontal scroll on mobile for thumbnails */}
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {productImages.map((image, index) => (
+                {productImages?.map((image, index) => (
                   <button
                     key={index}
-                    onClick={() => setSelectedImage(image.id || index)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${selectedImage === image.id || index
+                    // onClick={() => setSelectedImage(image.id || index)}
+                    onClick={() => setActiveImage(index)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${activeImage === index
                         ? "border-orange-500"
                         : "border-gray-200"
                       }`}
                   >
                     <img
-                      src={image.url || image}
-                      alt={`Thumbnail ${index + 1}`}
+                      src={image.url || '/assets/no_images.jpg'}
+                      alt={image.alt_text}
                       className="w-full h-full object-cover"
                     />
                   </button>

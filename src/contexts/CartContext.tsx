@@ -1,257 +1,179 @@
-// import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { addToCartApi, CartItem, getCartList } from "@/services/cart.service";
+
+/* ---------------- TYPES ---------------- */
 
 // export interface CartItem {
-//   id: string;
-//   name: string;
-//   image: string;
-//   size: string;
-//   color: string;
+//   product_id: string;
+//   variant_id: string;
 //   quantity: number;
+//   product_title?: string;
+//   name?: string;
+//   product_image?: string;
 //   price: number;
+//   discount_price?: number;
 // }
-
-// interface CartContextType {
-//   items: CartItem[];
-//   isOpen: boolean;
-//   addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
-//   updateQuantity: (id: string, quantity: number) => void;
-//   removeItem: (id: string) => void;
-//   clearCart: () => void;
-//   openCart: () => void;
-//   closeCart: () => void;
-//   getTotalItems: () => number;
-//   getTotalPrice: () => number;
-// }
-
-// const CartContext = createContext<CartContextType | undefined>(undefined);
-
-// export const useCart = () => {
-//   const context = useContext(CartContext);
-//   if (!context) {
-//     throw new Error('useCart must be used within a CartProvider');
-//   }
-//   return context;
-// };
-
-// export const CartProvider = ({ children }: { children: ReactNode }) => {
-//   const [items, setItems] = useState<CartItem[]>([
-//     // Sample items for demonstration
-//     {
-//       id: "1",
-//       name: "Black LIVA Straight Printed 2 Piece Set",
-//       image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-//       size: "38",
-//       color: "Black",
-//       quantity: 1,
-//       price: 800
-//     },
-//     {
-//       id: "2",
-//       name: "Black LIVA Straight Printed 2 Piece Set",
-//       image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-//       size: "38",
-//       color: "Black",
-//       quantity: 1,
-//       price: 800
-//     },
-//     {
-//       id: "3",
-//       name: "Black LIVA Straight Printed 2 Piece Set",
-//       image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-//       size: "38",
-//       color: "Black",
-//       quantity: 1,
-//       price: 800
-//     }
-//   ]);
-//   const [isOpen, setIsOpen] = useState(false);
-
-//   const addItem = (newItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
-//     const existingItem = items.find(item => 
-//       item.id === newItem.id && 
-//       item.size === newItem.size && 
-//       item.color === newItem.color
-//     );
-
-//     if (existingItem) {
-//       updateQuantity(existingItem.id, existingItem.quantity + (newItem.quantity || 1));
-//     } else {
-//       setItems(prev => [...prev, { ...newItem, quantity: newItem.quantity || 1 }]);
-//     }
-//   };
-
-//   const updateQuantity = (id: string, quantity: number) => {
-//     if (quantity <= 0) {
-//       removeItem(id);
-//       return;
-//     }
-
-//     setItems(prev => 
-//       prev.map(item => 
-//         item.id === id ? { ...item, quantity } : item
-//       )
-//     );
-//   };
-
-//   const removeItem = (id: string) => {
-//     setItems(prev => prev.filter(item => item.id !== id));
-//   };
-
-//   const clearCart = () => {
-//     setItems([]);
-//   };
-
-//   const openCart = () => setIsOpen(true);
-//   const closeCart = () => setIsOpen(false);
-
-//   const getTotalItems = () => {
-//     return items.reduce((total, item) => total + item.quantity, 0);
-//   };
-
-//   const getTotalPrice = () => {
-//     return items.reduce((total, item) => total + (item.price * item.quantity), 0);
-//   };
-
-//   const value: CartContextType = {
-//     items,
-//     isOpen,
-//     addItem,
-//     updateQuantity,
-//     removeItem,
-//     clearCart,
-//     openCart,
-//     closeCart,
-//     getTotalItems,
-//     getTotalPrice
-//   };
-
-//   return (
-//     <CartContext.Provider value={value}>
-//       {children}
-//     </CartContext.Provider>
-//   );
-// };
-
-// export default CartContext;
-import { createContext, useContext, useEffect, useState } from "react";
-import { addToCartApi, getCartList } from "@/services/cart.service";
-// import { v4 as uuidv4 } from "uuid";
-
-export interface CartItem {
-  id: string;
-  productId: string;
-  variantId: string;
-  name: string;
-  image: string;
-  size: string;
-  color: string;
-  quantity: number;
-  price: number;
-  body?: any;
-}
 
 interface CartContextType {
   items: CartItem[];
   cartId: string;
-   isOpen: boolean;
+  isOpen: boolean;
+
   addItem: (payload: {
     productId: string;
     variantId: string;
-    quantity: number;
-    name: string;
-    image: string;
-    price: number;
-    size: string;
-    color: string;
+    quantity?: number;
   }) => Promise<void>;
+
   openCart: () => void;
   closeCart: () => void;
+
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  updateQuantity: (
+    productId: string,
+    variantId: string,
+    quantity: number
+  ) => void;
+  removeItem: (productId: string, variantId: string) => void;
 }
+
+/* ---------------- CONTEXT ---------------- */
 
 const CartContext = createContext<CartContextType | null>(null);
 
 export const useCart = () => {
   const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  if (!ctx) {
+    throw new Error("useCart must be used within CartProvider");
+  }
   return ctx;
 };
 
-export const CartProvider = ({ children }: { children: React.ReactNode }) => {
+/* ---------------- PROVIDER ---------------- */
+
+export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [cartId, setCartId] = useState("");
- const [isOpen, setIsOpen] = useState(false);
-  /** Initialize cart_id */
+  const [cartId, setCartId] = useState<string>("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  /* ---------- INIT CART ---------- */
   useEffect(() => {
     let storedCartId = localStorage.getItem("cart_id");
 
-    // if (!storedCartId) {
-    //   storedCartId = uuidv4();
-    //   localStorage.setItem("cart_id", storedCartId);
-    // }
+    if (!storedCartId) {
+      storedCartId = crypto.randomUUID();
+      localStorage.setItem("cart_id", storedCartId);
+    }
 
     setCartId(storedCartId);
     fetchCart(storedCartId);
   }, []);
 
-  /** Fetch cart list */
-  const fetchCart = async (cartId: string) => {
+  /* ---------- FETCH CART ---------- */
+  const fetchCart = async (id: string) => {
     try {
-      const res = await getCartList(cartId);
-      console.log("Cart fetch response:", res);
-      setItems(res?.body ?? []);
-    } catch (error) {
-      console.error("Cart fetch failed", error);
+      const cart = await getCartList(id);
+      setItems(cart.items || []);
+    } catch (err) {
+      console.error("Failed to fetch cart", err);
     }
   };
 
-  /** Add to cart */
-  const addItem = async (payload: {
+  /* ---------- ADD TO CART ---------- */
+  const addItem = async ({
+    productId,
+    variantId,
+    quantity = 1,
+  }: {
     productId: string;
     variantId: string;
-    quantity: number;
+    quantity?: number;
   }) => {
     try {
       const res = await addToCartApi({
         cart_id: cartId,
-        product_id: payload.productId,
-        variant_id: payload.variantId,
-        quantity: payload.quantity,
+        product_id: productId,
+        variant_id: variantId,
+        quantity,
       });
-      console.log("Add to cart response:", res);
-      // 🔥 VERY IMPORTANT
-      if (res && typeof res === 'object' && 'cart_id' in res) {
-        setCartId((res as any).cart_id);
-        localStorage.setItem("cart_id", (res as any).cart_id);
+
+      // update cart id if backend generates new one
+      if (res.cartId && res.cartId !== cartId) {
+        setCartId(res.cartId);
+        localStorage.setItem("cart_id", res.cartId);
       }
 
-      // 🔥 Update cart items directly from API
-      setItems((res as any).cart?.items ?? []);
-    } catch (error) {
-      console.error("Add to cart failed", error);
+      // update items directly
+      fetchCart(res.cartId)
+      // setItems(res.cart.items || []);
+      openCart();
+    } catch (err) {
+      console.error("Add to cart failed", err);
     }
   };
+  const updateQuantity = (
+    productId: string,
+    variantId: string,
+    quantity: number
+  ) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.product_id === productId &&
+          item.variant_id === variantId
+          ? { ...item, quantity }
+          : item
+      )
+    );
+  };
 
-  const openCart = () => setIsOpen(true);
-  const closeCart = () => setIsOpen(false);
+  const removeItem = (productId: string, variantId: string) => {
+    setItems((prev) =>
+      prev.filter(
+        (item) =>
+          !(
+            item.product_id === productId &&
+            item.variant_id === variantId
+          )
+      )
+    );
+  };
+
+  /* ---------- HELPERS ---------- */
   const getTotalItems = () =>
     items.reduce((sum, item) => sum + item.quantity, 0);
 
   const getTotalPrice = () =>
-    items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    items.reduce(
+      (sum, item) =>
+        sum +
+        item.quantity *
+        (item.discount_price ?? item.price),
+      0
+    );
+
+  const openCart = () => setIsOpen(true);
+  const closeCart = () => setIsOpen(false);
 
   return (
     <CartContext.Provider
       value={{
         items,
         cartId,
+        isOpen,
         addItem,
+        updateQuantity,
+        removeItem,
+        openCart,
+        closeCart,
         getTotalItems,
         getTotalPrice,
-        openCart,
-    closeCart,
-    isOpen,
       }}
     >
       {children}
