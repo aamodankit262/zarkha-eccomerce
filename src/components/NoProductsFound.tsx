@@ -2,7 +2,8 @@ export const NoProductsFound = () => {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <img
-        src="/no-products.svg" // optional
+        src="/assets/noproduct.png" 
+        // src="/no-products.svg" 
         alt="No products"
         className="w-40 h-40 mb-4 opacity-70"
       />

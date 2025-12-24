@@ -27,7 +27,7 @@ export type SortOption =
   | "price_desc"
   | "newest"
   | "rating";
-  
+
 export interface ProductListPayload {
   category_id?: string;
   subcategory_id?: string;
@@ -41,13 +41,13 @@ export interface ProductListPayload {
 }
 
 export interface CartItem {
-  id: string;
-  name: string;
-  image: string;
-  size: string;
-  color: string;
+  product_id: string;
+  variant_id: string;
   quantity: number;
+  product_title?: string;
+  product_image?: string;
   price: number;
+  discount_price?: number;
 }
 
 export interface User {
