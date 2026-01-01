@@ -4,25 +4,31 @@ import { Eye, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const ProductCard = ({ product }) => {
-  const { addItem } = useCart();
+  const { addItem, openCart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
+   console.log(product, 'newarivalvdsafadsfdasfadsfs')
 
-  const handleAddToCart = () => {
-    // addItem({
-    //   id: product.id,
-    //   name: product.title,
-    //   image: product.image,
-    //   size: product.selectedSize,
-    //   color: product.color || "Purple",
-    //   price: product.price,
-    //   quantity: product.quantity || 1,
-    // });
+ const handleAddToCart = () => {
+    // if (!activeVariant) return;
+    addItem({
+      productId: product.id,
+      variantId: product.variantId,
+      quantity: 1
+    });
+
+    openCart();
     toast({
       title: "Added to cart",
       description: `${product.title} has been added to your cart`,
     });
   };
+  // const handleAddToCart = () => {
+  //   toast({
+  //     title: "Added to cart",
+  //     description: `${product.title} has been added to your cart`,
+  //   });
+  // };
 
   const goToDetails = () => {
     navigate(`/product/${product.id}`);

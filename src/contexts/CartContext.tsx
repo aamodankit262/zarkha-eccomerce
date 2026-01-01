@@ -5,7 +5,8 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { addToCartApi, CartItem, getCartList } from "@/services/cart.service";
+import { addToCartApi, CartItem, getCartList, RemoveProduct, UpdateQuantities } from "@/services/cart.service";
+import { toast } from "@/hooks/use-toast";
 
 /* ---------------- TYPES ---------------- */
 
@@ -100,7 +101,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const res = await addToCartApi({
         cart_id: cartId,
         product_id: productId,
-        variant_id: variantId,
+        item_id: variantId,
         quantity,
       });
 
@@ -118,32 +119,71 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       console.error("Add to cart failed", err);
     }
   };
-  const updateQuantity = (
+  const updateQuantity = async (
     productId: string,
     variantId: string,
     quantity: number
   ) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.product_id === productId &&
-          item.variant_id === variantId
-          ? { ...item, quantity }
-          : item
-      )
-    );
+    try {
+      if (!cartId) return;
+
+      await UpdateQuantities(
+        cartId,
+        productId,
+        variantId,
+        quantity
+      );
+
+      setItems((prev) =>
+        prev.map((item) =>
+          item.product_id === productId &&
+            item.item_id === variantId
+            ? { ...item, quantity }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Update qty failed", error);
+    }
+  };
+  const removeItem = async (
+    productId: string,
+    variantId: string,
+  ) => {
+    try {
+      if (!cartId) return;
+
+      await RemoveProduct(
+        cartId,
+        productId,
+        variantId,
+      );
+
+      setItems((prev) =>
+        prev.filter(
+          (item) =>
+            !(
+              item.product_id === productId &&
+              item.item_id === variantId
+            )
+        )
+      );
+    } catch (error) {
+      console.error("Update qty failed", error);
+    }
   };
 
-  const removeItem = (productId: string, variantId: string) => {
-    setItems((prev) =>
-      prev.filter(
-        (item) =>
-          !(
-            item.product_id === productId &&
-            item.variant_id === variantId
-          )
-      )
-    );
-  };
+  // const removeItem = (productId: string, variantId: string) => {
+  //   setItems((prev) =>
+  //     prev.filter(
+  //       (item) =>
+  //         !(
+  //           item.product_id === productId &&
+  //           item.item_id === variantId
+  //         )
+  //     )
+  //   );
+  // };
 
   /* ---------- HELPERS ---------- */
   const getTotalItems = () =>

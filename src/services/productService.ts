@@ -27,8 +27,8 @@ export const productService = {
     return res as any;
   },
 
-  getById: async (id: string): Promise<Product> => {
-    return await apiClient.post<Product>(API_ENDPOINTS.PRODUCTS.DETAIL, { product_id: id });
+  getById: async (id: string, itemId?: string): Promise<Product> => {
+    return await apiClient.post<Product>(API_ENDPOINTS.PRODUCTS.DETAIL, { product_id: id, item_id : itemId});
   },
 };
 

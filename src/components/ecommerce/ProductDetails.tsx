@@ -18,7 +18,7 @@ import { useEffect, useState } from "react";
 import { Layout } from "../common";
 import { ProductCard } from "../common/ProductCard";
 import { RatingsPage } from "./RatingPage";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useApi } from "@/hooks/useApi";
 import { productService } from "@/services/productService";
 
@@ -37,28 +37,49 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const [showRatingsReviews, setShowRatingsReviews] = useState(true);
   const [audioProgress, setAudioProgress] = useState(0.5);
   const [showRatingsPage, setShowRatingsPage] = useState(false);
-const [selectedImage, setSelectedImage] = useState<number>(0);
+  const [selectedImage, setSelectedImage] = useState<number>(0);
   const { openCart, addItem } = useCart();
-  const { data, request } = useApi(productService.getById);
   const id = useParams().id || "";
-  // console.log("Product ID:", id);
+  const { data, request } = useApi(productService.getById);
   useEffect(() => {
-    request(id);
-  }, []);
-  console.log("Product Data:", data);
-  // const productImages = [
-  //   "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //   "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //   "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //   "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //   "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  // ];
+    if (!id) return;
 
-  // const sizes = ["S", "M", "L", "XL"];
-  // const colors = ["#562C2C", "#FF6600", "#DC143C"];
-  const productImages = data?.body?.images || [];
+    request(id);
+  }, [id]);
+  // console.log("Product ID:", id);
+  const [searchParams] = useSearchParams();
+  //  const params = new URLSearchParams(searchParams);
+  const selectedVariantId = searchParams.get("variant");
+
+  console.log(selectedVariantId, 'variantId')
+  const productVariants = data?.body?.variants ?? [];
+  const activeVariant = productVariants.find(
+    (v) => v.item_code_id === selectedVariantId
+  ) || productVariants[0];
+  useEffect(() => {
+    if (
+      !selectedVariantId &&
+      productVariants &&
+      productVariants.length > 0
+    ) {
+      navigate(
+        `/product/${id}?variant=${productVariants[0].item_code_id}`,
+        { replace: true }
+      );
+    }
+  }, [selectedVariantId, productVariants, id, navigate]);
+
+
+
+  console.log("Product Data:", data);
+
+  const productImages =
+    activeVariant?.images?.length > 0
+      ? activeVariant.images
+      : data?.body?.images || [];
+  console.log(productVariants, 'variants')
   const sizes = data?.body?.select_size?.map((size: any) => size) || ["S", "M", "L", "XL"];
-  const colors = data?.body?.color.map((color: any) => color) || ["#562C2C", "#FF6600", "#DC143C"];
+  const colors = data?.body?.color.map((color: any) => color.color_code);
   const rating = data?.body?.ratings || 4.5;
   const productDescription = data?.body?.product_details?.description ?? "";
 
@@ -86,20 +107,7 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
     };
   });
 
-  // const ratingBreakdown = [
-  // { stars: 5, count: ratingsCount["5"], percentage: 90 },
-  //   { stars: 4, count: ratingsCount["4"], percentage: 90 },
-  //   { stars: 3, count: ratingsCount["3"], percentage: 90 },
-  //   { stars: 2, count: ratingsCount["2"], percentage: 4 },
-  //   { stars: 1, count: ratingsCount["1"], percentage: 2 },
-  // ];
-  // const ratingBreakdown = [
-  // { stars: rating[5], count: 450, percentage: 90 },
-  //   { stars: rating[4], count: 450, percentage: 90 },
-  //   { stars: rating[3], count: 450, percentage: 90 },
-  //   { stars: rating[2], count: 20, percentage: 4 },
-  //   { stars: rating[1], count: 10, percentage: 2 },
-  // ];
+
   const customerReviews =
     data?.body?.feedback?.feedback_list?.map(
       (item: any, index: number) => ({
@@ -112,47 +120,8 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
       })
     ) ?? [];
 
-  // const customerReviews = [
-  //   {
-  //     id: 1,
-  //     name: "Shabshikta Simran",
-  //     timeAgo: "1 Month Ago",
-  //     comment:
-  //       "Loved It!! Very Stylish And Comfortable! Love The Look, Fabric Is Very Soft.",
-  //     rating: 5,
-  //     images: [
-  //       "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //       "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //     ],
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "Shabshikta Simran",
-  //     timeAgo: "1 Month Ago",
-  //     comment:
-  //       "Loved It!! Very Stylish And Comfortable! Love The Look, Fabric Is Very Soft.",
-  //     rating: 5,
-  //     images: [
-  //       "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //       "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //     ],
-  //   },
-  //   {
-  //     id: 3,
-  //     name: "Shabshikta Simran",
-  //     timeAgo: "1 Month Ago",
-  //     comment:
-  //       "Loved It!! Very Stylish And Comfortable! Love The Look, Fabric Is Very Soft.",
-  //     rating: 5,
-  //     images: [
-  //       "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //       "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-  //     ],
-  //   },
-  // ];
-
   const productDetails = [
-    { label: "Color", value: details?.color?.join(", ") || "-" },
+    { label: "Color", value: details?.color.map((color, i) => color.color_name).join(",") || "-" },
     { label: "Length", value: details?.length || "-" },
     { label: "Fabric", value: details?.fabric || "-" },
     {
@@ -162,25 +131,8 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
     { label: "Style Code", value: details?.style_code || "-" },
     { label: "Suitable For", value: details?.suitable_for || "-" },
   ];
-    // const productDetails = [
-    //   { label: "Color", 
-    //     value: "Black"
-    //    },
-    //   { label: "Length", value: "Maxi/Full Length" },
-    //   { label: "Fabric", value: "Viscose Rayon" },
-    //   { label: "Pattern/Ideal For", value: "Floral Print" },
-    //   { label: "Style Code", value: "Fit And Flare" },
-    //   { label: "Suitable For", value: "Fit And Flare" },
-    // ];
-    // const productDetails = [
-    //   { label: "Color", value: "Black" },
-    //   { label: "Length", value: "Maxi/Full Length" },
-    //   { label: "Fabric", value: "Viscose Rayon" },
-    //   { label: "Pattern/Ideal For", value: "Floral Print" },
-    //   { label: "Style Code", value: "Fit And Flare" },
-    //   { label: "Suitable For", value: "Fit And Flare" },
-    // ];
- const productsData = similarProductsRaw?.map((product: any) => {
+
+  const productsData = similarProductsRaw?.map((product: any) => {
     const discount =
       product.mrp && product.product_price
         ? Math.round(
@@ -202,18 +154,17 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
   });
 
   const handleAddToCart = () => {
+    if (!activeVariant) return;
+
     addItem({
       productId: id,
-      variantId: "6880d46213264ed20606e6e1", // Placeholder, replace with actual variant ID
-      // name: data?.body?.product_title || "Product Name",
-      // image: productImages[selectedImage],
-      // size: selectedSize,
-      // color: colors[0] || "#000000",
-      // price: data?.body?.discount_price || 0,
-      quantity: quantity,
+      variantId: activeVariant.item_code_id,
+      quantity,
     });
+
     openCart();
   };
+
   const handleViewAllReviews = () => {
     setShowRatingsPage(true);
   };
@@ -251,7 +202,7 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
               <div className="relative">
                 <img
                   src={productImages?.[activeImage]?.url || "/assets/no_image.jpg"}
-    alt={productImages?.[activeImage]?.alt_text || "Product image"}
+                  alt={productImages?.[activeImage]?.alt_text || "Product image"}
                   //  {/* CHANGE: Responsive height for main image */}
                   className="w-full h-[400px] md:h-[500px] object-cover rounded-lg"
                 />
@@ -279,8 +230,8 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
                     // onClick={() => setSelectedImage(image.id || index)}
                     onClick={() => setActiveImage(index)}
                     className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${activeImage === index
-                        ? "border-orange-500"
-                        : "border-gray-200"
+                      ? "border-orange-500"
+                      : "border-gray-200"
                       }`}
                   >
                     <img
@@ -308,7 +259,7 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
                     <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
                     <span className="ml-1 text-sm font-medium">{rating}</span>
                   </div>
-                  <span className="text-sm text-gray-500">1 Rating 320</span>
+                  {/* <span className="text-sm text-gray-500">1 Rating 320</span> */}
                 </div>
               </div>
 
@@ -333,14 +284,33 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
               <div className="space-y-3">
                 <h3 className="font-medium text-gray-900">Color</h3>
                 <div className="flex gap-3">
-                  {colors?.map((color, index) => (
-                    <button
-                      key={index}
-                      className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-orange-500 transition-colors"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
+                  <div className="flex gap-3">
+                    {productVariants.map((variant) => {
+                      const isActive = activeVariant?.item_code_id === variant.item_code_id;
+
+                      return (
+                        <button
+                          key={variant.item_code_id}
+                          onClick={() =>
+                            navigate(`/product/${id}?variant=${variant.item_code_id}`, {
+                              replace: true,
+                            })
+                          }
+                          className={`
+        w-8 h-8 rounded-full border-2 transition-all
+        ${isActive
+                              ? "border-orange-500 ring-2 ring-orange-400 ring-offset-2 scale-110"
+                              : "border-gray-300 hover:border-orange-400"}
+      `}
+                          style={{ backgroundColor: variant.color.color_code }}
+                        />
+                      );
+                    })}
+
+                  </div>
+
                 </div>
+
               </div>
 
               {/* Size Selection */}
@@ -357,8 +327,8 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
                       key={size}
                       onClick={() => setSelectedSize(size)}
                       className={`w-12 h-12 rounded-lg border-2 transition-colors ${selectedSize === size
-                          ? "border-orange-500 bg-orange-500 text-white"
-                          : "border-gray-300 hover:border-orange-500"
+                        ? "border-orange-500 bg-orange-500 text-white"
+                        : "border-gray-300 hover:border-orange-500"
                         }`}
                     >
                       {size}
@@ -440,20 +410,37 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
                   {showProductDetails && (
                     <div className="px-4 pb-4 border-t">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8 pt-4">
-                        {productDetails.map((detail, index) => (
+                        {productDetails?.map((detail, index) => (
                           <div key={index} className="flex justify-between">
                             <span className="text-gray-600">
                               {detail.label}
                             </span>
                             <span className="text-gray-900">
-                              {detail.value}
+                              {detail.value || "—"}
+                              {/* {Array.isArray(detail.value) ? (
+                                detail.value.map((item, i) =>
+                                  typeof item === 'string' ? (
+                                    <span key={i}>{item}{i < detail.value.length - 1 && "," }</span>
+                                  ) : (
+                                    <span key={i} className="inline-flex items-center gap-1">
+                                      <span
+                                        className="w-3 h-3 rounded-full border"
+                                        style={{ backgroundColor: item.color_code }}
+                                      />
+                                      {item.color_name}
+                                    </span>
+                                  )
+                                )
+                              ) : (
+                                <span>{detail.value || "—"}</span>
+                              )} */}
                             </span>
                           </div>
                         ))}
                       </div>
                       <div className="mt-4 pt-4 border-t">
-                        <p className="text-sm text-gray-600 leading-relaxed" 
-                        dangerouslySetInnerHTML={{ __html: productDescription }}
+                        <p className="text-sm text-gray-600 leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: productDescription }}
                         >
                           {/* Embrace Effortless Elegance With Our Block-Printed
                           Shirt-Style Dress, Tailored In A Chic A-Line
@@ -464,7 +451,7 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
                             Read More
                           </button> */}
                         </p>
-                        
+
                       </div>
                     </div>
                   )}
@@ -557,12 +544,12 @@ const [selectedImage, setSelectedImage] = useState<number>(0);
                                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                                   <div
                                     className={`h-2 rounded-full ${rating.stars >= 4
-                                        ? "bg-green-500"
-                                        : rating.stars === 3
-                                          ? "bg-yellow-500"
-                                          : rating.stars === 2
-                                            ? "bg-orange-500"
-                                            : "bg-red-500"
+                                      ? "bg-green-500"
+                                      : rating.stars === 3
+                                        ? "bg-yellow-500"
+                                        : rating.stars === 2
+                                          ? "bg-orange-500"
+                                          : "bg-red-500"
                                       }`}
                                     style={{ width: `${rating.percentage}%` }}
                                   ></div>

@@ -22,6 +22,7 @@ export default function BestSellers({products}: any) {
       isNew: true,
       colors: product.color ? [product.color] : [], // FIXED
       size: product.size,
+      variantId: product.item_code_ids?.[0]
     };
   });
 

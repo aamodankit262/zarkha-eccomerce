@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { X, Plus, Minus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+// import { useAuth } from "@/contexts/AuthContext";
 
 export const CartSlider = () => {
   const {
@@ -37,7 +38,7 @@ export const CartSlider = () => {
     const item = items.find(
       (i) =>
         i.product_id === productId &&
-        i.variant_id === variantId
+        i.item_id === variantId
     );
 
     if (!item) return;
@@ -50,16 +51,6 @@ export const CartSlider = () => {
       updateQuantity(productId, variantId, newQty);
     }
   };
-
-
-
-  // const handleQuantityChange = (id: string, change: number) => {
-  //   const item = items.find((item) => item.id === id);
-  //   if (item) {
-  //     const newQuantity = Math.max(1, item.quantity + change);
-  //     updateQuantity(id, newQuantity);
-  //   }
-  // };
 
   if (!isOpen) return null;
 
@@ -125,7 +116,7 @@ export const CartSlider = () => {
                             {item.product_title}
                           </h3>
                           <button
-                            // onClick={() => removeItem(item.id)}
+                            onClick={() => removeItem(item.product_id, item.item_id)}
                             className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -142,13 +133,13 @@ export const CartSlider = () => {
                           </div>
                           <div className="flex flex-col border-l border-gray-300 h-full w-[28px]">
                             <button
-                              onClick={() => handleQuantityChange(item.product_id, item.variant_id, 1)}
+                              onClick={() => handleQuantityChange(item.product_id, item.item_id, 1)}
                               className="flex-1 flex items-center justify-center text-gray-600 hover:bg-gray-100"
                             >
                               <Plus className="h-3 w-3" />
                             </button>
                             <button
-                              onClick={() => handleQuantityChange(item.product_id, item.variant_id, 1)}
+                              onClick={() => handleQuantityChange(item.product_id, item.item_id, -1)}
                               className="flex-1 flex items-center justify-center text-gray-600 hover:bg-gray-100 border-t border-gray-300"
                             >
                               <Minus className="h-3 w-3" />
@@ -156,7 +147,7 @@ export const CartSlider = () => {
                           </div>
                         </div>
                         <div className="font-semibold text-sm">
-                          ₹{item.price * item.quantity}
+                          ₹{item.discount_price * item.quantity}
                         </div>
                       </div>
                     </div>

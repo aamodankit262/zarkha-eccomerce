@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from "@/api/endpoints";
 export interface AddToCartPayload {
   cart_id: string;
   product_id: string;
-  variant_id: string;
+  item_id: string;
   quantity: number;
 }
 
@@ -13,7 +13,8 @@ export interface AddToCartPayload {
 export interface CartItem {
   _id: string;
   product_id: string;
-  variant_id: string;
+  // variant_id: string;
+  item_id: string;
   quantity: number;
   product_title?: string;
   product_image?: string;
@@ -61,3 +62,27 @@ export const addToCartApi = async (payload: AddToCartPayload) => {
     cart: res.cart,
   };
 };
+export const UpdateQuantities = async (
+  cartId: string,
+  productId: string,
+  variantId: string,
+  quantity: number
+) => {
+  return apiClient.post(API_ENDPOINTS.CART.UPDATE, {
+    cart_id: cartId,
+    product_id: productId,
+    item_id: variantId,
+    quantity,
+  });
+}
+export const RemoveProduct = async (
+  cartId: string,
+  productId: string,
+  variantId: string,
+) => {
+  return apiClient.post(API_ENDPOINTS.CART.REMOVE, {
+    cart_id: cartId,
+    product_id: productId,
+    item_id: variantId,
+  });
+}

@@ -1,6 +1,7 @@
-import { productsData } from "@/data/product";
+// import { productsData } from "@/data/product";
 import { ProductCard } from "../common/ProductCard";
 import { useNavigate } from "react-router-dom";
+// import { useCart } from "@/contexts/CartContext";
 
 export default function NewArrivals({ products }: any) {
   const navigate = useNavigate();
@@ -22,9 +23,10 @@ export default function NewArrivals({ products }: any) {
       isNew: product.isNew,
       colors: product.color ? [product.color] : [], // FIXED
       size: product.size,
+      variantId: product.item_code_ids?.[0]
     };
   });
-
+  // console.log(productsData, "producctsdata.....")
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       {/* Header */}
