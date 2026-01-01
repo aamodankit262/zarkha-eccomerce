@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   ShoppingCart,
@@ -20,11 +20,18 @@ import { ProductCard } from "@/components/common/ProductCard";
 import { productsData } from "@/data/product";
 import { useAuthStore } from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
+import { useApi } from "@/hooks/useApi";
+import { getAddressList } from "@/services/address.service";
 
 // Shared Sidebar Component
 const SharedSidebar = ({ activeTab, setActiveTab, sidebarItems }) => {
   const navigate = useNavigate();
-  const{logout} = useAuthStore();
+  const{logout, userDetails} = useAuthStore();
+  const {data, loading, error, request} = useApi(getAddressList)
+  useEffect(() => {
+    request()
+  }, [])
+  console.log(data, 'addresslist..')
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -32,8 +39,8 @@ const SharedSidebar = ({ activeTab, setActiveTab, sidebarItems }) => {
   return(
   <div className="w-72 bg-white border-r">
     <div className="p-5 border-b">
-      <p className="text-sm text-gray-600">Hello, Dear</p>
-      <p className="text-sm font-medium text-gray-900">+91 8888899999</p>
+      <p className="text-sm text-gray-600">Hello, {userDetails.name ? userDetails.name : "Dear" }</p>
+      <p className="text-sm font-medium text-gray-900">+91 {userDetails.mobile}</p>
     </div>
     <div>
       {sidebarItems.map((item) => (

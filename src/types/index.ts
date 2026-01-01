@@ -20,6 +20,7 @@ export interface Product {
   data?: any;
   isNew?: number
   isBestSeller?: number
+  variants?: any
 }
 export type SortOption =
   | "bestseller"

@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
   CART: {
     GET: "/web/products/cart",
     ADD: "/web/products/cart/add",
+    UPDATE: "/web/products/cart/update",
     REMOVE: "/web/products/cart/remove",
   },
   ORDER: {
@@ -32,5 +33,12 @@ export const API_ENDPOINTS = {
   },
   USER: {
     PROFILE: "/user/profile",
+  },
+  ADDRESS: {
+    CREATE: "/web/address/create",
+    EDIT: "/web/address/update",
+    VIEW: "/web/address/view",
+    LIST: "/web/address/list",
+    DELETE: "/web/address/delete",
   },
 };
