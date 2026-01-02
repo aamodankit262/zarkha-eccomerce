@@ -119,7 +119,7 @@ export default function UnmissableDeals({dealsData}) {
           {dealsData?.map((deal:any) => (
             <DealCard
               key={deal._id}
-              category={deal.applied_on_name}
+              category={deal.offer_title}
               discount={deal.discount_value}
               image={deal.banner_image}
             />

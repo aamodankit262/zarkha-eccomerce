@@ -93,18 +93,20 @@ const HomePage = () => {
 
       {/* Perfect Bottom Wear Banners */}
       <PerfectBottomWear />
-      {!loading && (
+      {!loading && getNewArrivals.length > 0 &&  (
         <section className="py-4 md:py-4 bg-[#FAF6F2] relative">
           <NewArrivals products = {getNewArrivals} />
         </section>
       )}
       <MostWantedBanner />
-      {!loading && (
+      {!loading && getBestSelling.length > 0 && (
         <section className="py-4 md:py-4 bg-[#FAF6F2] relative">
           <BestSellers products = {getBestSelling} />
         </section>
       )}
+      {getExclusiveCollections?.length > 0 && (
       <ExclusiveCollectionCarousel collection = {getExclusiveCollections}  />
+      )}
       <NewArrivalsSection />
       <FeaturesSection />
     </Layout>

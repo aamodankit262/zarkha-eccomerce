@@ -7,7 +7,7 @@ export const ProductCard = ({ product }) => {
   const { addItem, openCart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
-   console.log(product, 'newarivalvdsafadsfdasfadsfs')
+  //  console.log(product, 'newarivalvdsafadsfdasfadsfs')
 
  const handleAddToCart = () => {
     // if (!activeVariant) return;

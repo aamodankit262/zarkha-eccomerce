@@ -31,7 +31,7 @@ const SharedSidebar = ({ activeTab, setActiveTab, sidebarItems }) => {
   useEffect(() => {
     request()
   }, [])
-  console.log(data, 'addresslist..')
+  // console.log(data, 'addresslist..')
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -40,7 +40,7 @@ const SharedSidebar = ({ activeTab, setActiveTab, sidebarItems }) => {
   <div className="w-72 bg-white border-r">
     <div className="p-5 border-b">
       <p className="text-sm text-gray-600">Hello, {userDetails.name ? userDetails.name : "Dear" }</p>
-      <p className="text-sm font-medium text-gray-900">+91 {userDetails.mobile}</p>
+      <p className="text-sm font-medium text-gray-900">+91 {userDetails.phone}</p>
     </div>
     <div>
       {sidebarItems.map((item) => (

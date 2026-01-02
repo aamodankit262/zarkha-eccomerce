@@ -1,35 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface UserInterface {
-  user_code: string;
-  alternate_mobile: any;
-  user_address: string;
-  address: string;
-  isPayment: any;
-  category_id: any;
-  type: string;
-  dob: any;
-  gender: any;
-  authTokenIssuedAt: number;
-  authorizedOtp: number;
-  countryCode: string;
-  contactNumber: string;
-  created: string;
-  email: string;
-  failedLoginAttempts: number;
-  firstName: string;
-  isDeleted: boolean;
-  isSuspended: boolean;
-  isVerified: boolean;
-  lastName: string;
-  role: string;
-  preventLoginTill: number;
-  resetToken: string;
-  updated: string;
-  __v: number;
   id: string;
-  mobileNumber: any;
+  phone: any;
   mobile?: string;
   name?: string;
+  profile_photo?: string;
+  created_at?: string
 }
 
 export interface LoginRequest {
