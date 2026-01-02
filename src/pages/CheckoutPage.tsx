@@ -1,19 +1,24 @@
 import { useState, useEffect, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
-import { 
-  Search, 
-  ShoppingCart, 
-  Heart, 
-  MapPin, 
-  User, 
-  Phone, 
-  ArrowLeft, 
-  CreditCard, 
-  Smartphone, 
-  Wallet, 
-  CheckCircle, 
-  Package, 
-  Clock 
+import {
+  Search,
+  ShoppingCart,
+  Heart,
+  MapPin,
+  User,
+  Phone,
+  ArrowLeft,
+  CreditCard,
+  Smartphone,
+  Wallet,
+  CheckCircle,
+  Package,
+  Clock,
+  Tag,
+  Check,
+  X,
+  Percent
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,20 +35,56 @@ import { MobileVerification } from "@/components/checkout";
 import PaymentOptions from "@/components/checkout/PaymentOptions";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/authStore";
+import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/contexts/CartContext";
 
 type CheckoutStep = "address" | "mobile-verification" | "payment";
-
+interface Coupon {
+  code: string;
+  discount: number;
+  type: "percentage" | "fixed";
+  description: string;
+  minOrder: number;
+  maxDiscount?: number;
+}
+const availableCoupons: Coupon[] = [
+  { code: "FIRST20", discount: 20, type: "percentage", description: "20% off on your first order", minOrder: 500, maxDiscount: 500 },
+  { code: "FLAT200", discount: 200, type: "fixed", description: "Flat ₹200 off on orders above ₹1000", minOrder: 1000 },
+  { code: "SAVE15", discount: 15, type: "percentage", description: "15% off on all products", minOrder: 800, maxDiscount: 300 },
+  { code: "FREESHIP", discount: 100, type: "fixed", description: "Free shipping + ₹100 off", minOrder: 600 },
+  { code: "NEWUSER", discount: 25, type: "percentage", description: "25% off for new users", minOrder: 1000, maxDiscount: 600 },
+];
 // Main Checkout Component
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  // const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("address");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isMobileVerified, setIsMobileVerified] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [showOTP, setShowOTP] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const { sendOtp, verifyOtp, otpSent, isLoading, error, isLogin, userDetails } = useAuthStore()
+  const {
+      isOpen,
+      closeCart,
+      items,
+      updateQuantity,
+      removeItem,
+      getTotalPrice,
+    } = useCart();
+  // console.log(userDetails, 'user')
   const [formData, setFormData] = useState({
     email: "",
+    fullName: "",
     firstName: "",
     lastName: "",
     address: "",
@@ -52,24 +93,133 @@ const CheckoutPage: React.FC = () => {
     state: "",
     city: "",
     mobileNumber: "",
+    addressType: "Home",
+    otp: ""
   });
+  useEffect(() => {
+    if (isLogin) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: userDetails.name || "",
+        mobileNumber: userDetails.phone || "",
+      }));
+      setIsOtpVerified(true);
+      setShowOTP(false);
+    }
+  }, [userDetails]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+  const handleSendOtp = async () => {
+    if (formData.mobileNumber.length !== 10) {
+      toast.error("Enter valid 10 digit mobile number");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await sendOtp(formData.fullName, formData.mobileNumber);
+      setShowOTP(true);
+      toast.success("OTP sent successfully");
+    } catch (err) {
+      toast.error("Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleVerifyOtp = async () => {
+    if (formData.otp.length !== 4) {
+      toast.error("Enter 4 digit OTP");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await verifyOtp(formData.mobileNumber, formData.otp);
+      toast.success("Mobile number verified");
+      setIsOtpVerified(true);
+      setShowOTP(false);
+    } catch (err) {
+      toast.error("Invalid OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleApplyCoupon = (coupon: Coupon) => {
+    if (subtotal < coupon.minOrder) {
+      // toast({
+      //   title: "Minimum Order Required",
+      //   description: `Add items worth ₹${coupon.minOrder - subtotal} more to use this coupon.`,
+      //   variant: "destructive"
+      // });
+      toast.success(`Add items worth ₹${coupon.minOrder - subtotal} more to use this coupon.`)
+      return;
+    }
+    setAppliedCoupon(coupon);
+    setCouponCode(coupon.code);
+    setShowCouponModal(false);
+    // toast({
+    //   title: "Coupon Applied!",
+    //   description: `${coupon.code} - ${coupon.description}`,
+    // });
+    toast.success(`${coupon.code} - ${coupon.description}`)
+  };
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    // toast({
+    //   title: "Coupon Removed",
+    //   description: "Coupon has been removed from your order.",
+    // });
+    toast.success("Coupon has been removed from your order.")
+  };
+  const calculateCouponDiscount = () => {
+    if (!appliedCoupon) return 0;
+    if (subtotal < appliedCoupon.minOrder) return 0;
+
+    if (appliedCoupon.type === "percentage") {
+      const discountAmount = (subtotal * appliedCoupon.discount) / 100;
+      return appliedCoupon.maxDiscount ? Math.min(discountAmount, appliedCoupon.maxDiscount) : discountAmount;
+    }
+    return appliedCoupon.discount;
+  };
+  const subtotal = 1800;
+  // const discount = 400;
+  const deliveryCharges = 0;
+  // const totalAmount = subtotal - discount + deliveryCharges;
+  const couponDiscount = calculateCouponDiscount();
+
+  const totalAmount = subtotal - couponDiscount + deliveryCharges;
+
+
+
+  const handleManualCouponApply = () => {
+    const coupon = availableCoupons.find(c => c.code.toLowerCase() === couponCode.toLowerCase());
+    if (coupon) {
+      handleApplyCoupon(coupon);
+    } else {
+      // toast({
+      //   title: "Invalid Coupon",
+      //   description: "The coupon code you entered is not valid.",
+      //   variant: "destructive"
+      // });
+      toast.error("The coupon code you entered is not valid.")
+    }
+  };
 
   // Mock cart data
-  const subtotal = 1800;
-  const discount = 400;
-  const deliveryCharges = 0;
-  const totalAmount = subtotal - discount + deliveryCharges;
+
 
   const validateForm = () => {
     if (currentStep === "address") {
       if (
         !formData.email ||
-        !formData.firstName ||
-        !formData.lastName ||
+        !formData.fullName ||
         !formData.address ||
         !formData.pinCode ||
         !formData.mobileNumber
@@ -144,28 +294,26 @@ const CheckoutPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-4 lg:py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-0">Checkout</h1>
-            
+
             {/* Desktop Progress Steps */}
             <div className="hidden lg:flex">
               {(["address", "mobile-verification", "payment"] as CheckoutStep[]).map((step, index) => (
                 <div key={step} className="flex items-center gap-4">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm ${
-                      getStepNumber(currentStep) > index + 1
-                        ? "bg-green-500 text-white"
-                        : getStepNumber(currentStep) === index + 1
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm ${getStepNumber(currentStep) > index + 1
+                      ? "bg-green-500 text-white"
+                      : getStepNumber(currentStep) === index + 1
                         ? "bg-orange-500 text-white"
                         : "border-2 border-gray-300 text-gray-400"
-                    }`}
+                      }`}
                   >
                     {getStepNumber(currentStep) > index + 1 ? "✓" : index + 1}
                   </div>
                   <span
-                    className={`font-medium text-sm ${
-                      getStepNumber(currentStep) >= index + 1
-                        ? "text-orange-500"
-                        : "text-gray-400"
-                    }`}
+                    className={`font-medium text-sm ${getStepNumber(currentStep) >= index + 1
+                      ? "text-orange-500"
+                      : "text-gray-400"
+                      }`}
                   >
                     {getStepTitle(step)}
                   </span>
@@ -181,22 +329,20 @@ const CheckoutPage: React.FC = () => {
               {(["address", "mobile-verification", "payment"] as CheckoutStep[]).map((step, index) => (
                 <div key={step} className="flex items-center gap-2">
                   <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center font-medium text-xs ${
-                      getStepNumber(currentStep) > index + 1
-                        ? "bg-green-500 text-white"
-                        : getStepNumber(currentStep) === index + 1
+                    className={`w-6 h-6 rounded-full flex items-center justify-center font-medium text-xs ${getStepNumber(currentStep) > index + 1
+                      ? "bg-green-500 text-white"
+                      : getStepNumber(currentStep) === index + 1
                         ? "bg-orange-500 text-white"
                         : "border-2 border-gray-300 text-gray-400"
-                    }`}
+                      }`}
                   >
                     {getStepNumber(currentStep) > index + 1 ? "✓" : index + 1}
                   </div>
                   <span
-                    className={`font-medium text-sm ${
-                      getStepNumber(currentStep) >= index + 1
-                        ? "text-orange-500"
-                        : "text-gray-400"
-                    }`}
+                    className={`font-medium text-sm ${getStepNumber(currentStep) >= index + 1
+                      ? "text-orange-500"
+                      : "text-gray-400"
+                      }`}
                   >
                     {getStepTitleMobile(step)}
                   </span>
@@ -218,7 +364,7 @@ const CheckoutPage: React.FC = () => {
             {currentStep === "address" && (
               <>
                 {/* Sign In Section */}
-                <div className="bg-card rounded-lg p-4 lg:p-6 border">
+                {/* <div className="bg-card rounded-lg p-4 lg:p-6 border">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                     <h2 className="text-base lg:text-lg font-semibold text-foreground mb-2 sm:mb-0">
                       Sign In For Express Checkout
@@ -230,7 +376,7 @@ const CheckoutPage: React.FC = () => {
                       Sign In / Sign Up
                     </Button>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Customer Information */}
                 <div className="bg-card rounded-lg p-4 lg:p-6 border">
@@ -238,26 +384,19 @@ const CheckoutPage: React.FC = () => {
                     Customer Information
                   </h2>
                   <div className="space-y-4">
-                    <div className="relative">
+                    <div className="relative ">
                       <Input
-                        type="email"
-                        placeholder="Enter Email Address"
-                        value={formData.email}
+                        type="fullName"
+                        placeholder="Enter Full Name"
+                        value={formData.fullName}
+                        disabled={isOtpVerified || otpSent}
+                        readOnly={isOtpVerified}
                         onChange={(e) =>
-                          handleInputChange("email", e.target.value)
+                          handleInputChange("fullName", e.target.value)
                         }
                         className="pl-4 pr-10 h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
                       />
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <svg
-                          className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                        </svg>
-                      </div>
+                      <User className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
                     </div>
 
                     <div className="relative">
@@ -265,6 +404,8 @@ const CheckoutPage: React.FC = () => {
                         type="tel"
                         placeholder="Enter Mobile Number"
                         value={formData.mobileNumber}
+                        disabled={isOtpVerified || otpSent}
+                        readOnly={isOtpVerified}
                         onChange={(e) =>
                           handleInputChange(
                             "mobileNumber",
@@ -275,10 +416,49 @@ const CheckoutPage: React.FC = () => {
                         maxLength={10}
                       />
                       <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
+                      {!isOtpVerified && !showOTP && !isLogin && (
+                        <Button
+                          size="sm"
+                          disabled={isLoading}
+                          onClick={handleSendOtp}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white text-xs"
+                        >
+                          {isLoading ? "Sending..." : "Send OTP"}
+                        </Button>
+                      )}
+                      {isOtpVerified && (
+                        <span className="text-green-600 text-xs">✔ Verified</span>
+                      )}
                     </div>
+                    {showOTP && (
+                      <div className="space-y-2">
+                        <Input
+                          type="tel"
+                          placeholder="Enter OTP"
+                          value={formData.otp}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "otp",
+                              e.target.value.replace(/\D/g, "").slice(0, 4)
+                            )
+                          }
+                          maxLength={4}
+                          className="h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
+                        />
+
+                        <Button
+                          size="sm"
+                          disabled={isLoading}
+                          onClick={handleVerifyOtp}
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                        >
+                          {loading ? "Verifying..." : "Verify OTP"}
+                        </Button>
+                      </div>
+                    )}
+
                   </div>
                 </div>
-
                 {/* Deliver To Section */}
                 <div className="bg-card rounded-lg p-4 lg:p-6 border">
                   <h2 className="text-base lg:text-lg font-semibold text-foreground mb-4">
@@ -288,10 +468,10 @@ const CheckoutPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="relative">
                         <Input
-                          placeholder="Enter First Name"
-                          value={formData.firstName}
+                          placeholder="Enter Full Name"
+                          value={formData.fullName}
                           onChange={(e) =>
-                            handleInputChange("firstName", e.target.value)
+                            handleInputChange("fullName", e.target.value)
                           }
                           className="pl-4 pr-10 h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
                         />
@@ -299,14 +479,24 @@ const CheckoutPage: React.FC = () => {
                       </div>
                       <div className="relative">
                         <Input
-                          placeholder="Enter Last Name"
-                          value={formData.lastName}
+                          placeholder="Enter email"
+                          value={formData.email}
                           onChange={(e) =>
-                            handleInputChange("lastName", e.target.value)
+                            handleInputChange("email", e.target.value)
                           }
                           className="pl-4 pr-10 h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
                         />
-                        <User className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg
+                            className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                          </svg>
+                        </div>
+                        {/* <User className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" /> */}
                       </div>
                     </div>
 
@@ -345,8 +535,8 @@ const CheckoutPage: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="India">India</SelectItem>
-                          <SelectItem value="USA">USA</SelectItem>
-                          <SelectItem value="UK">UK</SelectItem>
+                          {/* <SelectItem value="USA">USA</SelectItem>
+                          <SelectItem value="UK">UK</SelectItem> */}
                         </SelectContent>
                       </Select>
                     </div>
@@ -384,47 +574,45 @@ const CheckoutPage: React.FC = () => {
                       </Select>
                     </div>
 
-                    {/* Save Address Options */}
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm font-medium text-foreground mb-3">
-                          Save this address as (optional)
-                        </p>
-                        <div className="flex flex-wrap gap-2 lg:gap-3">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="bg-orange-500 hover:bg-orange-600 text-white text-xs lg:text-sm px-3 py-1.5 lg:px-4 lg:py-2"
-                          >
-                            Home
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-gray-200 hover:bg-gray-50 text-xs lg:text-sm px-3 py-1.5 lg:px-4 lg:py-2"
-                          >
-                            Office
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-gray-200 hover:bg-gray-50 text-xs lg:text-sm px-3 py-1.5 lg:px-4 lg:py-2"
-                          >
-                            Other
-                          </Button>
+                   {/* Address Type and Save Options */}
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-foreground mb-2">Save this address as (optional)</p>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant={formData.addressType === "Home" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleInputChange("addressType", "Home")}
+                              className={formData.addressType === "Home" ? "bg-primary hover:bg-primary/90" : ""}
+                            >
+                              Home
+                            </Button>
+                            <Button 
+                              variant={formData.addressType === "Office" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleInputChange("addressType", "Office")}
+                              className={formData.addressType === "Office" ? "bg-primary hover:bg-primary/90" : ""}
+                            >
+                              Office
+                            </Button>
+                            <Button 
+                              variant={formData.addressType === "Other" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleInputChange("addressType", "Other")}
+                              className={formData.addressType === "Other" ? "bg-primary hover:bg-primary/90" : ""}
+                            >
+                              Other
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Checkbox id="save-default" />
+                          <label htmlFor="save-default" className="text-sm text-muted-foreground">
+                            Save as Default
+                          </label>
                         </div>
                       </div>
-
-                      <div className="flex items-center space-x-2">
-                        <Checkbox id="save-default" />
-                        <label
-                          htmlFor="save-default"
-                          className="text-sm text-gray-600"
-                        >
-                          Save as Default
-                        </label>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </>
@@ -448,89 +636,135 @@ const CheckoutPage: React.FC = () => {
           </div>
 
           {/* Right Column - Price Details */}
-          <div className="lg:col-span-1 order-first lg:order-last">
-            <div className="bg-card rounded-lg p-4 lg:p-6 border space-y-4 lg:space-y-6 lg:sticky lg:top-4">
-              <h2 className="text-base lg:text-lg font-semibold text-foreground">
-                Price Details
-              </h2>
+          <div className="lg:col-span-1">
+            <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-6 lg:sticky lg:top-4">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground">Price Details</h2>
 
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm lg:text-base">
-                  <span className="text-gray-600">Price (2 items)</span>
-                  <span className="font-medium text-foreground">
-                    ₹{subtotal}
-                  </span>
+              {/* Coupon Section */}
+              <div className="border rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Tag className="w-4 h-4 text-primary" />
+                  <span className="font-medium text-sm text-foreground">Apply Coupon</span>
                 </div>
 
-                <div className="flex justify-between text-sm lg:text-base">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-600">Discount (AB1234)</span>
-                    <button className="text-red-500 text-xs hover:underline">
-                      Remove
+                {appliedCoupon ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600" />
+                        <div>
+                          <span className="font-semibold text-green-700">{appliedCoupon.code}</span>
+                          <p className="text-xs text-green-600">{appliedCoupon.description}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <p className="text-sm text-green-700 mt-2 font-medium">You save ₹{couponDiscount}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter coupon code"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        className="flex-1 text-sm"
+                      />
+                      <Button
+                        onClick={handleManualCouponApply}
+                        disabled={!couponCode}
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                    <button
+                      onClick={() => setShowCouponModal(true)}
+                      className="text-primary text-sm font-medium hover:underline flex items-center gap-1"
+                    >
+                      <Percent className="w-3 h-3" />
+                      View Available Coupons
                     </button>
                   </div>
-                  <span className="text-red-500 font-medium">
-                    - ₹{discount}
-                  </span>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm sm:text-base">
+                  {/* <span className="text-muted-foreground">Price ({items.length} items)</span> */}
+                  <span className="font-medium text-foreground">₹{subtotal}</span>
                 </div>
 
-                <div className="flex justify-between text-sm lg:text-base">
-                  <span className="text-gray-600">Delivery Charges</span>
-                  <span className="font-medium text-foreground">
-                    ₹{deliveryCharges}
+                {appliedCoupon && (
+                  <div className="flex justify-between text-sm sm:text-base">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Coupon Discount ({appliedCoupon.code})</span>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="text-red-500 text-xs hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <span className="text-green-600 font-medium">- ₹{couponDiscount}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">Delivery Charges</span>
+                  <span className={deliveryCharges === 0 ? "text-green-600 font-medium" : "font-medium text-foreground"}>
+                    {deliveryCharges === 0 ? "Free" : `₹${deliveryCharges}`}
                   </span>
                 </div>
 
                 <div className="border-t pt-3">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-foreground text-sm lg:text-base">
-                      Total Amount
-                    </span>
-                    <span className="font-bold text-base lg:text-lg text-foreground">
-                      ₹{totalAmount}
-                    </span>
+                    <span className="font-semibold text-foreground text-sm sm:text-base">Total Amount</span>
+                    <span className="font-bold text-lg text-foreground">₹{totalAmount}</span>
                   </div>
+                  {appliedCoupon && (
+                    <p className="text-xs text-green-600 text-right mt-1">You save ₹{couponDiscount} on this order</p>
+                  )}
                 </div>
               </div>
 
               {currentStep === "address" && (
                 <div className="space-y-4">
+                  {!isLogin && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm text-yellow-800">
+                        <strong>Note:</strong> You'll need to login or create an account before placing your order.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="flex items-start space-x-2">
                     <Checkbox
                       id="terms"
                       checked={acceptTerms}
-                      onCheckedChange={(checked) =>
-                        setAcceptTerms(checked === true)
-                      }
+                      onCheckedChange={(checked) => setAcceptTerms(checked === true)}
                     />
-                    <label
-                      htmlFor="terms"
-                      className="text-xs lg:text-sm text-gray-600 leading-relaxed"
-                    >
+                    <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
                       I Confirm I Am Accept The{" "}
-                      <a
-                        href="/terms"
-                        className="text-orange-500 hover:underline cursor-pointer"
-                      >
-                        Terms & Conditions
-                      </a>{" "}
-                      And{" "}
-                      <a
-                        href="/privacy-policy"
-                        className="text-orange-500 hover:underline cursor-pointer"
-                      >
-                        Privacy Policy
-                      </a>
-                      .
+                      <a href="/terms" className="text-primary hover:underline cursor-pointer">Terms & Conditions</a>
+                      {" "}And{" "}
+                      <a href="/privacy-policy" className="text-primary hover:underline cursor-pointer">Privacy Policy</a>.
                     </label>
                   </div>
 
                   <Button
                     onClick={handleProceedToMobileVerification}
                     disabled={!acceptTerms}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2.5 lg:py-3 font-medium text-sm lg:text-base h-10 lg:h-12"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 font-medium"
                   >
-                    Proceed to Secure Checkout
+                    {/* {isLogin ? "Proceed to checkout" : "Continue to Mobile Verification"} */}
+                    Proceed to checkout
                   </Button>
                 </div>
               )}
@@ -544,10 +778,61 @@ const CheckoutPage: React.FC = () => {
         <OrderSuccess
           isOpen={showSuccessModal}
           onClose={handleCloseSuccessModal}
-          // orderId={orderId}
-          // totalAmount={totalAmount}
+        // orderId={orderId}
+        // totalAmount={totalAmount}
         />
       )}
+      {/* Coupon Modal */}
+      <Dialog open={showCouponModal} onOpenChange={setShowCouponModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Tag className="w-5 h-5 text-primary" />
+              Available Coupons
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+            {availableCoupons.map((coupon) => {
+              const isEligible = subtotal >= coupon.minOrder;
+              return (
+                <div
+                  key={coupon.code}
+                  className={`border rounded-lg p-4 ${isEligible ? 'hover:border-primary cursor-pointer' : 'opacity-60'}`}
+                  onClick={() => isEligible && handleApplyCoupon(coupon)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-primary/10 px-3 py-1 rounded">
+                        <span className="font-bold text-primary text-sm">{coupon.code}</span>
+                      </div>
+                      {coupon.type === "percentage" ? (
+                        <span className="text-sm font-semibold text-foreground">{coupon.discount}% OFF</span>
+                      ) : (
+                        <span className="text-sm font-semibold text-foreground">₹{coupon.discount} OFF</span>
+                      )}
+                    </div>
+                    {isEligible && (
+                      <Button size="sm" variant="outline" className="text-primary border-primary hover:bg-primary hover:text-primary-foreground">
+                        Apply
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{coupon.description}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Min. order: ₹{coupon.minOrder}
+                    {coupon.maxDiscount && ` • Max discount: ₹${coupon.maxDiscount}`}
+                  </p>
+                  {!isEligible && (
+                    <p className="text-xs text-red-500 mt-2">
+                      Add ₹{coupon.minOrder - subtotal} more to unlock this coupon
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

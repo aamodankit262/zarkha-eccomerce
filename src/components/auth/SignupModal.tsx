@@ -34,12 +34,12 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
       });
     }
   }, [error]);
-  useEffect(() => {
-    if (otpSent) {
-      setShowOTP(true);
-      setCountdown(35);
-    }
-  }, [otpSent]);
+  // useEffect(() => {
+  //   if (otpSent) {
+  //     setShowOTP(true);
+  //     setCountdown(35);
+  //   }
+  // }, [otpSent]);
   useEffect(() => {
     if (!showOTP || countdown <= 0) return;
 
@@ -121,7 +121,6 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
     setShowOTP(false);
     setFormData({ name: "", phone: "", otp: ["", "", "", ""] });
   };
-
 
   const handleBack = () => {
     setShowOTP(false);
@@ -207,17 +206,22 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
                           placeholder="Enter Mobile Number"
                           value={formData.phone}
                           onChange={(e) =>
-                            setFormData({ ...formData, phone: e.target.value })
+                            setFormData({
+                              ...formData,
+                              phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                            })
                           }
+
                           className="flex-1 border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           required
+                          maxLength={10}
                         />
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
                         Enter your 10-digit mobile number to continue
                       </p>
                     </div>
-                    <div className="flex items-center">
+                    {/* <div className="flex items-center">
                       <input
                         type="checkbox"
                         id="notify"
@@ -231,7 +235,7 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
                       >
                         Notify Me With Offers & Updates
                       </label>
-                    </div>
+                    </div> */}
                     {/* <button
                       type="submit"
                       className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 rounded-lg transition-colors"

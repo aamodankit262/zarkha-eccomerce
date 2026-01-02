@@ -43,14 +43,10 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const { data, request } = useApi(productService.getById);
   useEffect(() => {
     if (!id) return;
-
     request(id);
   }, [id]);
-  // console.log("Product ID:", id);
   const [searchParams] = useSearchParams();
-  //  const params = new URLSearchParams(searchParams);
   const selectedVariantId = searchParams.get("variant");
-
   console.log(selectedVariantId, 'variantId')
   const productVariants = data?.body?.variants ?? [];
   const activeVariant = productVariants.find(
@@ -69,19 +65,23 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     }
   }, [selectedVariantId, productVariants, id, navigate]);
 
+  const capitalizeFirst = (text?: string) => {
+    if (!text) return "";
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
 
 
-  console.log("Product Data:", data);
+  // console.log("Product Data:", data);
 
   const productImages =
     activeVariant?.images?.length > 0
       ? activeVariant.images
       : data?.body?.images || [];
-  console.log(productVariants, 'variants')
-  const sizes = data?.body?.select_size?.map((size: any) => size) || ["S", "M", "L", "XL"];
-  const colors = data?.body?.color.map((color: any) => color.color_code);
+  const sizes = data?.body?.select_size?.map((size: any) => size) || [];
+  // const colors = data?.body?.color.map((color: any) => color.color_code);
   const rating = data?.body?.ratings || 4.5;
-  const productDescription = data?.body?.product_details?.description ?? "";
+  const shortDescription = data?.body?.product_details?.short_discription ?? "";
+  const longDescription = data?.body?.product_details?.long_discription ?? "";
 
   const ratingsCount = data?.body?.ratings_and_reviews;
   const details = data?.body?.product_details;
@@ -106,7 +106,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
         : 0,
     };
   });
-
+  console.log(ratingBreakdown, 'ratingBreakdown')
 
   const customerReviews =
     data?.body?.feedback?.feedback_list?.map(
@@ -119,17 +119,17 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
         images: item.feedback_image ?? [],
       })
     ) ?? [];
-
+  //  const totalReviews =  data?.body?.feedback?
   const productDetails = [
     { label: "Color", value: details?.color.map((color, i) => color.color_name).join(",") || "-" },
-    { label: "Length", value: details?.length || "-" },
+    { label: "Work", value: details?.Work || "-" },
     { label: "Fabric", value: details?.fabric || "-" },
-    {
-      label: "Pattern / Ideal For",
-      value: details?.pattern || details?.ideal_for || "-",
-    },
-    { label: "Style Code", value: details?.style_code || "-" },
-    { label: "Suitable For", value: details?.suitable_for || "-" },
+    // {
+    //   label: "Pattern / Ideal For",
+    //   value: details?.pattern || details?.ideal_for || "-",
+    // },
+    { label: "Fit Type", value: details?.fit_type || "-" },
+    // { label: "Suitable For", value: details?.suitable_for || "-" },
   ];
 
   const productsData = similarProductsRaw?.map((product: any) => {
@@ -141,7 +141,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
         : 0;
 
     return {
-      id: product._id,
+      id: product.id,
       title: product.name,
       price: product.product_price,
       originalPrice: product.mrp,
@@ -186,7 +186,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
             <span className="hover:text-brand-orange cursor-pointer">Home</span>
             <span className="mx-1">›</span>
             <span className="hover:text-brand-orange cursor-pointer">
-              Kurtis
+              {details?.subcategory ?? details?.category}
             </span>
             <span className="mx-1">›</span>
             <span className="text-gray-900">Product Details</span>
@@ -207,9 +207,12 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                   className="w-full h-[400px] md:h-[500px] object-cover rounded-lg"
                 />
                 {/* New Arrivals Badge */}
-                <div className="absolute top-4 left-4 bg-orange-500 text-white text-xs px-3 py-1 rounded">
-                  New Arrivals
-                </div>
+                {details?.isNew === 1 && (
+                  <div className="absolute top-4 left-4 bg-orange-500 text-white text-xs px-3 py-1 rounded">
+                    New Arrivals
+                  </div>
+                )}
+
                 {/* Action Icons */}
                 <div className="absolute top-4 right-4 flex gap-2">
                   <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
@@ -243,24 +246,21 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                 ))}
               </div>
             </div>
-
-            {/* Product Info */}
-            {/* CHANGE: Adjusted spacing for mobile */}
             <div className="space-y-4 md:space-y-6">
               {/* Title and Rating */}
               <div>
                 {/* CHANGE: Responsive font size for title */}
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
                   {/* Purple Lehenga Set With Hand Embroidered Blouse And Dupatta */}
-                  {data?.body?.product_title}
+                  {capitalizeFirst(data?.body?.product_title)}
                 </h1>
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                   <div className="flex items-center">
                     <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
                     <span className="ml-1 text-sm font-medium">{rating}</span>
                   </div>
-                  {/* <span className="text-sm text-gray-500">1 Rating 320</span> */}
-                </div>
+                  <span className="text-sm text-gray-500">1 Rating 320</span>
+                </div> */}
               </div>
 
               {/* Price */}
@@ -315,12 +315,12 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
 
               {/* Size Selection */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                   <h3 className="font-medium text-gray-900">Select Size</h3>
                   <button className="text-sm text-orange-500 hover:text-orange-600">
                     Size Guide
                   </button>
-                </div>
+                </div> */}
                 <div className="flex gap-3">
                   {sizes?.map((size) => (
                     <button
@@ -377,11 +377,10 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
               </div>
 
               {/* Delivery */}
-              <div className="space-y-3 pt-4 border-t">
+              {/* <div className="space-y-3 pt-4 border-t">
                 <h3 className="font-medium text-gray-900">Delivery</h3>
                 <div className="flex flex-col sm:flex-row gap-3">
                   {" "}
-                  {/* Stacks on small screens */}
                   <input
                     type="text"
                     placeholder="Enter Delivery Address"
@@ -391,7 +390,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                     Check Now
                   </Button>
                 </div>
-              </div>
+              </div> */}
               <div className="mt-12 space-y-6">
                 {/* Product Details Accordion */}
                 <div className="rounded-lg">
@@ -409,7 +408,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                   </button>
                   {showProductDetails && (
                     <div className="px-4 pb-4 border-t">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8 pt-4">
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-y-3 gap-x-8 pt-4 flex-wrap">
                         {productDetails?.map((detail, index) => (
                           <div key={index} className="flex justify-between">
                             <span className="text-gray-600">
@@ -417,32 +416,51 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                             </span>
                             <span className="text-gray-900">
                               {detail.value || "—"}
-                              {/* {Array.isArray(detail.value) ? (
-                                detail.value.map((item, i) =>
-                                  typeof item === 'string' ? (
-                                    <span key={i}>{item}{i < detail.value.length - 1 && "," }</span>
-                                  ) : (
-                                    <span key={i} className="inline-flex items-center gap-1">
-                                      <span
-                                        className="w-3 h-3 rounded-full border"
-                                        style={{ backgroundColor: item.color_code }}
-                                      />
-                                      {item.color_name}
-                                    </span>
-                                  )
-                                )
-                              ) : (
-                                <span>{detail.value || "—"}</span>
-                              )} */}
                             </span>
                           </div>
                         ))}
                       </div>
-                      <div className="mt-4 pt-4 border-t">
+                      {/* <div className="mt-4 pt-4 border-t">
                         <p className="text-sm text-gray-600 leading-relaxed"
-                          dangerouslySetInnerHTML={{ __html: productDescription }}
+                          dangerouslySetInnerHTML={{ __html: longDescription }}
                         >
-                          {/* Embrace Effortless Elegance With Our Block-Printed
+                          Embrace Effortless Elegance With Our Block-Printed
+                          Shirt-Style Dress, Tailored In A Chic A-Line
+                          Silhouette, Showcasing Distinctive Maroon Hues. This
+                          Dress Is A Standout Piece, Made From Premium Rayon, It
+                          Offers Exceptional{" "}
+                          <button className="text-orange-500 hover:text-orange-600 font-medium">
+                            Read More
+                          </button>
+                        </p>
+
+                      </div> */}
+                    </div>
+                  )}
+                </div>
+
+                {/* Information Accordion */}
+                {longDescription.length > 0 && (
+                  <div className=" rounded-lg">
+                    <button
+                      onClick={() => setShowAudioInfo(!showAudioInfo)}
+                      className="w-full flex items-center justify-between p-4 text-left"
+                    >
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Product Descriptions
+                      </h3>
+                      <ChevronDown
+                        className={`h-5 w-5 transition-transform ${showAudioInfo ? "rotate-180" : ""
+                          }`}
+                      />
+                    </button>
+                    {showAudioInfo && (
+                      <div className="px-4 pb-4 border-t">
+                        <div className="mt-4 pt-4">
+                          <p className="text-sm text-gray-600 leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: longDescription }}
+                          >
+                            {/* Embrace Effortless Elegance With Our Block-Printed
                           Shirt-Style Dress, Tailored In A Chic A-Line
                           Silhouette, Showcasing Distinctive Maroon Hues. This
                           Dress Is A Standout Piece, Made From Premium Rayon, It
@@ -450,53 +468,13 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                           <button className="text-orange-500 hover:text-orange-600 font-medium">
                             Read More
                           </button> */}
-                        </p>
+                          </p>
 
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Audio Information Accordion */}
-                <div className=" rounded-lg">
-                  <button
-                    onClick={() => setShowAudioInfo(!showAudioInfo)}
-                    className="w-full flex items-center justify-between p-4 text-left"
-                  >
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Audio Information
-                    </h3>
-                    <ChevronDown
-                      className={`h-5 w-5 transition-transform ${showAudioInfo ? "rotate-180" : ""
-                        }`}
-                    />
-                  </button>
-                  {showAudioInfo && (
-                    <div className="px-4 pb-4 border-t">
-                      <div className="pt-4">
-                        <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
-                          <button className="p-2 bg-white rounded-full shadow-sm hover:shadow-md">
-                            <Play className="h-5 w-5 text-gray-700" />
-                          </button>
-                          <div className="flex-1">
-                            <div className="text-sm text-gray-600 mb-1">
-                              0:30 / 0:05
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-gray-800 h-2 rounded-full"
-                                style={{ width: `${audioProgress * 100}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                          <button className="p-2">
-                            <Volume2 className="h-5 w-5 text-gray-700" />
-                          </button>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Ratings & Reviews Accordion */}
                 <div className=" rounded-lg">
@@ -555,6 +533,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                                   ></div>
                                 </div>
                                 <span className="text-sm text-gray-600 w-8">
+                                  {/* {console.log(rating.count)} */}
                                   {rating.count}
                                 </span>
                               </div>
@@ -563,11 +542,10 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                         </div>
 
                         {/* Customer Reviews */}
-                        <div className="space-y-6">
+                        {/* <div className="space-y-6">
                           <h4 className="text-lg font-medium text-gray-900">
                             Customers Feedback ({customerReviews?.length})
                           </h4>
-
                           {customerReviews?.map((review) => (
                             <div key={review.id} className="space-y-3">
                               <div className="flex items-start justify-between gap-4">
@@ -579,13 +557,12 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                                 </div>
                               </div>
 
-                              {/* Review Images */}
                               <div className="flex gap-2">
-                                {review.images.map((image, index) => (
+                                {review?.images?.map((image, index) => (
                                   <img
                                     key={index}
                                     src={image}
-                                    alt={`Review ${index + 1}`}
+                                    alt={review.name}
                                     className="w-12 h-12 object-cover rounded"
                                   />
                                 ))}
@@ -597,16 +574,17 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                             </div>
                           ))}
 
-                          {/* View All Reviews Button */}
-                          <div className="text-center pt-4">
-                            <button
-                              onClick={handleViewAllReviews}
-                              className="text-orange-500 hover:text-orange-600 font-medium"
-                            >
-                              View All 151 Reviews
-                            </button>
-                          </div>
-                        </div>
+                          {customerReviews?.length > 3 && (
+                            <div className="text-center pt-4">
+                              <button
+                                onClick={handleViewAllReviews}
+                                className="text-orange-500 hover:text-orange-600 font-medium"
+                              >
+                                View All {customerReviews?.length} Reviews
+                              </button>
+                            </div>
+                          )}
+                        </div> */}
                       </div>
                     </div>
                   )}
@@ -614,14 +592,16 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
               </div>
             </div>
           </div>
-
+          {productsData.length > 0 && (
           <div className="max-w-7xl mx-auto px-4 py-12">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl md:text-2xl font-bold text-gray-900">
                 Similar Products
               </h2>
-              <button className="px-3 py-1.5 border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 transition-colors text-sm font-medium">
+              <button
+                onClick={() => navigate(`/products?industry=${details.industry_id}&category=${details?.category_id}&sub=${details?.subcategory_id}`)}
+                className="px-3 py-1.5 border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 transition-colors text-sm font-medium">
                 View All
               </button>
             </div>
@@ -633,6 +613,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
               ))}
             </div>
           </div>
+          )}
         </div>
       </div>
     </Layout>

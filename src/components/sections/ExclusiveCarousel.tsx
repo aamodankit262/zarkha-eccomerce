@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ExclusiveCollectionCarousel = ({collection}) => {
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(3);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const collections = collection.map((item, index) => {
@@ -10,8 +12,12 @@ const ExclusiveCollectionCarousel = ({collection}) => {
       image: item?.image || "/assets/no_image.jpg",
       title: item.name || `Collection ${index + 1}`,
       category: item.category || "Cotton Printed",
+      price : item?.discount_price
     }
   });
+  //  const goToDetails = (id) => {
+  //   navigate(`/product/${id}`);
+  // };
   // const collections = [
   //   { id: 1, image: "/carousel-1.webp", title: "Floral Print Dress", price: "₹ 999", category: "Cotton Printed" },
   //   { id: 2, image: "/carousel-2.webp", title: "Elegant Kurta Set", price: "₹ 1299", category: "Cotton Printed" },
@@ -147,7 +153,11 @@ const ExclusiveCollectionCarousel = ({collection}) => {
                   }
                 }}
               >
-                <div className="relative w-full h-full bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300">
+
+                <div 
+                className="relative w-full h-full bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300"
+                 onClick={() => navigate(`/product/${item.id}`)}
+                >
                   <img
                     src={item.image}
                     alt={item.title}
@@ -156,8 +166,8 @@ const ExclusiveCollectionCarousel = ({collection}) => {
                   />
                   {index === currentIndex && (
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-4 py-2 rounded-md text-center min-w-[130px]">
-                      <div className="text-sm font-semibold">Starting At ₹ 999</div>
-                      <div className="text-xs text-orange-400 font-medium mt-1">{item.category}</div>
+                      <div className="text-sm font-semibold">{item.price || "price"}</div>
+                      <div className="text-xs text-orange-400 font-medium mt-1">{item.title}</div>
                     </div>
                   )}
                 </div>

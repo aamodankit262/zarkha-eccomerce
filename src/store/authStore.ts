@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>()(
 
             set({
               otpSent: true,
-              userDetails: { name, mobile } as UserInterface,
+              // userDetails: { name, mobile } as UserInterface,
               mobile,
             });
           } catch (err: any) {
@@ -69,6 +69,7 @@ export const useAuthStore = create<AuthState>()(
             set({
               token: res.token ?? "dummy_token",
               isLogin: true,
+              userDetails : res?.user, 
               otpSent: false,
             });
           } catch (err: any) {
