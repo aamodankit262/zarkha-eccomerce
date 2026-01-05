@@ -78,28 +78,26 @@ const CheckoutPage: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string>("1");
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const { data, loading, request } = useApi(getAddressList)
-  useEffect(() => {
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const { sendOtp, verifyOtp, otpSent, isLoading, error, isLogin, userDetails, token } = useAuthStore()
+  const {
+    items,
+    getTotalPrice,
+  } = useCart();
+    useEffect(() => {
+      if(!token) return;
     request();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (data?.body) {
       setSavedAddresses(data.body);
     }
   }, [data]);
-  // Coupon state
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
-  const [showCouponModal, setShowCouponModal] = useState(false);
-  const { sendOtp, verifyOtp, otpSent, isLoading, error, isLogin, userDetails } = useAuthStore()
-  const {
-    isOpen,
-    closeCart,
-    items,
-    updateQuantity,
-    removeItem,
-    getTotalPrice,
-  } = useCart();
   // console.log(userDetails, 'user')
   const [formData, setFormData] = useState({
     email: "",
