@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_ENDPOINTS } from "./endpoints";
 
-const getToken = () => {
+const  getToken = () => {
   try {
     const auth = localStorage.getItem("zarkha-auth");
     return auth ? JSON.parse(auth)?.state?.token : null;
@@ -47,40 +47,4 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-// Request
-// axiosInstance.interceptors.request.use((config) => {
-//   const isAuthApi =
-//     config.url?.includes("/send-otp") ||
-//     config.url?.includes("/verify-otp");
 
-//   if (!isAuthApi) {
-//     const token = getToken();
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//   }
-
-//   return config;
-// });
-
-// // Response
-// axiosInstance.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     const url = error.config?.url || "";
-
-//     const isAuthApi =
-//       url.includes("/auth/send-otp") ||
-//       url.includes("/auth/verify-otp");
-
-//     if (error.response?.status === 401 && !isAuthApi) {
-//       localStorage.removeItem("zarkha-auth");
-//       window.location.href = "/";
-//     }
-
-//     return Promise.reject(error);
-//   }
-// );
-
-
-// export default axiosInstance;

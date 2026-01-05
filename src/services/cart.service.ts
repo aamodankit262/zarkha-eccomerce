@@ -17,9 +17,11 @@ export interface CartItem {
   item_id: string;
   quantity: number;
   product_title?: string;
+  size?: string;
   product_image?: string;
   price: number;
   discount_price?: number;
+  color : any
 }
 
 export interface CartResponse {

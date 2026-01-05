@@ -1,5 +1,6 @@
 import { apiClient } from "@/api/client";
 import { API_ENDPOINTS } from "@/api/endpoints";
+import { AddressPayload, UpdateAddressPayload } from "@/types";
 
 
 interface ApiResponse<T> {
@@ -15,23 +16,46 @@ export const getAddressList = async (): Promise<any> => {
   const res = await apiClient.post(API_ENDPOINTS.ADDRESS.LIST,);
   return res;
 };
+export const createAddress = async (payload: AddressPayload) => {
+  const formData = new FormData();
 
-/** Add to cart */
-// export const addToCartApi = async (payload: AddToCartPayload) => {
-//   const formData = new FormData();
-//   Object.entries(payload).forEach(([k, v]) =>
-//     formData.append(k, String(v))
-//   );
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      formData.append(key, String(value));
+    }
+  });
 
-//   const res = await apiClient.post<{
-//     success: boolean;
-//     message: string;
-//     cart_id: string;
-//     cart: CartResponse;
-//   }>(API_ENDPOINTS.CART.ADD, formData);
+  const res = await apiClient.post<ApiResponse<any>>(
+    API_ENDPOINTS.ADDRESS.CREATE,
+    formData
+  );
 
-//   return {
-//     cartId: res.cart_id,
-//     cart: res.cart,
-//   };
-// };
+  return res;
+};
+export const updateAddress = async (payload: UpdateAddressPayload) => {
+  const formData = new FormData();
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      formData.append(key, String(value));
+    }
+  });
+
+  const res = await apiClient.put<ApiResponse<any>>(
+    API_ENDPOINTS.ADDRESS.EDIT,
+    formData
+  );
+
+  return res;
+};
+export const deleteAddress = async (addressId: string) => {
+  const formData = new FormData();
+  formData.append("id", addressId);
+
+  const res = await apiClient.post<ApiResponse<null>>(
+    API_ENDPOINTS.ADDRESS.DELETE,
+    formData
+  );
+
+  return res;
+};

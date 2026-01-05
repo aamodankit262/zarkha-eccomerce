@@ -584,6 +584,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                               </button>
                             </div>
                           )}
+                            
                         </div> */}
                       </div>
                     </div>
@@ -593,26 +594,26 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
             </div>
           </div>
           {productsData.length > 0 && (
-          <div className="max-w-7xl mx-auto px-4 py-12">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-                Similar Products
-              </h2>
-              <button
-                onClick={() => navigate(`/products?industry=${details.industry_id}&category=${details?.category_id}&sub=${details?.subcategory_id}`)}
-                className="px-3 py-1.5 border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 transition-colors text-sm font-medium">
-                View All
-              </button>
-            </div>
+            <div className="max-w-7xl mx-auto px-4 py-12">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                  Similar Products
+                </h2>
+                <button
+                  onClick={() => navigate(`/products?industry=${details.industry_id}&category=${details?.category_id}&sub=${details?.subcategory_id}`)}
+                  className="px-3 py-1.5 border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 transition-colors text-sm font-medium">
+                  View All
+                </button>
+              </div>
 
-            {/* Grid - Already responsive */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {productsData?.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+              {/* Grid - Already responsive */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {productsData?.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
             </div>
-          </div>
           )}
         </div>
       </div>

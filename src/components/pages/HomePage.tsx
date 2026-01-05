@@ -14,26 +14,8 @@ import PerfectBottomWear from "../sections/PerfectBottomWear";
 import UnmissableDeals from "../sections/UnbeatableDeals";
 import { useApi } from "@/hooks/useApi";
 import { HomeService } from "@/services/homeService";
-      const auth = localStorage.getItem("zarkha-auth");
-console.log("Auth Data:", auth);
-// import GlobalLoader from "../GlobalLoader";
+// const auth = localStorage.getItem("zarkha-auth");
 
-// const heroSlides = [
-//   {
-//     image: "/lovable-uploads/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png", // Your first image
-//     title: "",
-//     subtitle: "",
-//     buttonText: "",
-//     buttonLink: "",
-//   },
-//   {
-//     image: "/left-banner.webp", // Your second image
-//     title: "New Arrivals",
-//     subtitle: "Discover the latest trends in ethnic fashion",
-//     buttonText: "Explore Collection",
-//     buttonLink: "",
-//   },
-// ];
 const HomePage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [showProductListing, setShowProductListing] = useState(false);
@@ -51,7 +33,7 @@ const HomePage = () => {
   const getNewArrivals = HomData?.newArrivals || [];
   const getBestSelling = HomData?.bestSelling || [];
   const getExclusiveCollections = HomData?.exclusiveCollections || [];
-//  console.log("Home Data:", HomData); 
+  //  console.log("Home Data:", HomData); 
   const handleSubcategorySelect = (category: string, subcategory: string) => {
     setSelectedSubcategory(subcategory);
     setShowProductListing(true);
@@ -62,16 +44,16 @@ const HomePage = () => {
     setShowProductListing(false);
     setSelectedSubcategory("");
   };
- 
-// if(loading){
-//     return <GlobalLoader/>;
-//   }
+
+  // if(loading){
+  //     return <GlobalLoader/>;
+  //   }
   return (
     <Layout onCategorySelect={setSelectedCategory}>
       {/* Dedicated Hero Section */}
       <div className="relative">
         <HeroSection slides={heroSlides} />
-        <UnmissableDeals dealsData={dealsData}/>
+        <UnmissableDeals dealsData={dealsData} />
         {/* Category Section - Shows when category is selected */}
         {selectedCategory && (
           <div className="absolute top-0 left-0 right-0 z-20 bg-white shadow-lg">
@@ -83,7 +65,7 @@ const HomePage = () => {
               />
             </div>
           </div>
-      )} 
+        )}
       </div>
 
       {/* Month Start Special Section */}
@@ -93,19 +75,19 @@ const HomePage = () => {
 
       {/* Perfect Bottom Wear Banners */}
       <PerfectBottomWear />
-      {!loading && getNewArrivals.length > 0 &&  (
+      {!loading && getNewArrivals.length > 0 && (
         <section className="py-4 md:py-4 bg-[#FAF6F2] relative">
-          <NewArrivals products = {getNewArrivals} />
+          <NewArrivals products={getNewArrivals} />
         </section>
       )}
       <MostWantedBanner />
       {!loading && getBestSelling.length > 0 && (
         <section className="py-4 md:py-4 bg-[#FAF6F2] relative">
-          <BestSellers products = {getBestSelling} />
+          <BestSellers products={getBestSelling} />
         </section>
       )}
       {getExclusiveCollections?.length > 0 && (
-      <ExclusiveCollectionCarousel collection = {getExclusiveCollections}  />
+        <ExclusiveCollectionCarousel collection={getExclusiveCollections} />
       )}
       <NewArrivalsSection />
       <FeaturesSection />
