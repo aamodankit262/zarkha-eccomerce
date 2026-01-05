@@ -433,9 +433,8 @@ const Dashboard = () => {
                     }
                     className="w-full p-3 border rounded focus:outline-none focus:ring-1 focus:ring-orange-500 text-gray-500 text-sm"
                   >
-                    <option value="">Select Country</option>
+                    {/* <option value="">Select Country</option> */}
                     <option value="India">India</option>
-                    <option value="USA">USA</option>
                   </select>
                 </div>
               </div>

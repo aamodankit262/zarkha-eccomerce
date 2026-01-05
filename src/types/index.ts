@@ -40,7 +40,42 @@ export interface ProductListPayload {
   page?: number;
   limit?: number;
 }
+export interface AddressPayload {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  address: string;
+  pin_code: string;
+  country: string;
+  state: string;
+  city: string;
+  home?: string;
+  office?: string;
+  other?: string;
+  is_default?: boolean;
+}
 
+export interface UpdateAddressPayload extends AddressPayload {
+  address_id?: string;
+  id?: string;
+}
+
+export interface SavedAddress {
+   _id: string;
+  user_id?: string;
+  first_name?: string;
+  last_name: string;
+  address: string;
+  pinCode: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  addressType: "Home" | "Office" | "Other";
+  is_default?: boolean;
+  home?: boolean;
+  office?: boolean;
+  other?: boolean;
+}
 export interface CartItem {
   product_id: string;
   variant_id: string;

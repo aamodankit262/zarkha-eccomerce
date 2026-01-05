@@ -123,7 +123,9 @@ export const CartSlider = () => {
                           </button>
                         </div>
                         <div className="text-xs text-gray-600 mb-3">
-                          {/* Size: {item.size}, Color: {item.color} */}
+                          {/* Size: {item.size}, Color: {item?.color?.name} */}
+                          {item?.size && <span>Size: {item.size}</span>}
+                          {item.color && <span>, Color: {item.color.name}</span>}
                         </div>
                       </div>
                       <div className="flex items-center justify-between mt-auto">
