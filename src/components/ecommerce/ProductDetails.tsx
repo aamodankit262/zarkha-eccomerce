@@ -21,11 +21,19 @@ import { RatingsPage } from "./RatingPage";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useApi } from "@/hooks/useApi";
 import { productService } from "@/services/productService";
+import SizeChartDialog from "../SizeChart";
 
 interface ProductDetailsPageProps {
   onClose: () => void;
 }
-
+const sizeChartData = [
+  { size: "XS", bust: "32-34", waist: "26-28", hip: "36-38" },
+  { size: "S", bust: "34-36", waist: "28-30", hip: "38-40" },
+  { size: "M", bust: "36-38", waist: "30-32", hip: "40-42" },
+  { size: "L", bust: "38-40", waist: "32-34", hip: "42-44" },
+  { size: "XL", bust: "40-42", waist: "34-36", hip: "44-46" },
+  { size: "XXL", bust: "42-44", waist: "36-38", hip: "46-48" },
+];
 const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const navigate = useNavigate();
   // const [selectedImage, setSelectedImage] = useState(0);
@@ -34,9 +42,11 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const [quantity, setQuantity] = useState(1);
   const [showProductDetails, setShowProductDetails] = useState(true);
   const [showAudioInfo, setShowAudioInfo] = useState(true);
+  const [showProductInfo, setShowProductInfo] = useState(true);
   const [showRatingsReviews, setShowRatingsReviews] = useState(true);
   const [audioProgress, setAudioProgress] = useState(0.5);
   const [showRatingsPage, setShowRatingsPage] = useState(false);
+    const [showSizeChart, setShowSizeChart] = useState(false);
   const [selectedImage, setSelectedImage] = useState<number>(0);
   const { openCart, addItem } = useCart();
   const id = useParams().id || "";
@@ -143,8 +153,8 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     return {
       id: product.id,
       title: product.name,
-      price: product.product_price,
-      originalPrice: product.mrp,
+      price: product.discount_price,
+      originalPrice: product.mrp || product.product_price,
       discount, // percentage
       image: product?.images?.[0]?.url || "/assets/no_image.jpg",
       isNew: true,
@@ -254,13 +264,14 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                   {/* Purple Lehenga Set With Hand Embroidered Blouse And Dupatta */}
                   {capitalizeFirst(data?.body?.product_title)}
                 </h1>
-                {/* <div className="flex items-center gap-2">
-                  <div className="flex items-center">
+                <div className="flex items-center gap-2">
+                  {/* <div className="flex items-center">
                     <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
                     <span className="ml-1 text-sm font-medium">{rating}</span>
-                  </div>
-                  <span className="text-sm text-gray-500">1 Rating 320</span>
-                </div> */}
+                  </div> */}
+                  {/* <span className="text-sm text-gray-500">1 Rating 320</span> */}
+                  <span className="text-sm text-gray-500">{shortDescription ?? ''}</span>
+                </div>
               </div>
 
               {/* Price */}
@@ -315,12 +326,14 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
 
               {/* Size Selection */}
               <div className="space-y-3">
-                {/* <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <h3 className="font-medium text-gray-900">Select Size</h3>
-                  <button className="text-sm text-orange-500 hover:text-orange-600">
+                  <button 
+                  onClick={() => setShowSizeChart(true)}
+                  className="text-sm text-orange-500 hover:text-orange-600">
                     Size Guide
                   </button>
-                </div> */}
+                </div>
                 <div className="flex gap-3">
                   {sizes?.map((size) => (
                     <button
@@ -443,7 +456,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                 {longDescription.length > 0 && (
                   <div className=" rounded-lg">
                     <button
-                      onClick={() => setShowAudioInfo(!showAudioInfo)}
+                      onClick={() => setShowProductInfo(!showProductInfo)}
                       className="w-full flex items-center justify-between p-4 text-left"
                     >
                       <h3 className="text-lg font-medium text-gray-900">
@@ -475,6 +488,47 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                     )}
                   </div>
                 )}
+                {/* Audio Information Accordion */}
+                <div className=" rounded-lg">
+                  <button
+                    onClick={() => setShowAudioInfo(!showAudioInfo)}
+                    className="w-full flex items-center justify-between p-4 text-left"
+                  >
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Audio Information
+                    </h3>
+                    <ChevronDown
+                      className={`h-5 w-5 transition-transform ${
+                        showAudioInfo ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  {showAudioInfo && (
+                    <div className="px-4 pb-4 border-t">
+                      <div className="pt-4">
+                        <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+                          <button className="p-2 bg-white rounded-full shadow-sm hover:shadow-md">
+                            <Play className="h-5 w-5 text-gray-700" />
+                          </button>
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-600 mb-1">
+                              0:30 / 0:05
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-gray-800 h-2 rounded-full"
+                                style={{ width: `${audioProgress * 100}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <button className="p-2">
+                            <Volume2 className="h-5 w-5 text-gray-700" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Ratings & Reviews Accordion */}
                 <div className=" rounded-lg">
@@ -616,6 +670,12 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
             </div>
           )}
         </div>
+        <SizeChartDialog
+        open={showSizeChart}
+        onOpenChange={setShowSizeChart}
+        sizeChart={sizeChartData}
+        note={`* Model (height 5'8") is wearing size S`}
+      />
       </div>
     </Layout>
   );

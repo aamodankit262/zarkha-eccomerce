@@ -41,7 +41,7 @@ const navigate = useNavigate()
                 <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer">
                   Seller
                 </p>
-                <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer" onClick={() => navigate('/about-us')}>
+                <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer" onClick={() => navigate('/about')}>
                   About
                 </p>
                 <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer" onClick={() => navigate('/contact-us')}>
@@ -59,18 +59,28 @@ const navigate = useNavigate()
                 For Consumers
               </h3>
               <div className="space-y-2">
-                <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer">
+                <p
+                onClick={() => navigate('/privacy-policy')}
+                  className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer">
                   Privacy
                 </p>
-                <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer">
+                <p 
+                onClick={() => navigate('/terms')}
+                className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer">
                   Terms
                 </p>
+                 <p 
+                onClick={() => navigate('/shipping')}
+                className="text-muted-foreground hover:text-brand-orange cursor-pointer text-sm"
+              >
+                Shipping Policy
+              </p>
                 <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer">
                   Security
                 </p>
-                <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer">
+                {/* <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer">
                   Mobile App
-                </p>
+                </p> */}
               </div>
             </div>
 

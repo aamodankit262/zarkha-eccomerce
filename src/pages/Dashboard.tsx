@@ -27,11 +27,8 @@ import { getAddressList } from "@/services/address.service";
 const SharedSidebar = ({ activeTab, setActiveTab, sidebarItems }) => {
   const navigate = useNavigate();
   const{logout, userDetails} = useAuthStore();
-  const {data, loading, error, request} = useApi(getAddressList)
-  useEffect(() => {
-    request()
-  }, [])
-  // console.log(data, 'addresslist..')
+ 
+  // console.log(userDetails, 'user..')
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -77,7 +74,9 @@ const Dashboard = () => {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [editingAddress, setEditingAddress] = useState(null);
-
+ const {data, loading, error, request} = useApi(getAddressList)
+ const { token , userDetails} = useAuthStore()
+ 
   // Form states for add/edit address
   const [addressForm, setAddressForm] = useState({
     firstName: "",
@@ -90,7 +89,16 @@ const Dashboard = () => {
     addressType: "Home",
     isDefault: false,
   });
-
+   const [addresses, setAddresses] = useState([]);
+  useEffect(() => {
+     if (!token) return;
+     request();
+   }, [token]);
+  useEffect(() => {
+      if (data?.body) {
+        setAddresses(data.body);
+      }
+    }, [data]);
   // Sample data
   const orders = [
     {
@@ -132,22 +140,7 @@ const Dashboard = () => {
     },
   ];
 
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      firstName: "Ram",
-      lastName: "Kumar",
-      address: "Flat Govind Marg Jaipur - 302004",
-      relation: "Relative",
-      mobile: "9417941436",
-      pinCode: "302004",
-      country: "India",
-      state: "Rajasthan",
-      city: "Jaipur",
-      addressType: "Home",
-      isDefault: true,
-    },
-  ]);
+ 
 
   const sidebarItems = [
     { id: "orders", label: "My Orders", icon: Package },
@@ -854,9 +847,9 @@ const Dashboard = () => {
             </div>
 
             <div className="space-y-4">
-              {addresses.map((address) => (
+              {addresses?.map((address) => (
                 <div
-                  key={address.id}
+                  key={address._id}
                   className="bg-white border rounded-lg p-5"
                 >
                   <div className="flex items-start justify-between">
@@ -866,16 +859,19 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <h3 className="font-medium text-gray-900 mb-1">
-                          {address.firstName} {address.lastName}
+                          {address.first_name} {address.last_name}
                         </h3>
                         <p className="text-sm text-gray-600 mb-1">
                           {address.address}
                         </p>
+                         <p className="text-sm text-muted-foreground">
+                                      {address.city}, {address.state} {address.pinCode}
+                                    </p>
+                        {/* <p className="text-sm text-gray-600">
+                          Relation: {address?.relation}
+                        </p> */}
                         <p className="text-sm text-gray-600">
-                          Relation: {address.relation}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Mobile: {address.mobile}
+                          Mobile: {userDetails?.phone}
                         </p>
                       </div>
                     </div>
