@@ -8,6 +8,7 @@ import MegaMenu from "./MegaMenu";
 import Navigation from "./Navigation";
 import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png";
 import { useAuthStore } from "@/store/authStore";
+import TopBar from "./TopBar";
 
 const Header = () => {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
@@ -54,10 +55,12 @@ const Header = () => {
   };
 
   return (
+    <>
     <div
       className="w-full bg-white sticky top-0 z-50 shadow-sm"
       onMouseLeave={handleMouseLeave}
     >
+      <TopBar/>
       <div className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between py-4">
@@ -147,6 +150,7 @@ const Header = () => {
         onClose={() => setIsSignupOpen(false)}
       />
     </div>
+    </>
   );
 };
 
