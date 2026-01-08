@@ -46,7 +46,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const [showRatingsReviews, setShowRatingsReviews] = useState(true);
   const [audioProgress, setAudioProgress] = useState(0.5);
   const [showRatingsPage, setShowRatingsPage] = useState(false);
-    const [showSizeChart, setShowSizeChart] = useState(false);
+  const [showSizeChart, setShowSizeChart] = useState(false);
   const [selectedImage, setSelectedImage] = useState<number>(0);
   const { openCart, addItem } = useCart();
   const id = useParams().id || "";
@@ -228,9 +228,9 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                   <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
                     <Heart className="h-5 w-5 text-gray-600" />
                   </button>
-                  <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
+                  {/* <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
                     <Share2 className="h-5 w-5 text-gray-600" />
-                  </button>
+                  </button> */}
                 </div>
               </div>
 
@@ -328,9 +328,9 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium text-gray-900">Select Size</h3>
-                  <button 
-                  onClick={() => setShowSizeChart(true)}
-                  className="text-sm text-orange-500 hover:text-orange-600">
+                  <button
+                    onClick={() => setShowSizeChart(true)}
+                    className="text-sm text-orange-500 hover:text-orange-600">
                     Size Guide
                   </button>
                 </div>
@@ -374,7 +374,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
+              {/* <div className="space-y-3">
                 <Button
                   onClick={handleAddToCart}
                   className="w-full bg-white border border-orange-500 text-orange-500 hover:bg-orange-50 py-3 text-base font-medium"
@@ -387,6 +387,42 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                 >
                   Buy Now
                 </Button>
+              </div> */}
+              {/* Desktop Buttons */}
+              <div className="space-y-3 hidden sm:block">
+                <Button
+                  onClick={handleAddToCart}
+                  className="w-full bg-white border border-orange-500 text-orange-500 hover:bg-orange-50 py-3 text-base font-medium"
+                >
+                  Add To Cart
+                </Button>
+
+                <Button
+                  onClick={() => navigate("/checkout")}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-base font-medium"
+                >
+                  Buy Now
+                </Button>
+              </div>
+
+
+              {/* Mobile Sticky Footer */}
+              <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t p-3 sm:hidden">
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleAddToCart}
+                    className="flex-1 bg-white border border-orange-500 text-orange-500 hover:bg-orange-50 py-3 text-sm font-semibold"
+                  >
+                    Add To Cart
+                  </Button>
+
+                  <Button
+                    onClick={() => navigate("/checkout")}
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 text-sm font-semibold"
+                  >
+                    Buy Now
+                  </Button>
+                </div>
               </div>
 
               {/* Delivery */}
@@ -498,9 +534,8 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                       Audio Information
                     </h3>
                     <ChevronDown
-                      className={`h-5 w-5 transition-transform ${
-                        showAudioInfo ? "rotate-180" : ""
-                      }`}
+                      className={`h-5 w-5 transition-transform ${showAudioInfo ? "rotate-180" : ""
+                        }`}
                     />
                   </button>
                   {showAudioInfo && (
@@ -671,11 +706,11 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
           )}
         </div>
         <SizeChartDialog
-        open={showSizeChart}
-        onOpenChange={setShowSizeChart}
-        sizeChart={sizeChartData}
-        note={`* Model (height 5'8") is wearing size S`}
-      />
+          open={showSizeChart}
+          onOpenChange={setShowSizeChart}
+          sizeChart={sizeChartData}
+          note={`* Model (height 5'8") is wearing size S`}
+        />
       </div>
     </Layout>
   );

@@ -38,8 +38,8 @@ const navigate = useNavigate()
             <div className="border-r border-gray-200 pr-6">
               <h3 className="font-semibold text-gray-800 mb-3">Company</h3>
               <div className="space-y-2">
-                <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer">
-                  Seller
+                <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer" onClick={() => navigate('/affiliate')} >
+                  Become a partner
                 </p>
                 <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer" onClick={() => navigate('/about')}>
                   About

@@ -28,7 +28,7 @@ export const CartSlider = () => {
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
-  console.log(items, 'items...')
+  // console.log(items, 'items...')
 
   const handleQuantityChange = (
     productId: string,
@@ -97,7 +97,7 @@ export const CartSlider = () => {
           ) : (
             <div className="p-4 space-y-4">
               {items?.map((item) => (
-                <div
+                <div 
                   key={item._id}
                   className="bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow"
                 >

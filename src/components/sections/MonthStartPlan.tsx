@@ -1,4 +1,6 @@
+import { NO_IMAGE } from "@/api/endpoints";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const categoryData = [
   {
@@ -18,19 +20,45 @@ const categoryData = [
   },
 ];
 
-const CategoryCard = ({ label, image }) => {
+const CategoryCard = ({ title, subtitle, image, link}) => {
+  const navigate = useNavigate();
+  console.log(image ,'.....')
   return (
-    <div className="relative rounded-2xl overflow-hidden h-96 cursor-pointer transition-all duration-500 hover:scale-105 group shadow-sm">
+    <div 
+    onClick={() => navigate(link)}
+    className="relative rounded-2xl overflow-hidden h-96 cursor-pointer transition-all duration-500 hover:scale-105 group shadow-sm">
       {/* Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-500"
-        style={{ backgroundImage: `url(${image})` }}
+        style={{
+          backgroundImage: `url("${encodeURI(image)}")`,
+        }}
+        // style={{ backgroundImage: `url(${image})` }}
       />
     </div>
   );
 };
 
-export default function MonthStartSpecial() {
+export default function MonthStartSpecial({banner}) {
+  if (!banner?.length) return null;
+  console.log(banner, 'banner')
+  const categoryData = [
+  {
+    id: 1,
+    label: "CASUAL",
+    image: "/casual-wear-1.webp",
+  },
+  {
+    id: 2,
+    label: "WORK",
+    image: "/casual-wear-2.webp",
+  },
+  {
+    id: 3,
+    label: "FESTIVE",
+    image: "/casual-wear-3.webp",
+  },
+];
   return (
     <div className="max-w-7xl mx-auto px-4 py-14">
       <div className="bg-white rounded-3xl shadow-lg px-6 py-10 lg:px-12 lg:py-14">
@@ -55,11 +83,13 @@ export default function MonthStartSpecial() {
 
           {/* Right Images Section (bigger width) */}
           <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {categoryData.map((category) => (
+            {banner.map((item) => (
               <CategoryCard
-                key={category.id}
-                label={category.label}
-                image={category.image}
+                key={item._id}
+                title={item.title}
+                subtitle={item.subtitle}
+                image={item.image}
+                link={item.link}
               />
             ))}
           </div>

@@ -30,11 +30,11 @@ const CouponModal = ({
 
         <div className="space-y-3 max-h-[60vh] overflow-y-auto">
           {coupons?.map((coupon) => {
-            const isEligible = subtotal >= coupon.minOrder;
+            const isEligible = subtotal >= coupon.min_cart_value;
 
             return (
               <div
-                key={coupon.code}
+                key={coupon._id}
                 className={`border rounded-lg p-4 transition ${
                   isEligible
                     ? "hover:border-primary cursor-pointer"
@@ -50,13 +50,13 @@ const CouponModal = ({
                       </span>
                     </div>
 
-                    {coupon.type === "percentage" ? (
+                    {coupon.discount_type === "percentage" ? (
                       <span className="text-sm font-semibold text-foreground">
-                        {coupon.discount}% OFF
+                        {coupon.discount_value}% OFF
                       </span>
                     ) : (
                       <span className="text-sm font-semibold text-foreground">
-                        ₹{coupon.discount} OFF
+                        ₹{coupon.max_discount_amount} OFF
                       </span>
                     )}
                   </div>
@@ -77,14 +77,14 @@ const CouponModal = ({
                 </p>
 
                 <p className="text-xs text-muted-foreground mt-1">
-                  Min. order: ₹{coupon.minOrder}
-                  {coupon.maxDiscount &&
-                    ` • Max discount: ₹${coupon.maxDiscount}`}
+                  Min. order: ₹{coupon.min_cart_value}
+                  {coupon.max_discount_amount &&
+                    ` • Max discount: ₹${coupon.max_discount_amount}`}
                 </p>
 
                 {!isEligible && (
                   <p className="text-xs text-red-500 mt-2">
-                    Add ₹{coupon.minOrder - subtotal} more to unlock this coupon
+                    Add ₹{coupon.min_cart_value - subtotal} more to unlock this coupon
                   </p>
                 )}
               </div>

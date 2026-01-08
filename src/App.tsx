@@ -17,6 +17,7 @@ import AboutUs from "./pages/AboutUs";
 import FAQ from "./pages/FAQ";
 import ContactUs from "./pages/ContactUs";
 import CheckoutPage from "./pages/checkout/CheckoutPage";
+import SearchProductsPage from "./components/SearchProductsPage";
 
 const Index = lazy(() => import("./pages/Index"));
 const ProductListingPage = lazy(() => import("./components/ecommerce/ProductListing"));
@@ -61,7 +62,7 @@ const AppContent = () => {
           {/* <Route path="/checkout" element={<CheckoutPage />} /> */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/track-order/:orderId" element={<TrackOrder />} />
-          <Route path="/search" element={<SearchPage />} />
+          {/* <Route path="/search" element={<SearchPage />} /> */}
           <Route path="/wishlist" element={<Wishlist />} />
           {/* <Route path="/about-us" element={<AboutUsPage />} /> */}
           <Route path="/size-guide" element={<SizeGuide />} />
@@ -75,7 +76,8 @@ const AppContent = () => {
         <Route path="/terms" element={<Terms />} />
         <Route path="/shipping" element={<Shipping />} />
         <Route path="/returns" element={<Returns />} />
-        
+        {/* <Route path="/search" element={<SearchPage/>} /> */}
+        <Route path="/search" element={<SearchProductsPage/>} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/shipping" element={<Shipping />} />
           <Route path="/returns" element={<Returns />} />

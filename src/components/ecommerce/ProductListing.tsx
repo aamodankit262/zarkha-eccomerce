@@ -96,7 +96,8 @@ const ProductListingPage = () => {
       selectedSize: p.size && p.size.length > 0 ? p.size[0] : "M",
       color: p.color && p.color.length > 0 ? p.color[0] : "Default",
       quantity: 1,
-      createdAt: p.create_at
+      createdAt: p.create_at,
+      variantId: p.item_code_ids?.[0]
     };
   });
 
@@ -207,9 +208,6 @@ const ProductListingPage = () => {
     return data;
   }, [industryId, filters.category, categories, subCategories]);
 
-
-
-
   const FilterSection = ({ title, items, filterKey }: FilterSectionProps) => {
     // const [isOpen, setIsOpen] = useState(true);
     const { filters, setFilters } = useProductStore();
@@ -310,8 +308,6 @@ const ProductListingPage = () => {
     );
   };
 
-
-
   const handleProductClick = (productId: number) => {
     window.location.href = `/product/${productId}`;
   };
@@ -323,6 +319,11 @@ const ProductListingPage = () => {
   const ProductCard = ({ product }: { product: (typeof products)[0] }) => {
     const handleAddToCart = (e: React.MouseEvent) => {
       e.stopPropagation();
+      addItem({
+      productId: product.id,
+      variantId: product.variantId,
+      quantity: 1
+    });
       // addItem({
       //   id: product.id,
       //   name: product.title,

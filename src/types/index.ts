@@ -47,8 +47,8 @@ export interface AddressPayload {
   address: string;
   pin_code: string;
   country: string;
-  state: string;
-  city: string;
+  stateId: string;
+  cityId : string;
   home?: string;
   office?: string;
   other?: string;
@@ -56,9 +56,9 @@ export interface AddressPayload {
 }
 
 export interface UpdateAddressPayload extends AddressPayload {
-  address_id?: string;
   id?: string;
 }
+type AddressType = "Home" | "Office" | "Other";
 
 export interface SavedAddress {
    _id: string;
@@ -66,11 +66,13 @@ export interface SavedAddress {
   first_name?: string;
   last_name: string;
   address: string;
-  pinCode: string;
-  city?: string;
+  pin_code: string;
+  cityId ?: string;
+  city ?: string;
   state?: string;
+  stateId?: string;
   country?: string;
-  addressType: "Home" | "Office" | "Other";
+  addressType: AddressType;
   is_default?: boolean;
   home?: boolean;
   office?: boolean;
