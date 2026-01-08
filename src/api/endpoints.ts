@@ -1,3 +1,4 @@
+export const NO_IMAGE = "/assets/no_image.jpg"
 export const API_ENDPOINTS = {
   BASE_URL: import.meta.env.VITE_API_BASE_URL,
   HOME: "/web/home",
@@ -41,4 +42,14 @@ export const API_ENDPOINTS = {
     LIST: "/web/address/list",
     DELETE: "/web/address/delete",
   },
+  LIST: {
+    STATES: "/web/list/states",
+    CITY: "/web/list/cities",
+  },
+  COUPON: {
+    LIST: "/web/coupon/list",
+    APPLY: "/web/coupon/add",
+    REMOVE: "/web/coupon/remove",
+  },
+  CMS : "web/user/cms/get"
 };

@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/common/Layout";
+import { useCms } from "@/hooks/useCms";
+import { CMS_TYPES } from "@/services/cms.service";
 
 const ContactUs = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,7 +19,9 @@ const ContactUs = () => {
     message: ""
   });
   const { toast } = useToast();
+  const { data, loading } = useCms(CMS_TYPES.CONTACT);
 
+  if (loading) return null;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -50,9 +54,9 @@ const ContactUs = () => {
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 py-16">
           <div className="max-w-7xl mx-auto px-4 text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">Contact Us</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-4">{data?.title}</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Have a question or need assistance? We'd love to hear from you. 
+              Have a question or need assistance? We'd love to hear from you.
               Get in touch and we'll respond as soon as possible.
             </p>
           </div>
@@ -123,7 +127,7 @@ const ContactUs = () => {
                 </Card>
               </div>
 
-              {/* Map placeholder */}
+              
               <div className="bg-muted rounded-lg h-64 flex items-center justify-center">
                 <div className="text-center">
                   <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
@@ -132,7 +136,14 @@ const ContactUs = () => {
                 </div>
               </div>
             </div>
-
+            {/* <div>
+              {data?.content && (
+                <div
+                  className="prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: data.content }}
+                />
+              )}
+            </div> */}
             {/* Contact Form */}
             <div>
               <Card>
@@ -207,8 +218,8 @@ const ContactUs = () => {
                       />
                     </div>
 
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={isSubmitting}
                       className="w-full bg-primary hover:bg-primary/90"
                     >

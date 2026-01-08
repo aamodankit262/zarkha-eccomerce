@@ -12,6 +12,8 @@ import {
     createAddress,
     deleteAddress,
     getAddressList,
+    getCityList,
+    getStateList,
     updateAddress,
 } from "@/services/address.service";
 import { SavedAddress } from "@/types";
@@ -20,33 +22,35 @@ import { Check, Percent, Phone, Tag, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CouponModal from "./CouponModal";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getCouponList } from "@/services/coupon.service";
 
 export interface Coupon {
     code: string;
-    discount: number;
-    type: "percentage" | "fixed";
+    _id: string;
+    discount_value: number;
+    discount_type: "percentage" | "fixed";
     description: string;
-    minOrder: number;
-    maxDiscount?: number;
+    min_cart_value: number;
+    max_discount_amount?: number;
 }
 
-export const availableCoupons: Coupon[] = [
-    {
-        code: "FIRST20",
-        discount: 20,
-        type: "percentage",
-        description: "20% off on your first order",
-        minOrder: 500,
-        maxDiscount: 500,
-    },
-    {
-        code: "FLAT200",
-        discount: 200,
-        type: "fixed",
-        description: "Flat ₹200 off on orders above ₹1000",
-        minOrder: 1000,
-    },
-];
+// export const availableCoupons: Coupon[] = [
+//     {
+//         code: "FIRST20",
+//         discount: 20,
+//         type: "percentage",
+//         description: "20% off on your first order",
+//         minOrder: 500,
+//         maxDiscount: 500,
+//     },
+//     {
+//         code: "FLAT200",
+//         discount: 200,
+//         type: "fixed",
+//         description: "Flat ₹200 off on orders above ₹1000",
+//         minOrder: 1000,
+//     },
+// ];
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -56,13 +60,17 @@ const CheckoutPage = () => {
     const [showOTP, setShowOTP] = useState(false);
     const [loader, setLoading] = useState(false);
     const [showCouponModal, setShowCouponModal] = useState(false);
-     const [orderId, setOrderId] = useState("");
+    const [orderId, setOrderId] = useState("");
 
     /* ---------------- ADDRESS STATE ---------------- */
     const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
         null
     );
+    const [states, setStates] = useState<any[]>([]);
+    const [cities, setCities] = useState<any[]>([]);
+    const [couponList, setCouponList] = useState<any[]>([]);
+
     const [isEditingAddress, setIsEditingAddress] = useState(false);
     const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
 
@@ -94,6 +102,7 @@ const CheckoutPage = () => {
 
     /* ---------------- API ---------------- */
     const { data, request, loading } = useApi(getAddressList);
+
     useEffect(() => {
         if (isLogin) {
             setFormData((prev) => ({
@@ -105,6 +114,29 @@ const CheckoutPage = () => {
             setShowOTP(false);
         }
     }, [userDetails]);
+
+    useEffect(() => {
+        if (!token) return;
+        getCouponList().then((res) => {
+            console.log(res , 'coupons')
+            setCouponList(res?.body || []);
+        });
+    }, [token]);
+    useEffect(() => {
+        if (!token) return;
+        getStateList().then((res) => {
+            setStates(res?.data || []);
+        });
+    }, [token]);
+
+    useEffect(() => {
+        if (!formData.state && !token) return;
+
+        getCityList(formData.state).then((res) => {
+            setCities(res?.data || []);
+        });
+    }, [formData.state]);
+
     useEffect(() => {
         if (token) request();
     }, [token]);
@@ -112,12 +144,12 @@ const CheckoutPage = () => {
     useEffect(() => {
         if (data?.body) setSavedAddresses(data.body);
     }, [data]);
+
     const handleSendOtp = async () => {
         if (formData.mobileNumber.length !== 10) {
             toast.error("Enter valid 10 digit mobile number");
             return;
         }
-
         try {
             setLoading(true);
             await sendOtp(formData.fullName, formData.mobileNumber);
@@ -129,6 +161,7 @@ const CheckoutPage = () => {
             setLoading(false);
         }
     };
+
     const handleVerifyOtp = async () => {
         if (formData.otp.length !== 4) {
             toast.error("Enter 4 digit OTP");
@@ -152,12 +185,12 @@ const CheckoutPage = () => {
     const deliveryCharges = 0;
 
     const couponDiscount = appliedCoupon
-        ? appliedCoupon.type === "percentage"
+        ? appliedCoupon.discount_type === "percentage"
             ? Math.min(
-                (subtotal * appliedCoupon.discount) / 100,
-                appliedCoupon.maxDiscount ?? Infinity
+                (subtotal * appliedCoupon.discount_value) / 100,
+                appliedCoupon.max_discount_amount ?? Infinity
             )
-            : appliedCoupon.discount
+            : appliedCoupon.discount_value
         : 0;
 
     const totalAmount = subtotal - couponDiscount + deliveryCharges;
@@ -185,15 +218,16 @@ const CheckoutPage = () => {
     };
 
     const handleEditAddress = (address: SavedAddress) => {
+        console.log(address, 'editaddress..')
         setEditingAddressId(address._id);
         setFormData({
             ...formData,
             firstName: address.first_name,
             lastName: address.last_name,
             address: address.address,
-            pinCode: address.pinCode,
-            city: address.city,
-            state: address.state,
+            pinCode: address.pin_code,
+            city: address.cityId,
+            state: address.stateId,
             country: address.country,
             addressType: address.addressType,
             isDefault: address.is_default
@@ -215,27 +249,33 @@ const CheckoutPage = () => {
                 address: formData.address,
                 pin_code: formData.pinCode,
                 country: formData.country,
-                state: formData.state,
-                city: formData.city,
+                stateId: formData.state,
+                cityId: formData.city,
                 addressType: formData.addressType,
                 home: formData.addressType === "Home" ? "true" : "",
                 office: formData.addressType === "Office" ? "true" : "",
                 other: formData.addressType === "Other" ? "true" : "",
                 is_default: formData.isDefault,
             }
+            console.log(payload, 'payload... ')
+            let savedAddress: SavedAddress;
             if (editingAddressId) {
                 // Update existing address
-                await updateAddress({
+                const res = await updateAddress({
                     ...payload,
                     id: editingAddressId,
                 })
-
+                savedAddress = res.body;
                 toast.info("Your address has been updated successfully.");
             } else {
-                await createAddress(payload);
+                const res = await createAddress(payload);
+                savedAddress = res.body;
                 toast.info("Your new address has been saved.");
             }
-            request();
+            await request();
+            if (savedAddress.is_default) {
+                setSelectedAddressId(savedAddress._id);
+            }
             setIsEditingAddress(false);
             setEditingAddressId(null);
         } catch (error) {
@@ -246,7 +286,6 @@ const CheckoutPage = () => {
     const handleDeleteAddress = async (addressId: string) => {
         try {
             await deleteAddress(addressId);
-
             if (selectedAddressId === addressId) {
                 setSelectedAddressId("");
             }
@@ -265,9 +304,9 @@ const CheckoutPage = () => {
 
     /* ---------------- COUPON HANDLERS ---------------- */
     const handleApplyCoupon = (coupon: Coupon) => {
-        if (subtotal < coupon.minOrder) {
+        if (subtotal < coupon.min_cart_value) {
 
-            toast.success(`Add items worth ₹${coupon.minOrder - subtotal} more to use this coupon.`)
+            toast.success(`Add items worth ₹${coupon.min_cart_value - subtotal} more to use this coupon.`)
             return;
         }
         setAppliedCoupon(coupon);
@@ -282,7 +321,7 @@ const CheckoutPage = () => {
         toast.success("Coupon has been removed from your order.")
     };
     const handleManualCouponApply = () => {
-        const coupon = availableCoupons.find(
+        const coupon = couponList.find(
             (c) => c.code === couponCode
         );
         if (!coupon) {
@@ -297,22 +336,22 @@ const CheckoutPage = () => {
     };
 
     /* ---------------- PAYMENT ---------------- */
-    const handlePaymentComplete = () => {
-    const newOrderId = "ORD" + Date.now().toString().slice(-6);
-    setOrderId(newOrderId);
-    setShowSuccessModal(true);
-  };
+    // const handlePaymentComplete = () => {
+    //     const newOrderId = "ORD" + Date.now().toString().slice(-6);
+    //     setOrderId(newOrderId);
+    //     setShowSuccessModal(true);
+    // };
 
     const handlePayment = () => {
         if (!selectedAddressId) {
             toast.error("Please select delivery address");
             return;
         }
-         const newOrderId = "ORD" + Date.now().toString().slice(-6);
+        const newOrderId = "ORD" + Date.now().toString().slice(-6);
         toast.success("Ready for Razorpay 🚀");
         // openRazorpay() here
-         setOrderId(newOrderId);
-    setShowSuccessModal(true);
+        setOrderId(newOrderId);
+        setShowSuccessModal(true);
     };
 
     return (
@@ -418,6 +457,8 @@ const CheckoutPage = () => {
                             handleCancelEdit={handleCancelEdit}
                             handleInputChange={handleInputChange}
                             setFormData={setFormData}
+                            states={states}
+                            cities={cities}
                         />
                     )}
 
@@ -577,7 +618,7 @@ const CheckoutPage = () => {
             <CouponModal
                 open={showCouponModal}
                 onOpenChange={setShowCouponModal}
-                coupons={availableCoupons}
+                coupons={couponList}
                 subtotal={subtotal}
                 onApplyCoupon={handleApplyCoupon}
             />

@@ -44,6 +44,8 @@ interface AddressSectionProps {
   handleCancelEdit: () => void;
   handleInputChange: (key: keyof AddressFormData, value: any) => void;
   setFormData: React.Dispatch<React.SetStateAction<AddressFormData>>;
+  states: any[];
+  cities: any[];
 }
 
 const AddressSection = ({
@@ -59,6 +61,8 @@ const AddressSection = ({
   handleCancelEdit,
   handleInputChange,
   setFormData,
+  states,
+  cities
 }: AddressSectionProps) => {
   return (
     <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6">
@@ -142,8 +146,11 @@ const AddressSection = ({
                 <SelectValue placeholder="State *" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Delhi">Delhi</SelectItem>
-                <SelectItem value="Maharashtra">Maharashtra</SelectItem>
+                {states?.map((state) => (
+                  <SelectItem key={state._id} value={state._id}>
+                    {state.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -152,13 +159,17 @@ const AddressSection = ({
               onValueChange={(v) =>
                 handleInputChange("city", v)
               }
+              disabled={!formData.state}
             >
               <SelectTrigger>
                 <SelectValue placeholder="City *" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Delhi">Delhi</SelectItem>
-                <SelectItem value="Mumbai">Mumbai</SelectItem>
+                {cities?.map((city) => (
+                  <SelectItem key={city._id} value={city._id}>
+                    {city.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -232,11 +243,10 @@ const AddressSection = ({
             savedAddresses?.map((address) => (
               <div
                 key={address._id}
-                className={`border rounded-lg p-4 cursor-pointer ${
-                  selectedAddressId === address._id
-                    ? "border-primary bg-primary/5"
-                    : ""
-                }`}
+                className={`border rounded-lg p-4 cursor-pointer ${selectedAddressId === address._id
+                  ? "border-primary bg-primary/5"
+                  : ""
+                  }`}
                 onClick={() =>
                   setSelectedAddressId(address._id)
                 }
@@ -252,7 +262,7 @@ const AddressSection = ({
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {address.city}, {address.state}{" "}
-                      {address.pinCode}
+                      {address.pin_code}
                     </p>
                   </div>
 

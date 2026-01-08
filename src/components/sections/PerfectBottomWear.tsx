@@ -12,6 +12,7 @@ const bottomWearImages = [
 ];
 
 const ImageCard = ({ image }) => {
+  console.log(image , 'imagecard')
   return (
     <div className="rounded-2xl overflow-hidden cursor-pointer group h-80 lg:h-96 relative">
       <img 
@@ -29,14 +30,14 @@ const ImageCard = ({ image }) => {
   );
 };
 
-export default function PerfectBottomWear() {
+export default function PerfectBottomWear({bottomWearImages}) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-16">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-        {bottomWearImages.map((item) => (
+        {bottomWearImages?.slice(0,2).map((item) => (
           <ImageCard
-            key={item.id}
-            image={item.image}
+            key={item._id}
+            image={item?.image || "/assets/no_image.jpg"}
           />
         ))}
       </div>

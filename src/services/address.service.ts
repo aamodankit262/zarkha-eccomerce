@@ -11,7 +11,20 @@ interface ApiResponse<T> {
   filtered_by: object
 }
 
-/** Get cart list */
+export const getStateList = async (): Promise<any> => {
+  const formData = new FormData();
+  formData.append("country_id", "68481ffbfba1d82fccf0d2b4");
+  const res = await apiClient.post(API_ENDPOINTS.LIST.STATES, formData);
+  return res;
+};
+
+export const getCityList = async (stateId: string): Promise<any> => {
+  const formdata = new FormData();
+  formdata.append("state_id", stateId)
+  const res = await apiClient.post(API_ENDPOINTS.LIST.CITY, formdata);
+  return res;
+};
+
 export const getAddressList = async (): Promise<any> => {
   const res = await apiClient.post(API_ENDPOINTS.ADDRESS.LIST,);
   return res;
@@ -52,10 +65,13 @@ export const deleteAddress = async (addressId: string) => {
   const formData = new FormData();
   formData.append("id", addressId);
 
-  const res = await apiClient.post<ApiResponse<null>>(
+  const res = await apiClient.del<ApiResponse<null>>(
     API_ENDPOINTS.ADDRESS.DELETE,
-    formData
+    {
+      data: formData, 
+    }
   );
 
   return res;
 };
+

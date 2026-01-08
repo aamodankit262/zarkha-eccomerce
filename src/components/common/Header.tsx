@@ -20,7 +20,7 @@ const Header = () => {
   const openTimeoutRef = useRef<number | null>(null);
   const closeTimeoutRef = useRef<number | null>(null);
   // const { isLoggedIn } = useAuth();
-  const {isLogin} = useAuthStore();
+  const { isLogin } = useAuthStore();
   const navigate = useNavigate();
   const totalItems = getTotalItems();
 
@@ -56,100 +56,106 @@ const Header = () => {
 
   return (
     <>
-    <div
-      className="w-full bg-white sticky top-0 z-50 shadow-sm"
-      onMouseLeave={handleMouseLeave}
-    >
-      <TopBar/>
-      <div className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-4">
-              <button
-                className="lg:hidden"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-              <img
-                src={logoImage}
-                alt="Zarkha"
-                className="h-8 w-auto cursor-pointer"
-                onClick={() => navigate("/")}
-              />
-            </div>
-            <div className="flex items-center gap-4 md:gap-6">
-              <div
+      <div
+        className="w-full bg-white sticky top-0 z-50 shadow-sm"
+        onMouseLeave={handleMouseLeave}
+      >
+        <TopBar />
+        <div className="border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-4">
+                <button
+                  className="lg:hidden"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                >
+                  <Menu className="h-6 w-6" />
+                </button>
+                <img
+                  src={logoImage}
+                  alt="Zarkha"
+                  className="h-8 w-auto cursor-pointer"
+                  onClick={() => navigate("/")}
+                />
+              </div>
+              <div className="flex items-center gap-4 md:gap-6">
+                {/* <div
                 onClick={() => navigate("/products")}
                 className="text-gray-700 hover:text-orange-500 cursor-pointer p-1"
               >
                 <Search className="h-5 w-5" />
-              </div>
-              <div
-                onClick={openCart}
-                className="text-gray-700 hover:text-orange-500 cursor-pointer relative p-1"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                    {totalItems}
-                  </span>
-                )}
-              </div>
-              <div className="hidden md:flex items-center gap-2 text-gray-700 hover:text-orange-500 cursor-pointer">
-                <Heart className="h-5 w-5" />
-                <span className="text-sm">Favorites</span>
-              </div>
-              <div className="flex items-center">
-                {isLogin ? (
-                  <button
-                    onClick={() => navigate("/dashboard")}
-                    className="bg-orange-500 text-white hover:bg-orange-600 transition-colors p-2 rounded-full flex items-center justify-center sm:rounded-md sm:px-4"
-                  >
-                    <span className="hidden sm:inline text-sm font-semibold">
-                      MY DASHBOARD
+              </div> */}
+                <div
+                  onClick={() => navigate("/search")}
+                  className="text-gray-700 hover:text-orange-500 cursor-pointer p-1"
+                >
+                  <Search className="h-5 w-5" />
+                </div>
+                <div
+                  onClick={openCart}
+                  className="text-gray-700 hover:text-orange-500 cursor-pointer relative p-1"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                      {totalItems}
                     </span>
-                    <span className="sm:hidden">
-                      <User className="h-5 w-5" />
-                    </span>
-                  </button>
-                ) : (
-                  <>
+                  )}
+                </div>
+                <div className="hidden md:flex items-center gap-2 text-gray-700 hover:text-orange-500 cursor-pointer">
+                  <Heart className="h-5 w-5" />
+                  <span className="text-sm">Favorites</span>
+                </div>
+                <div className="flex items-center">
+                  {isLogin ? (
                     <button
-                      onClick={() => setIsSignupOpen(true)}
-                      className="hidden sm:block bg-orange-500 text-white hover:bg-orange-600 transition-colors px-4 py-2 rounded-md text-sm font-semibold"
+                      onClick={() => navigate("/dashboard")}
+                      className="bg-orange-500 text-white hover:bg-orange-600 transition-colors p-2 rounded-full flex items-center justify-center sm:rounded-md sm:px-4"
                     >
-                      SIGN UP / SIGN IN
+                      <span className="hidden sm:inline text-sm font-semibold">
+                        MY DASHBOARD
+                      </span>
+                      <span className="sm:hidden">
+                        <User className="h-5 w-5" />
+                      </span>
                     </button>
-                    <button
-                      onClick={() => setIsSignupOpen(true)}
-                      className="sm:hidden text-sm font-medium text-gray-700 hover:text-orange-500"
-                    >
-                      Sign In
-                    </button>
-                  </>
-                )}
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setIsSignupOpen(true)}
+                        className="hidden sm:block bg-orange-500 text-white hover:bg-orange-600 transition-colors px-4 py-2 rounded-md text-sm font-semibold"
+                      >
+                        SIGN UP / SIGN IN
+                      </button>
+                      <button
+                        onClick={() => setIsSignupOpen(true)}
+                        className="sm:hidden text-sm font-medium text-gray-700 hover:text-orange-500"
+                      >
+                        Sign In
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
+        <Navigation
+          onCategoryHover={handleCategoryHover}
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+          handleMegaMenuClose={handleMegaMenuClose}
+        />
+        {showMegaMenu && (
+          <div onMouseEnter={handleMegaMenuMouseEnter}>
+            <MegaMenu industryId={hoveredCategory} />
+          </div>
+        )}
+        <SignupModal
+          isOpen={isSignupOpen}
+          onClose={() => setIsSignupOpen(false)}
+        />
       </div>
-      <Navigation
-        onCategoryHover={handleCategoryHover}
-        isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
-        handleMegaMenuClose={handleMegaMenuClose}
-      />
-      {showMegaMenu && (
-        <div onMouseEnter={handleMegaMenuMouseEnter}>
-          <MegaMenu industryId={hoveredCategory} />
-        </div>
-      )}
-      <SignupModal
-        isOpen={isSignupOpen}
-        onClose={() => setIsSignupOpen(false)}
-      />
-    </div>
     </>
   );
 };
