@@ -1,26 +1,41 @@
 import { useApiStore } from "@/store/apiStore";
 import { useState } from "react";
 
-export const useApi = <T,>(apiFunc: (...args: any[]) => Promise<T>) => {
+export const useApi = <T,>(
+  apiFunc: (...args: any[]) => Promise<T>
+) => {
   const [data, setData] = useState<T | null>(null);
-  // const [loading, setLoading] = useState(false);
-    const { loading, error, setError, setLoading } = useApiStore();
-  // const [error, setError] = useState<string | null>(null);
+  const [localLoading, setLocalLoading] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const { setLoading: setGlobalLoading } = useApiStore();
 
   const request = async (...args: any[]) => {
     try {
-      setLoading(true);
-      setError(null);
+      setLocalLoading(true);
+      setGlobalLoading(true);
+      setLocalError(null);
+      setData(null);
+
       const res = await apiFunc(...args);
       setData(res);
       return res;
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message);
+      const message =
+        err?.response?.data?.message || err?.message || "Something went wrong";
+
+      setLocalError(message);
       throw err;
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
+      setGlobalLoading(false);
     }
   };
 
-  return { data, loading, error, request };
+  return {
+    data,
+    loading: localLoading,
+    error: localError,
+    request
+  };
 };

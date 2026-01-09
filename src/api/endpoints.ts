@@ -51,5 +51,6 @@ export const API_ENDPOINTS = {
     APPLY: "/web/coupon/add",
     REMOVE: "/web/coupon/remove",
   },
-  CMS : "web/user/cms/get"
+  CMS : "/web/user/cms/get",
+  CONTACT_US : "/web/contact-us"
 };

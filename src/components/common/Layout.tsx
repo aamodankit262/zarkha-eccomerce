@@ -16,7 +16,6 @@ const Layout = ({ children, onCategorySelect }: LayoutProps) => {
         <main>{children}</main>
         <Footer />
       </div>
-
       <PeacockSection />
     </>
   );
