@@ -31,6 +31,7 @@ import { useCart } from "@/contexts/CartContext";
 import { SavedAddress } from "@/types";
 import { useApi } from "@/hooks/useApi";
 import { createAddress, deleteAddress, getAddressList, updateAddress } from "@/services/address.service";
+import { applyCoupon, removeCoupon } from "@/services/coupon.service";
 interface Coupon {
   code: string;
   discount: number;
@@ -62,7 +63,9 @@ const CheckoutPage: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string>("1");
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const { data, loading, request } = useApi(getAddressList)
-
+  const { request: applyCouponRequest, loading: applyCouponLoading } = useApi(applyCoupon);
+  const { request: removeCouponApi } = useApi(removeCoupon);
+  const { cartId } = useCart()
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -175,7 +178,7 @@ const CheckoutPage: React.FC = () => {
       firstName: address.first_name,
       lastName: address.last_name,
       address: address.address,
-      pinCode: address.pinCode,
+      pinCode: address.pin_code,
       city: address.city,
       state: address.state,
       country: address.country,
@@ -198,8 +201,8 @@ const CheckoutPage: React.FC = () => {
         address: formData.address,
         pin_code: formData.pinCode,
         country: formData.country,
-        state: formData.state,
-        city: formData.city,
+        stateId: formData.state,
+        cityId: formData.city,
         addressType: formData.addressType,
         home: formData.addressType === "Home" ? "true" : "",
         office: formData.addressType === "Office" ? "true" : "",
@@ -246,23 +249,56 @@ const CheckoutPage: React.FC = () => {
     setEditingAddressId(null);
   };
 
-  const handleApplyCoupon = (coupon: Coupon) => {
+  const handleApplyCoupon = async (coupon: Coupon) => {
     if (subtotal < coupon.minOrder) {
 
       toast.success(`Add items worth ₹${coupon.minOrder - subtotal} more to use this coupon.`)
       return;
     }
-    setAppliedCoupon(coupon);
-    setCouponCode(coupon.code);
-    setShowCouponModal(false);
+    try {
+      const payload = {
+        coupon_code: coupon.code,
+        amount: subtotal,
+        cart_id: cartId,              // from cart context
+        user_id: userDetails?.id
+      }
+      const res = await applyCouponRequest(payload)
+      console.log(res, 'apply cou...')
+      if (res?.success) {
+        setAppliedCoupon(coupon);
+        setCouponCode(coupon.code);
+        setShowCouponModal(false);
 
-    toast.success(`${coupon.code} - ${coupon.description}`)
+        toast.success(res.message || "Coupon applied successfully");
+        toast.success(`${coupon.code} - ${coupon.description}`)
+
+      } else {
+        toast.error(res?.message || "Failed to apply coupon");
+      }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Invalid or expired coupon"
+      );
+    }
+    // setAppliedCoupon(coupon);
+    // setCouponCode(coupon.code);
+    // setShowCouponModal(false);
+
+    // toast.success(`${coupon.code} - ${coupon.description}`)
   };
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode("");
-    toast.success("Coupon has been removed from your order.")
+  const handleRemoveCoupon = async () => {
+    try {
+      await removeCouponApi(cartId, userDetails?.id); // user optional
+
+      setAppliedCoupon(null);
+      setCouponCode("");
+
+      toast.success("Coupon has been removed from your order.");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to remove coupon");
+    }
   };
+
   const calculateCouponDiscount = () => {
     if (!appliedCoupon) return 0;
     if (subtotal < appliedCoupon.minOrder) return 0;
@@ -320,331 +356,331 @@ const CheckoutPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Left Column - Dynamic Content Based on Step */}
           <div className="lg:col-span-2 space-y-4 lg:space-y-6">
-              {/* Customer Information */}
-              <div className="bg-card rounded-lg p-4 lg:p-6 border">
-                <h2 className="text-base lg:text-lg font-semibold text-foreground mb-4">
-                  Customer Information
-                </h2>
-                <div className="space-y-4">
-                  <div className="relative ">
-                    <Input
-                      type="fullName"
-                      placeholder="Enter Full Name"
-                      value={formData.fullName}
-                      disabled={isOtpVerified || otpSent}
-                      readOnly={isOtpVerified}
-                      onChange={(e) =>
-                        handleInputChange("fullName", e.target.value)
-                      }
-                      className="pl-4 pr-10 h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
-                    />
-                    <User className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
-                  </div>
+            {/* Customer Information */}
+            <div className="bg-card rounded-lg p-4 lg:p-6 border">
+              <h2 className="text-base lg:text-lg font-semibold text-foreground mb-4">
+                Customer Information
+              </h2>
+              <div className="space-y-4">
+                <div className="relative ">
+                  <Input
+                    type="fullName"
+                    placeholder="Enter Full Name"
+                    value={formData.fullName}
+                    disabled={isOtpVerified || otpSent}
+                    readOnly={isOtpVerified}
+                    onChange={(e) =>
+                      handleInputChange("fullName", e.target.value)
+                    }
+                    className="pl-4 pr-10 h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
+                  />
+                  <User className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
+                </div>
 
-                  <div className="relative">
+                <div className="relative">
+                  <Input
+                    type="tel"
+                    placeholder="Enter Mobile Number"
+                    value={formData.mobileNumber}
+                    disabled={isOtpVerified || otpSent}
+                    readOnly={isOtpVerified}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "mobileNumber",
+                        e.target.value.replace(/\D/g, "").slice(0, 10)
+                      )
+                    }
+                    className="pl-4 pr-10 h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
+                    maxLength={10}
+                  />
+                  <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
+                  {!isOtpVerified && !showOTP && !isLogin && (
+                    <Button
+                      size="sm"
+                      disabled={isLoading}
+                      onClick={handleSendOtp}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white text-xs"
+                    >
+                      {isLoading ? "Sending..." : "Send OTP"}
+                    </Button>
+                  )}
+                  {isOtpVerified && (
+                    <span className="text-green-600 text-xs">✔ Verified</span>
+                  )}
+                </div>
+                {showOTP && (
+                  <div className="space-y-2">
                     <Input
                       type="tel"
-                      placeholder="Enter Mobile Number"
-                      value={formData.mobileNumber}
-                      disabled={isOtpVerified || otpSent}
-                      readOnly={isOtpVerified}
+                      placeholder="Enter OTP"
+                      value={formData.otp}
                       onChange={(e) =>
                         handleInputChange(
-                          "mobileNumber",
-                          e.target.value.replace(/\D/g, "").slice(0, 10)
+                          "otp",
+                          e.target.value.replace(/\D/g, "").slice(0, 4)
                         )
                       }
-                      className="pl-4 pr-10 h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
-                      maxLength={10}
+                      maxLength={4}
+                      className="h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
                     />
-                    <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
-                    {!isOtpVerified && !showOTP && !isLogin && (
-                      <Button
-                        size="sm"
-                        disabled={isLoading}
-                        onClick={handleSendOtp}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white text-xs"
-                      >
-                        {isLoading ? "Sending..." : "Send OTP"}
-                      </Button>
-                    )}
-                    {isOtpVerified && (
-                      <span className="text-green-600 text-xs">✔ Verified</span>
-                    )}
+
+                    <Button
+                      size="sm"
+                      disabled={isLoading}
+                      onClick={handleVerifyOtp}
+                      className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                    >
+                      {loading ? "Verifying..." : "Verify OTP"}
+                    </Button>
                   </div>
-                  {showOTP && (
-                    <div className="space-y-2">
-                      <Input
-                        type="tel"
-                        placeholder="Enter OTP"
-                        value={formData.otp}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "otp",
-                            e.target.value.replace(/\D/g, "").slice(0, 4)
-                          )
-                        }
-                        maxLength={4}
-                        className="h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
-                      />
+                )}
 
-                      <Button
-                        size="sm"
-                        disabled={isLoading}
-                        onClick={handleVerifyOtp}
-                        className="bg-green-600 hover:bg-green-700 text-white text-xs"
-                      >
-                        {loading ? "Verifying..." : "Verify OTP"}
-                      </Button>
-                    </div>
-                  )}
-
-                </div>
               </div>
-              {/* Deliver To Section */}
-              {/* Contact & Delivery Section */}
-              {isLogin && (
-                <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base sm:text-lg font-semibold text-foreground">Delivery Address</h2>
-                    {!isEditingAddress && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAddNewAddress}
-                        className="text-primary hover:text-primary/80"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Add New
-                      </Button>
-                    )}
-                  </div>
+            </div>
+            {/* Deliver To Section */}
+            {/* Contact & Delivery Section */}
+            {isLogin && (
+              <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground">Delivery Address</h2>
+                  {!isEditingAddress && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddNewAddress}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add New
+                    </Button>
+                  )}
+                </div>
 
-                  {isEditingAddress ? (
-                    /* Address Form */
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="relative">
-                          <Input
-                            placeholder="Enter First Name *"
-                            value={formData.firstName}
-                            onChange={(e) => handleInputChange("firstName", e.target.value)}
-                            className="pr-10"
-                          />
-                          <User className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        </div>
-                        <div className="relative">
-                          <Input
-                            placeholder="Enter Last Name *"
-                            value={formData.lastName}
-                            onChange={(e) => handleInputChange("lastName", e.target.value)}
-                            className="pr-10"
-                          />
-                          <User className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        </div>
-                      </div>
-
+                {isEditingAddress ? (
+                  /* Address Form */
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="relative">
                         <Input
-                          placeholder="Enter Full Address *"
-                          value={formData.address}
-                          onChange={(e) => handleInputChange("address", e.target.value)}
+                          placeholder="Enter First Name *"
+                          value={formData.firstName}
+                          onChange={(e) => handleInputChange("firstName", e.target.value)}
+                          className="pr-10"
+                        />
+                        <User className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div className="relative">
+                        <Input
+                          placeholder="Enter Last Name *"
+                          value={formData.lastName}
+                          onChange={(e) => handleInputChange("lastName", e.target.value)}
+                          className="pr-10"
+                        />
+                        <User className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <Input
+                        placeholder="Enter Full Address *"
+                        value={formData.address}
+                        onChange={(e) => handleInputChange("address", e.target.value)}
+                        className="pr-10"
+                      />
+                      <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="relative">
+                        <Input
+                          placeholder="Enter Pin Code *"
+                          value={formData.pinCode}
+                          onChange={(e) => handleInputChange("pinCode", e.target.value)}
                           className="pr-10"
                         />
                         <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       </div>
+                      <Select value={formData.country} onValueChange={(value) => handleInputChange("country", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="India">India</SelectItem>
+                          <SelectItem value="USA">USA</SelectItem>
+                          <SelectItem value="UK">UK</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="relative">
-                          <Input
-                            placeholder="Enter Pin Code *"
-                            value={formData.pinCode}
-                            onChange={(e) => handleInputChange("pinCode", e.target.value)}
-                            className="pr-10"
-                          />
-                          <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        </div>
-                        <Select value={formData.country} onValueChange={(value) => handleInputChange("country", value)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="India">India</SelectItem>
-                            <SelectItem value="USA">USA</SelectItem>
-                            <SelectItem value="UK">UK</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select State *" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Maharashtra">Maharashtra</SelectItem>
+                          <SelectItem value="Delhi">Delhi</SelectItem>
+                          <SelectItem value="Karnataka">Karnataka</SelectItem>
+                          <SelectItem value="Gujarat">Gujarat</SelectItem>
+                          <SelectItem value="Tamil Nadu">Tamil Nadu</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={formData.city} onValueChange={(value) => handleInputChange("city", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select City *" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Mumbai">Mumbai</SelectItem>
+                          <SelectItem value="Delhi">Delhi</SelectItem>
+                          <SelectItem value="Bangalore">Bangalore</SelectItem>
+                          <SelectItem value="Chennai">Chennai</SelectItem>
+                          <SelectItem value="Ahmedabad">Ahmedabad</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select State *" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Maharashtra">Maharashtra</SelectItem>
-                            <SelectItem value="Delhi">Delhi</SelectItem>
-                            <SelectItem value="Karnataka">Karnataka</SelectItem>
-                            <SelectItem value="Gujarat">Gujarat</SelectItem>
-                            <SelectItem value="Tamil Nadu">Tamil Nadu</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Select value={formData.city} onValueChange={(value) => handleInputChange("city", value)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select City *" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Mumbai">Mumbai</SelectItem>
-                            <SelectItem value="Delhi">Delhi</SelectItem>
-                            <SelectItem value="Bangalore">Bangalore</SelectItem>
-                            <SelectItem value="Chennai">Chennai</SelectItem>
-                            <SelectItem value="Ahmedabad">Ahmedabad</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Address Type */}
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm font-medium text-foreground mb-2">Address Type</p>
-                          <div className="flex gap-2">
-                            {(["Home", "Office", "Other"] as const).map((type) => (
-                              <Button
-                                key={type}
-                                variant={formData.addressType === type ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => handleInputChange("addressType", type)}
-                                className={formData.addressType === type ? "bg-primary hover:bg-primary/90" : ""}
-                              >
-                                {type}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="save-default"
-                            checked={formData.isDefault}
-                            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isDefault: checked === true }))}
-                          />
-                          <label htmlFor="save-default" className="text-sm text-muted-foreground">
-                            Set as Default Address
-                          </label>
+                    {/* Address Type */}
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium text-foreground mb-2">Address Type</p>
+                        <div className="flex gap-2">
+                          {(["Home", "Office", "Other"] as const).map((type) => (
+                            <Button
+                              key={type}
+                              variant={formData.addressType === type ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleInputChange("addressType", type)}
+                              className={formData.addressType === type ? "bg-primary hover:bg-primary/90" : ""}
+                            >
+                              {type}
+                            </Button>
+                          ))}
                         </div>
                       </div>
 
-                      <div className="flex gap-3 pt-2">
-                        <Button
-                          onClick={handleSaveAddress}
-                          className="flex-1 bg-primary hover:bg-primary/90"
-                        >
-                          <Check className="w-4 h-4 mr-2" />
-                          Save Address
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleCancelEdit}
-                          className="flex-1"
-                        >
-                          Cancel
-                        </Button>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="save-default"
+                          checked={formData.isDefault}
+                          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isDefault: checked === true }))}
+                        />
+                        <label htmlFor="save-default" className="text-sm text-muted-foreground">
+                          Set as Default Address
+                        </label>
                       </div>
                     </div>
-                  ) : (
-                    /* Saved Addresses List */
-                    <div className="space-y-3">
-                      {savedAddresses.length === 0 ? (
-                        <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                          <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                          <p className="text-muted-foreground mb-3">No saved addresses</p>
-                          <Button onClick={handleAddNewAddress} variant="outline">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Address
-                          </Button>
-                        </div>
-                      ) : (
-                        savedAddresses.map((address) => (
-                          <div
-                            key={address._id}
-                            className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedAddressId === address._id
-                              ? 'border-primary bg-primary/5'
-                              : 'hover:border-muted-foreground/50'
-                              }`}
-                            onClick={() => setSelectedAddressId(address._id)}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start gap-3">
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${selectedAddressId === address._id
-                                  ? 'border-primary'
-                                  : 'border-muted-foreground/50'
-                                  }`}>
-                                  {selectedAddressId === address._id && (
-                                    <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+
+                    <div className="flex gap-3 pt-2">
+                      <Button
+                        onClick={handleSaveAddress}
+                        className="flex-1 bg-primary hover:bg-primary/90"
+                      >
+                        <Check className="w-4 h-4 mr-2" />
+                        Save Address
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Saved Addresses List */
+                  <div className="space-y-3">
+                    {savedAddresses.length === 0 ? (
+                      <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                        <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                        <p className="text-muted-foreground mb-3">No saved addresses</p>
+                        <Button onClick={handleAddNewAddress} variant="outline">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Address
+                        </Button>
+                      </div>
+                    ) : (
+                      savedAddresses.map((address) => (
+                        <div
+                          key={address._id}
+                          className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedAddressId === address._id
+                            ? 'border-primary bg-primary/5'
+                            : 'hover:border-muted-foreground/50'
+                            }`}
+                          onClick={() => setSelectedAddressId(address._id)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3">
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${selectedAddressId === address._id
+                                ? 'border-primary'
+                                : 'border-muted-foreground/50'
+                                }`}>
+                                {selectedAddressId === address._id && (
+                                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                                )}
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-foreground">
+                                    {address.first_name} {address.last_name}
+                                  </p>
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${address.addressType === 'Home'
+                                    ? 'bg-green-100 text-green-800'
+                                    : address.addressType === 'Office'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : 'bg-gray-100 text-gray-800'
+                                    }`}>
+                                    {address.addressType}
+                                  </span>
+                                  {address.is_default && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+                                      Default
+                                    </span>
                                   )}
                                 </div>
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <p className="font-medium text-foreground">
-                                      {address.first_name} {address.last_name}
-                                    </p>
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${address.addressType === 'Home'
-                                      ? 'bg-green-100 text-green-800'
-                                      : address.addressType === 'Office'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                      }`}>
-                                      {address.addressType}
-                                    </span>
-                                    {address.is_default && (
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
-                                        Default
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-muted-foreground">{address.address}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {address.city}, {address.state} {address.pinCode}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">{address.country}</p>
-                                </div>
+                                <p className="text-sm text-muted-foreground">{address.address}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {address.city}, {address.state} {address.pin_code}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{address.country}</p>
                               </div>
-                              <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                            </div>
+                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditAddress(address)}
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              {savedAddresses.length > 1 && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleEditAddress(address)}
-                                  className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                                  onClick={() => handleDeleteAddress(address._id)}
+                                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                                 >
-                                  <Edit className="w-4 h-4" />
+                                  <Trash2 className="w-4 h-4" />
                                 </Button>
-                                {savedAddresses.length > 1 && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDeleteAddress(address._id)}
-                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                )}
-                              </div>
+                              )}
                             </div>
                           </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
-              {/* Order Items */}
-              <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base sm:text-lg font-semibold text-foreground">
-                    Order Items ({items.length})
-                  </h2>
-                  {/* <Button
+            {/* Order Items */}
+            <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground">
+                  Order Items ({items.length})
+                </h2>
+                {/* <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => navigate("/cart")}
@@ -653,38 +689,38 @@ const CheckoutPage: React.FC = () => {
                       <Edit className="w-4 h-4 mr-1" />
                       Edit Cart
                     </Button> */}
-                </div>
+              </div>
 
-                <div className="space-y-4">
-                  {items.map((item) => (
-                    <div key={item._id} className="flex gap-4 pb-4 border-b last:border-b-0 last:pb-0">
-                      <div className="w-20 h-24 bg-muted rounded-lg overflow-hidden shrink-0">
-                        <img
-                          src={item.product_image}
-                          alt={item.product_title}
-                          className="w-full h-full object-cover"
-                        />
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <div key={item._id} className="flex gap-4 pb-4 border-b last:border-b-0 last:pb-0">
+                    <div className="w-20 h-24 bg-muted rounded-lg overflow-hidden shrink-0">
+                      <img
+                        src={item.product_image}
+                        alt={item.product_title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-foreground text-sm sm:text-base line-clamp-2">{item.product_title}</h3>
+                      <div className="flex flex-wrap gap-2 mt-1 text-xs sm:text-sm text-muted-foreground">
+                        {item?.size && <span>Size: {item.size}</span>}
+                        {item.color && <span>• Color: {item.color.name}</span>}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-foreground text-sm sm:text-base line-clamp-2">{item.product_title}</h3>
-                        <div className="flex flex-wrap gap-2 mt-1 text-xs sm:text-sm text-muted-foreground">
-                          {item?.size && <span>Size: {item.size}</span>}
-                          {item.color && <span>• Color: {item.color.name}</span>}
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs sm:text-sm text-muted-foreground">Qty: {item.quantity}</span>
-                          <span className="font-semibold text-foreground">₹{(item.discount_price * item.quantity).toLocaleString()}</span>
-                        </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs sm:text-sm text-muted-foreground">Qty: {item.quantity}</span>
+                        <span className="font-semibold text-foreground">₹{(item.discount_price * item.quantity).toLocaleString()}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 pt-4 border-t flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Subtotal ({items.length} items)</span>
-                  <span className="font-semibold text-foreground">₹{subtotal.toLocaleString()}</span>
-                </div>
+                  </div>
+                ))}
               </div>
+
+              <div className="mt-4 pt-4 border-t flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Subtotal ({items.length} items)</span>
+                <span className="font-semibold text-foreground">₹{subtotal.toLocaleString()}</span>
+              </div>
+            </div>
           </div>
 
           {/* Right Column - Price Details */}

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 const Footer = () => {
 const navigate = useNavigate()
+
   return (
     <footer className="bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">

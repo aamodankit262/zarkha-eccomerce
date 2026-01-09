@@ -12,7 +12,9 @@ interface ApiResponse<T> {
 }
 export interface CouponPayload {
   cart_id: string;
-  coupon_code : string;
+  user_id?: string;
+  coupon_code: string;
+  amount: number
 }
 
 export const getCouponList = async (): Promise<any> => {
@@ -29,15 +31,23 @@ export const applyCoupon = async (payload: CouponPayload): Promise<any> => {
   return res;
 };
 
-export const removeCoupon = async (cartId: string) => {
+export const removeCoupon = async (
+  cartId: string,
+  userId?: string
+) => {
   const formData = new FormData();
-  formData.append("cart_id ", cartId);
+  formData.append("cart_id", cartId);
 
-  const res = await apiClient.post<ApiResponse<null>>(
+  if (userId) {
+    formData.append("user_id", userId);
+  }
+
+  const res = await apiClient.post(
     API_ENDPOINTS.COUPON.REMOVE,
     formData
   );
 
   return res;
 };
+
 

@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/common/Layout";
 import { useCms } from "@/hooks/useCms";
 import { CMS_TYPES } from "@/services/cms.service";
+import { useApi } from "@/hooks/useApi";
+import { contactForm } from "@/services/contact.service";
 
 const ContactUs = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,29 +22,72 @@ const ContactUs = () => {
   });
   const { toast } = useToast();
   const { data, loading } = useCms(CMS_TYPES.CONTACT);
-
+  const { data: formResp, request: FetchFormRequest, loading: formLoading } = useApi(contactForm);
   if (loading) return null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsSubmitting(true)
+    try {
+      await FetchFormRequest({
+        name: formData.name,
+        mobile: formData.phone,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message
+      });
+      // console.log(formResp, 'contact')
+      //  toast(formResp?.message || "Message Sent Successfully");
+      // if ((res as any)?.success) {
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    toast({
-      title: "Message Sent Successfully",
-      description: "Thank you for contacting us. We'll get back to you within 24 hours."
-    });
-
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: "",
-      message: ""
-    });
-    setIsSubmitting(false);
+      //   toast((res as any)?.message || "Coupon applied successfully");
+      //   setIsSubmitting(false)
+      // } else {
+      //   toast((res as any)?.message || "Failed to apply coupon");
+      // }
+      toast({
+        title: "Message Sent Successfully",
+        description: "Thank you for contacting us. We'll get back to you within 24 hours."
+      });
+      setIsSubmitting(false);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: ""
+      });
+    } catch (err: any) {
+      toast({
+        title: "Submission Failed",
+        description: err?.message || "Something went wrong",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false)
+    }
   };
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsSubmitting(true);
+
+  //   // Simulate form submission
+  //   await new Promise(resolve => setTimeout(resolve, 2000));
+
+  //   toast({
+  //     title: "Message Sent Successfully",
+  //     description: "Thank you for contacting us. We'll get back to you within 24 hours."
+  //   });
+
+  //   setFormData({
+  //     name: "",
+  //     email: "",
+  //     phone: "",
+  //     subject: "",
+  //     message: ""
+  //   });
+  //   setIsSubmitting(false);
+  // };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -69,7 +114,7 @@ const ContactUs = () => {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-6">Get in Touch</h2>
                 <p className="text-muted-foreground mb-8">
-                  We're here to help and answer any question you might have. 
+                  We're here to help and answer any question you might have.
                   We look forward to hearing from you.
                 </p>
               </div>
@@ -127,7 +172,7 @@ const ContactUs = () => {
                 </Card>
               </div>
 
-              
+
               <div className="bg-muted rounded-lg h-64 flex items-center justify-center">
                 <div className="text-center">
                   <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />

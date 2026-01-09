@@ -22,7 +22,7 @@ import { Check, Percent, Phone, Tag, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CouponModal from "./CouponModal";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getCouponList } from "@/services/coupon.service";
+import { applyCoupon, getCouponList, removeCoupon } from "@/services/coupon.service";
 
 export interface Coupon {
     code: string;
@@ -102,7 +102,10 @@ const CheckoutPage = () => {
 
     /* ---------------- API ---------------- */
     const { data, request, loading } = useApi(getAddressList);
+    const { request: applyCouponRequest, loading: applyCouponLoading } = useApi(applyCoupon);
+    const { request: removeCouponApi } = useApi(removeCoupon);
 
+    const { cartId } = useCart()
     useEffect(() => {
         if (isLogin) {
             setFormData((prev) => ({
@@ -118,7 +121,7 @@ const CheckoutPage = () => {
     useEffect(() => {
         if (!token) return;
         getCouponList().then((res) => {
-            console.log(res , 'coupons')
+            console.log(res, 'coupons')
             setCouponList(res?.body || []);
         });
     }, [token]);
@@ -303,22 +306,54 @@ const CheckoutPage = () => {
 
 
     /* ---------------- COUPON HANDLERS ---------------- */
-    const handleApplyCoupon = (coupon: Coupon) => {
+    const handleApplyCoupon = async (coupon: Coupon) => {
         if (subtotal < coupon.min_cart_value) {
 
             toast.success(`Add items worth ₹${coupon.min_cart_value - subtotal} more to use this coupon.`)
             return;
         }
-        setAppliedCoupon(coupon);
-        setCouponCode(coupon.code);
-        setShowCouponModal(false);
+        try {
+            const payload = {
+                coupon_code: coupon.code,
+                amount: subtotal,
+                cart_id: cartId,              // from cart context
+                // user_id: userDetails?.id
+            }
+            const res = await applyCouponRequest(payload)
+            console.log(res, 'apply cou...')
+            if (res?.success) {
+                setAppliedCoupon(coupon);
+                setCouponCode(coupon.code);
+                setShowCouponModal(false);
 
-        toast.success(`${coupon.code} - ${coupon.description}`)
+                toast.success(res.message || "Coupon applied successfully");
+                toast.success(`${coupon.code} - ${coupon.description}`)
+
+            } else {
+                toast.error(res?.message || "Failed to apply coupon");
+            }
+        } catch (error) {
+            toast.error(
+                error?.response?.data?.message || "Invalid or expired coupon"
+            );
+        }
+        // setAppliedCoupon(coupon);
+        // setCouponCode(coupon.code);
+        // setShowCouponModal(false);
+
+        // toast.success(`${coupon.code} - ${coupon.description}`)
     };
-    const handleRemoveCoupon = () => {
-        setAppliedCoupon(null);
-        setCouponCode("");
-        toast.success("Coupon has been removed from your order.")
+    const handleRemoveCoupon = async () => {
+        try {
+            await removeCouponApi(cartId, userDetails?.id); // user optional
+
+            setAppliedCoupon(null);
+            setCouponCode("");
+
+            toast.success("Coupon has been removed from your order.");
+        } catch (err: any) {
+            toast.error(err?.message || "Failed to remove coupon");
+        }
     };
     const handleManualCouponApply = () => {
         const coupon = couponList.find(
