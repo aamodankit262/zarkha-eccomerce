@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { toast } from "sonner";
 import { ShoppingBag, Eye, EyeOff, ArrowLeft, Upload, X } from "lucide-react";
+import { logoImage } from "@/api/endpoints";
 
 const AffiliateLogin = () => {
   const [searchParams] = useSearchParams();
@@ -87,8 +88,14 @@ const AffiliateLogin = () => {
             <span className="text-sm sm:hidden">Back</span>
           </Link>
           <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
-            <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <span className="font-bold text-foreground text-sm sm:text-base">Ethnic Store</span>
+            {/* <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <span className="font-bold text-foreground text-sm sm:text-base">Ethnic Store</span> */}
+            <img
+                  src={logoImage}
+                  alt="Zarkha"
+                  className="h-8 w-auto cursor-pointer"
+                  onClick={() => navigate("/")}
+                />
           </Link>
         </div>
       </header>

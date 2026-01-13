@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from "@/api/endpoints";
 import { Product, ProductListPayload } from "@/types";
 // import { Value } from "@radix-ui/react-select";
 interface ApiResponse<T> {
-   success: boolean;
+  success: boolean;
   message: string;
   body: T;
   total_pages: number;
@@ -23,12 +23,12 @@ export const productService = {
     })
     // if (!payload.page) formData.append("page", "1");
     // if (!payload.limit) formData.append("limit", "30");
-     const res = await apiClient.post<ApiResponse<Product[]>>(API_ENDPOINTS.PRODUCTS.LIST, formData);
+    const res = await apiClient.post<ApiResponse<Product[]>>(API_ENDPOINTS.PRODUCTS.LIST, formData);
     return res as any;
   },
 
   getById: async (id: string, itemId?: string): Promise<Product> => {
-    return await apiClient.post<Product>(API_ENDPOINTS.PRODUCTS.DETAIL, { product_id: id, item_id : itemId});
+    return await apiClient.post<Product>(API_ENDPOINTS.PRODUCTS.DETAIL, { product_id: id, item_id: itemId });
   },
 };
 

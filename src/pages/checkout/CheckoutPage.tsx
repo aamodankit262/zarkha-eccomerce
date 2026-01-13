@@ -23,7 +23,10 @@ import { Button } from "@/components/ui/button";
 import CouponModal from "./CouponModal";
 import { Checkbox } from "@/components/ui/checkbox";
 import { applyCoupon, getCouponList, removeCoupon } from "@/services/coupon.service";
-
+import { orderService } from "@/services/orderService";
+import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
+import { Layout } from "@/components";
+import { set } from "date-fns";
 export interface Coupon {
     code: string;
     _id: string;
@@ -34,23 +37,6 @@ export interface Coupon {
     max_discount_amount?: number;
 }
 
-// export const availableCoupons: Coupon[] = [
-//     {
-//         code: "FIRST20",
-//         discount: 20,
-//         type: "percentage",
-//         description: "20% off on your first order",
-//         minOrder: 500,
-//         maxDiscount: 500,
-//     },
-//     {
-//         code: "FLAT200",
-//         discount: 200,
-//         type: "fixed",
-//         description: "Flat ₹200 off on orders above ₹1000",
-//         minOrder: 1000,
-//     },
-// ];
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -104,8 +90,10 @@ const CheckoutPage = () => {
     const { data, request, loading } = useApi(getAddressList);
     const { request: applyCouponRequest, loading: applyCouponLoading } = useApi(applyCoupon);
     const { request: removeCouponApi } = useApi(removeCoupon);
+    const { request: createOrder, loading: createOrderLoading } = useApi(orderService.createOrder);
+    const { cartId, fetchCart } = useCart()
+    // const { Razorpay } = useRazorpay();
 
-    const { cartId } = useCart()
     useEffect(() => {
         if (isLogin) {
             setFormData((prev) => ({
@@ -222,6 +210,7 @@ const CheckoutPage = () => {
 
     const handleEditAddress = (address: SavedAddress) => {
         console.log(address, 'editaddress..')
+        console.log(address.stateId, address.cityId);
         setEditingAddressId(address._id);
         setFormData({
             ...formData,
@@ -229,8 +218,8 @@ const CheckoutPage = () => {
             lastName: address.last_name,
             address: address.address,
             pinCode: address.pin_code,
-            city: address.cityId,
-            state: address.stateId,
+            city: address.cityId?._id || "",
+            state: address.stateId?._id || "",
             country: address.country,
             addressType: address.addressType,
             isDefault: address.is_default
@@ -345,7 +334,7 @@ const CheckoutPage = () => {
     };
     const handleRemoveCoupon = async () => {
         try {
-            await removeCouponApi(cartId, userDetails?.id); // user optional
+            await removeCouponApi(cartId, userDetails?.id);
 
             setAppliedCoupon(null);
             setCouponCode("");
@@ -371,25 +360,109 @@ const CheckoutPage = () => {
     };
 
     /* ---------------- PAYMENT ---------------- */
-    // const handlePaymentComplete = () => {
-    //     const newOrderId = "ORD" + Date.now().toString().slice(-6);
-    //     setOrderId(newOrderId);
-    //     setShowSuccessModal(true);
-    // };
-
-    const handlePayment = () => {
+    const handlePayment = async () => {
+        if (!isLogin) {
+            toast.error("please varify mobile number first");
+            return;
+        }
+        if (!items.length) {
+            toast.error("Please add items to cart before placing order");
+            return;
+        }
         if (!selectedAddressId) {
             toast.error("Please select delivery address");
             return;
         }
-        const newOrderId = "ORD" + Date.now().toString().slice(-6);
-        toast.success("Ready for Razorpay 🚀");
-        // openRazorpay() here
-        setOrderId(newOrderId);
-        setShowSuccessModal(true);
+        try {
+            const res: any = await createOrder({
+                address_id: selectedAddressId,
+                payment_method: "cod", // or online
+                cart_id: cartId,
+                customer_notes: "Please deliver between 10 AM - 6 PM",
+            });
+            toast.success("Order placed successfully");
+            setOrderId(res.body.order_id);
+            // console.log("Order Created:", res);
+            setShowSuccessModal(true);
+            await fetchCart(cartId);
+        } catch (err) {
+            console.error(err);
+        }
     };
+    // const handlePayment = async () => {
+    //     if (!selectedAddressId) {
+    //         toast.error("Please select delivery address");
+    //         return;
+    //     }
+
+    //     try {
+    //         const res = await createOrder({
+    //             address_id: selectedAddressId,
+    //             payment_method: "online",
+    //             cart_id: cartId,
+    //             customer_notes: "Please deliver between 10 AM - 6 PM",
+    //         });
+
+    //         const {
+    //             razorpay_order_id,
+    //             order_id,
+    //             amount,
+    //         } = res.body;
+
+    //         const options: RazorpayOrderOptions = {
+    //             key: RAZORPAY_KEY,
+    //             amount: amount, // in paise
+    //             currency: "INR",
+    //             name: "Zarkha",
+    //             description: "Order Payment",
+    //             order_id: razorpay_order_id,
+
+    //             handler: async (response) => {
+    //                 console.log("Payment Success", response);
+
+    //                 // 3️⃣ Verify payment API (backend)
+    //                 await orderService.verifyPayment({
+    //                     order_id,
+    //                     razorpay_order_id: response.razorpay_order_id,
+    //                     razorpay_payment_id: response.razorpay_payment_id,
+    //                     razorpay_signature: response.razorpay_signature,
+    //                 });
+
+    //                 toast.success("Payment successful");
+    //                 setShowSuccessModal(true);
+    //                 await fetchCart(cartId);
+    //             },
+
+    //             prefill: {
+    //                 name: userDetails?.name,
+    //                 email: userDetails?.email,
+    //                 contact: userDetails?.phone,
+    //             },
+
+    //             theme: {
+    //                 color: "#FF8A18",
+    //             },
+
+    //             modal: {
+    //                 ondismiss: () => {
+    //                     toast.info("Payment cancelled");
+    //                 },
+    //             },
+    //         };
+
+    //         // 4️⃣ Open Razorpay
+    //         const razorpay = new Razorpay(options);
+    //         razorpay.open();
+
+    //     } catch (error) {
+    //         console.error(error);
+    //         toast.error("Payment failed");
+    //     }
+    // };
+
 
     return (
+        // <Layout></Layout>
         <div className="min-h-screen bg-background">
             <HeaderOtherPages />
 
@@ -508,7 +581,45 @@ const CheckoutPage = () => {
                 <div className="lg:col-span-1">
                     <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-6 lg:sticky lg:top-4">
                         <h2 className="text-base sm:text-lg font-semibold text-foreground">Price Details</h2>
+                        <div className="space-y-3">
+                            <div className="flex justify-between text-sm sm:text-base">
+                                <span className="text-muted-foreground">Total MRP</span>
+                                {/* <span className="text-muted-foreground">Price ({items.length} items)</span> */}
+                                <span className="font-medium text-foreground">₹{subtotal}</span>
+                            </div>
 
+                            {appliedCoupon && (
+                                <div className="flex justify-between text-sm sm:text-base">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-muted-foreground">Coupon Discount ({appliedCoupon.code})</span>
+                                        <button
+                                            onClick={handleRemoveCoupon}
+                                            className="text-red-500 text-xs hover:underline"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                    <span className="text-green-600 font-medium">- ₹{couponDiscount}</span>
+                                </div>
+                            )}
+
+                            {/* <div className="flex justify-between text-sm sm:text-base">
+                                <span className="text-muted-foreground">Delivery Charges</span>
+                                <span className={deliveryCharges === 0 ? "text-green-600 font-medium" : "font-medium text-foreground"}>
+                                    {deliveryCharges === 0 ? "Free" : `₹${deliveryCharges}`}
+                                </span>
+                            </div> */}
+
+                            <div className="border-t pt-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold text-foreground text-sm sm:text-base">Total Amount</span>
+                                    <span className="font-bold text-lg text-foreground">₹{totalAmount}</span>
+                                </div>
+                                {appliedCoupon && (
+                                    <p className="text-xs text-green-600 text-right mt-1">You save ₹{couponDiscount} on this order</p>
+                                )}
+                            </div>
+                        </div>
                         {/* Coupon Section */}
                         <div className="border rounded-lg p-3">
                             <div className="flex items-center gap-2 mb-2">
@@ -564,44 +675,7 @@ const CheckoutPage = () => {
                             )}
                         </div>
 
-                        <div className="space-y-3">
-                            <div className="flex justify-between text-sm sm:text-base">
-                                {/* <span className="text-muted-foreground">Price ({items.length} items)</span> */}
-                                <span className="font-medium text-foreground">₹{subtotal}</span>
-                            </div>
 
-                            {appliedCoupon && (
-                                <div className="flex justify-between text-sm sm:text-base">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-muted-foreground">Coupon Discount ({appliedCoupon.code})</span>
-                                        <button
-                                            onClick={handleRemoveCoupon}
-                                            className="text-red-500 text-xs hover:underline"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                    <span className="text-green-600 font-medium">- ₹{couponDiscount}</span>
-                                </div>
-                            )}
-
-                            <div className="flex justify-between text-sm sm:text-base">
-                                <span className="text-muted-foreground">Delivery Charges</span>
-                                <span className={deliveryCharges === 0 ? "text-green-600 font-medium" : "font-medium text-foreground"}>
-                                    {deliveryCharges === 0 ? "Free" : `₹${deliveryCharges}`}
-                                </span>
-                            </div>
-
-                            <div className="border-t pt-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="font-semibold text-foreground text-sm sm:text-base">Total Amount</span>
-                                    <span className="font-bold text-lg text-foreground">₹{totalAmount}</span>
-                                </div>
-                                {appliedCoupon && (
-                                    <p className="text-xs text-green-600 text-right mt-1">You save ₹{couponDiscount} on this order</p>
-                                )}
-                            </div>
-                        </div>
 
                         {/* {currentStep === "address" && ( */}
                         <div className="space-y-4">
@@ -646,8 +720,9 @@ const CheckoutPage = () => {
                     isOpen
                     onClose={() => {
                         setShowSuccessModal(false);
-                        navigate("/");
+                        navigate("/dashboard");
                     }}
+                    orderId={orderId}
                 />
             )}
             <CouponModal

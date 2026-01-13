@@ -33,6 +33,23 @@ export const industryService = {
     return response.body;
   },
 
+  getCatSubList: async (
+    industryId?: string
+  ): Promise<any> => {
+    const formData = new FormData();
+
+    if (industryId) {
+      formData.append("industry_id", industryId);
+    } else {
+      formData.append("industry_id", "");
+    }
+    const response = await apiClient.post(
+      API_ENDPOINTS.INDUSTRY.CATEGORY.CategorySubCategory,
+      formData
+    );
+
+    return response;
+  },
   getSubCat: async (categoryId: string): Promise<SubCategory[]> => {
     const response = await apiClient.post<ApiResponse<any[]>>(API_ENDPOINTS.INDUSTRY.CATEGORY.SUBCATEGORY.LIST, { category_id: categoryId });
     return response.body;

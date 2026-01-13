@@ -1,73 +1,33 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { Heart, X, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/contexts/CartContext";
 // import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/common/Layout";
-import ProductCard from "@/components/ecommerce/ProductCard";
+import { ProductCard } from "@/components/common/ProductCard";
+// import ProductCard from "@/components/ecommerce/ProductCard";
 import { useAuthStore } from "@/store/authStore";
+import { useWishlistStore } from "@/store/wishlistStore";
+import { productsData } from "@/data/product";
 
 const Wishlist = () => {
   const { isLogin } = useAuthStore();
-  const { addItem } = useCart();
-  const { toast } = useToast();
-  
-  // Mock wishlist data - in real app, this would come from API/database
-  const [wishlistItems, setWishlistItems] = useState([
-    {
-      id: 1,
-      image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-      title: "Traditional Ethnic Kurta Set",
-      price: "₹2,999",
-      originalPrice: "₹4,999",
-      discount: "40% OFF",
-      rating: 4.5,
-      reviews: 123,
-      colors: ["#FF6B6B", "#4ECDC4", "#45B7D1"],
-      category: "Kurtas"
-    },
-    {
-      id: 2,
-      image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-      title: "Designer Anarkali Dress",
-      price: "₹3,499",
-      originalPrice: "₹5,999",
-      discount: "42% OFF",
-      rating: 4.3,
-      reviews: 89,
-      colors: ["#E74C3C", "#F39C12"],
-      category: "Dresses"
+  // const fetchWishlist = useWishlistStore((s) => s.fetchWishlist);
+  const wishlistItems = useWishlistStore((s) => s.items);
+  const {
+  items,
+  loading,
+  page,
+  totalPages,
+  fetchWishlist,
+  setPage,
+} = useWishlistStore();
+
+  useEffect(() => {
+    if (isLogin) {
+      fetchWishlist();
     }
-  ]);
-
-  const removeFromWishlist = (productId: number) => {
-    setWishlistItems(items => items.filter(item => item.id !== productId));
-    toast({
-      title: "Removed from Wishlist",
-      description: "Item has been removed from your wishlist."
-    });
-  };
-
-  const moveToCart = (product) => {
-    const cartItem = {
-      id: product.id.toString(),
-      name: product.title,
-      image: product.image,
-      size: "M",
-      color: "Default",
-      quantity: 1,
-      price: parseInt(product.price.replace(/[₹,]/g, ''))
-    };
-    
-    addItem(cartItem);
-    removeFromWishlist(product.id);
-    
-    toast({
-      title: "Added to Cart",
-      description: "Item moved from wishlist to cart successfully."
-    });
-  };
+  }, [isLogin, page]);
 
   if (!isLogin) {
     return (
@@ -110,23 +70,14 @@ const Wishlist = () => {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {wishlistItems.map((product) => (
-                <div key={product.id} className="relative group">
-                  <ProductCard
-                    id={product.id}
-                    image={product.image}
-                    title={product.title}
-                    price={product.price}
-                    originalPrice={product.originalPrice}
-                    discount={product.discount}
-                    rating={product.rating}
-                    reviews={product.reviews}
-                    colors={product.colors}
-                  />
-                  
-                  {/* Wishlist Actions */}
-                  <div className="absolute top-2 right-2 space-y-2">
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {productsData(wishlistItems)?.map((product) => (
+                  <div key={product.id} className="relative group">
+                    <ProductCard key={product.id} product={product} />
+
+                    {/* Wishlist Actions */}
+                    {/* <div className="absolute top-2 right-2 space-y-2">
                     <Button
                       size="sm"
                       variant="destructive"
@@ -135,10 +86,10 @@ const Wishlist = () => {
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                  </div>
-                  
-                  {/* Quick Add to Cart */}
-                  <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  </div> */}
+
+                    {/* Quick Add to Cart */}
+                    {/* <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       onClick={() => moveToCart(product)}
                       className="w-full bg-primary hover:bg-primary/90 text-sm"
@@ -146,10 +97,35 @@ const Wishlist = () => {
                       <ShoppingBag className="h-4 w-4 mr-2" />
                       Move to Cart
                     </Button>
+                  </div> */}
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+              {totalPages > 1 && (
+  <div className="flex justify-center items-center gap-3 mt-10">
+    <button
+      disabled={page === 1 || loading}
+      onClick={() => setPage(page - 1)}
+      className="px-4 py-2 border rounded disabled:opacity-50"
+    >
+      Prev
+    </button>
+
+    <span className="text-sm">
+      Page {page} of {totalPages}
+    </span>
+
+    <button
+      disabled={page === totalPages || loading}
+      onClick={() => setPage(page + 1)}
+      className="px-4 py-2 border rounded disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+)}
+
+            </>
           )}
         </div>
       </div>

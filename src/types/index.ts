@@ -23,22 +23,26 @@ export interface Product {
   variants?: any
 }
 export type SortOption =
-  | "bestseller"
+  | "popular"
   | "price_asc"
   | "price_desc"
-  | "newest"
-  | "rating";
+  | "newest";
+  
 
 export interface ProductListPayload {
   category_id?: string;
   subcategory_id?: string;
   discount?: string;
   price?: string;
+  min_price?: string;
+  max_price?: string;
   size?: string;
   color?: string;
   fabric_id?: string;
   page?: number;
   limit?: number;
+  search?: string; 
+  sort_by?: string; 
 }
 export interface AddressPayload {
   user_id: string;
@@ -67,10 +71,16 @@ export interface SavedAddress {
   last_name: string;
   address: string;
   pin_code: string;
-  cityId ?: string;
+  cityId ?: {
+    _id: string;
+    name: string;
+  };
   city ?: string;
   state?: string;
-  stateId?: string;
+  stateId?: {
+    _id: string;
+    name: string;
+  };
   country?: string;
   addressType: AddressType;
   is_default?: boolean;

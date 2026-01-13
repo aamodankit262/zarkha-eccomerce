@@ -4,7 +4,7 @@ import { useState } from "react";
 export const useApi = <T,>(
   apiFunc: (...args: any[]) => Promise<T>
 ) => {
-  const [data, setData] = useState<T | null>(null);
+  const [data, setData] = useState<T | any>(null);
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 

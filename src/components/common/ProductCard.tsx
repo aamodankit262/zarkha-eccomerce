@@ -2,34 +2,11 @@ import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import WishlistButton from "./WishlistButton";
 
 export const ProductCard = ({ product }) => {
-  const { addItem, openCart } = useCart();
-  const { toast } = useToast();
   const navigate = useNavigate();
   //  console.log(product, 'newarivalvdsafadsfdasfadsfs')
-
- const handleAddToCart = () => {
-    // if (!activeVariant) return;
-    addItem({
-      productId: product.id,
-      variantId: product.variantId,
-      quantity: 1
-    });
-
-    openCart();
-    toast({
-      title: "Added to cart",
-      description: `${product.title} has been added to your cart`,
-    });
-  };
-  // const handleAddToCart = () => {
-  //   toast({
-  //     title: "Added to cart",
-  //     description: `${product.title} has been added to your cart`,
-  //   });
-  // };
-
   const goToDetails = () => {
     navigate(`/product/${product.id}`);
   };
@@ -49,13 +26,8 @@ export const ProductCard = ({ product }) => {
         )}
 
         {/* Hover Buttons */}
-        <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-          <button className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow hover:bg-gray-50">
-            <Heart className="w-3.5 h-3.5 text-gray-600" />
-          </button>
-          <button className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow hover:bg-gray-50">
-            <Eye className="w-3.5 h-3.5 text-gray-600" />
-          </button>
+        <div className="absolute z-50 top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+          <WishlistButton productId={product.id} isWish={product.isWish} />
         </div>
 
         {/* Product Image */}
@@ -104,10 +76,10 @@ export const ProductCard = ({ product }) => {
 
         {/* Add to Cart */}
         <button
-          onClick={handleAddToCart}
+          onClick={goToDetails}
           className="w-full py-1.5 border border-orange-500 text-orange-500 font-medium rounded-md hover:bg-orange-50 transition-colors text-[13px]"
         >
-          Add To Cart
+          View Details
         </button>
       </div>
     </div>

@@ -22,6 +22,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useApi } from "@/hooks/useApi";
 import { productService } from "@/services/productService";
 import SizeChartDialog from "../SizeChart";
+import { toast } from "sonner";
+import WishlistButton from "../common/WishlistButton";
 
 interface ProductDetailsPageProps {
   onClose: () => void;
@@ -131,7 +133,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     ) ?? [];
   //  const totalReviews =  data?.body?.feedback?
   const productDetails = [
-    { label: "Color", value: details?.color.map((color, i) => color.color_name).join(",") || "-" },
+    { label: "Color", value: details?.color?.map((color, i) => color.color_name).join(",") || "-" },
     { label: "Work", value: details?.Work || "-" },
     { label: "Fabric", value: details?.fabric || "-" },
     // {
@@ -165,7 +167,10 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
 
   const handleAddToCart = () => {
     if (!activeVariant) return;
-
+    if (!selectedSize) {
+      toast.error("Please select a size before adding to cart.");
+      return;
+    }
     addItem({
       productId: id,
       variantId: activeVariant.item_code_id,
@@ -173,6 +178,20 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     });
 
     openCart();
+  };
+  const handleBuyNow = () => {
+    if (!activeVariant) return;
+    if (!selectedSize) {
+      toast.error("Please select a size before adding to cart.");
+      return;
+    }
+    addItem({
+      productId: id,
+      variantId: activeVariant.item_code_id,
+      quantity,
+    });
+    navigate("/checkout");
+    // openCart();
   };
 
   const handleViewAllReviews = () => {
@@ -225,9 +244,11 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
 
                 {/* Action Icons */}
                 <div className="absolute top-4 right-4 flex gap-2">
-                  <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
+                  {/* <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
                     <Heart className="h-5 w-5 text-gray-600" />
-                  </button>
+                  </button> */}
+                  <WishlistButton productId={id} />
+
                   {/* <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
                     <Share2 className="h-5 w-5 text-gray-600" />
                   </button> */}
@@ -296,7 +317,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                 <h3 className="font-medium text-gray-900">Color</h3>
                 <div className="flex gap-3">
                   <div className="flex gap-3">
-                    {productVariants.map((variant) => {
+                    {productVariants?.map((variant) => {
                       const isActive = activeVariant?.item_code_id === variant.item_code_id;
 
                       return (
@@ -317,11 +338,8 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                         />
                       );
                     })}
-
                   </div>
-
                 </div>
-
               </div>
 
               {/* Size Selection */}
@@ -373,21 +391,6 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              {/* <div className="space-y-3">
-                <Button
-                  onClick={handleAddToCart}
-                  className="w-full bg-white border border-orange-500 text-orange-500 hover:bg-orange-50 py-3 text-base font-medium"
-                >
-                  Add To Cart
-                </Button>
-                <Button
-                  onClick={() => navigate("/checkout")}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-base font-medium"
-                >
-                  Buy Now
-                </Button>
-              </div> */}
               {/* Desktop Buttons */}
               <div className="space-y-3 hidden sm:block">
                 <Button
@@ -398,7 +401,8 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                 </Button>
 
                 <Button
-                  onClick={() => navigate("/checkout")}
+                  onClick={handleBuyNow}
+                  // onClick={() => navigate("/checkout")}
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-base font-medium"
                 >
                   Buy Now

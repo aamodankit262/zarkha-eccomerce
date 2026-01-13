@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Check,
+  ShoppingBag,
 } from "lucide-react";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
 import { ProductCard } from "@/components/common/ProductCard";
@@ -44,6 +45,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { SavedAddress } from "@/types";
 import TrackOrderPage from "./dashboard/TrackOrderPage";
 import RateProductPage from "./dashboard/RateProductPage";
+import { orderService } from "@/services/orderService";
+import { NO_IMAGE } from "@/api/endpoints";
+import { useWishlistStore } from "@/store/wishlistStore";
 
 type AddressType = "Home" | "Office" | "Other";
 
@@ -91,9 +95,8 @@ const SharedSidebar = ({
       )}
 
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex justify-between items-center p-5 border-b lg:hidden">
           <p className="font-medium">My Account</p>
@@ -115,11 +118,10 @@ const SharedSidebar = ({
                 setActiveTab(item.id);
                 onClose();
               }}
-              className={`w-full flex items-center gap-3 px-6 py-4 border-b text-sm ${
-                activeTab === item.id
-                  ? "bg-orange-500 text-white"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
+              className={`w-full flex items-center gap-3 px-6 py-4 border-b text-sm ${activeTab === item.id
+                ? "bg-orange-500 text-white"
+                : "text-gray-700 hover:bg-gray-50"
+                }`}
             >
               <item.icon className="h-4 w-4" />
               {item.label}
@@ -287,11 +289,21 @@ const AddAddressPage = ({
     </div>
   );
 };
-
+const sidebarItems = [
+  { id: "orders", label: "My Orders", icon: Package },
+  { id: "address", label: "Address Book", icon: MapPin },
+  { id: "favorites", label: "My Favorite", icon: Heart },
+];
 // Main Dashboard Component
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("orders");
+  const [orders, setOrders] = useState<any[]>([]);
+  const [orderLoading, setOrderLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
   const [currentView, setCurrentView] = useState<"dashboard" | "add-address" | "track-order" | "rate-product">(
     "dashboard"
   );
@@ -305,7 +317,7 @@ const Dashboard = () => {
 
   const { token, userDetails } = useAuthStore();
   const { data: addressList, request: fetchAddressList } = useApi(getAddressList);
-  const { data: cmsData } = useCms(CMS_TYPES.PRIVACY);
+  // const { data: cmsData } = useCms(CMS_TYPES.PRIVACY);
 
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
 
@@ -320,8 +332,26 @@ const Dashboard = () => {
     addressType: "Home",
     isDefault: false,
   });
+  // const { data: orderList, request: fettchOrders, loading: orderLoading } = useApi(orderService.getOrderList);
+  // const fetchWishlist = useWishlistStore((s) => s.fetchWishlist);
+  // const wishlistItems = useWishlistStore((s) => s.items);
+  const {
+    items,
+    loading,
+    page: wishpage,
+    totalPages: wishtotalPages,
+    fetchWishlist,
+    setPage: setWishPage,
+  } = useWishlistStore();
+  // useEffect(() => {
+  //   const delay = setTimeout(() => {
+  //     setPage(1); // reset page on new search
+  //     fetchOrders();
+  //   }, 500);
 
-  // Fetch states
+  //   return () => clearTimeout(delay);
+  // }, [searchQuery]);
+
   useEffect(() => {
     if (!token) return;
     getStateList().then((res) => setStates(res?.data || []));
@@ -338,16 +368,48 @@ const Dashboard = () => {
 
   // Fetch addresses
   useEffect(() => {
-    if (!token) return;
-    fetchAddressList();
-  }, [token]);
+    if (activeTab === "address" && token) {
+      fetchAddressList();
+    }
+  }, [activeTab, token]);
+  useEffect(() => {
+    if (activeTab === "orders") {
+      // fettchOrders({ page: 1, limit: 10 });
+      fetchOrders();
+    }
+  }, [activeTab, page]);
+  useEffect(() => {
+    if (activeTab === "favorites") {
+      fetchWishlist();
+    }
+  }, [activeTab]);
 
+  // const orders = orderList?.body || [];
   // Update local addresses
   useEffect(() => {
     if (addressList?.body) {
       setAddresses(addressList.body);
     }
   }, [addressList]);
+  const fetchOrders = async () => {
+    try {
+      setOrderLoading(true);
+
+      const res = await orderService.getOrderList({
+        page,
+        limit,
+        search: searchQuery,
+      });
+      console.log(res, "order list response...");
+      const data: any = res;
+      setOrders(data.body || []);
+      setTotalPages(data.pagination?.totalPages ?? 1);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setOrderLoading(false);
+    }
+  };
 
   const resetFormAndView = () => {
     setCurrentView("dashboard");
@@ -366,7 +428,7 @@ const Dashboard = () => {
       isDefault: false,
     });
   };
-const handleRateProduct = (product) => {
+  const handleRateProduct = (product) => {
     setSelectedProductForRating(product);
     setCurrentView("rate-product");
   };
@@ -378,8 +440,8 @@ const handleRateProduct = (product) => {
       address: address.address,
       pinCode: address.pin_code,
       country: address.country ?? "India",
-      state: address.stateId,
-      city: address.cityId,
+      state: address.stateId._id || "",
+      city: address.cityId._id || "",
       addressType: (address.addressType as AddressType) ?? "Home",
       isDefault: address.is_default ?? false,
     });
@@ -434,58 +496,15 @@ const handleRateProduct = (product) => {
     }
   };
 
-  const sidebarItems = [
-    { id: "orders", label: "My Orders", icon: Package },
-    { id: "address", label: "Address Book", icon: MapPin },
-    { id: "favorites", label: "My Favorite", icon: Heart },
-    { id: "privacy", label: "Privacy And Policy", icon: Shield },
-  ];
 
-   const orders = [
-    {
-      id: "120011",
-      date: "12-Nov-2024, 12:15Pm",
-      product: {
-        name: "Black LIVA Straight Printed 2 Piece Set",
-        image: "/product-3.jpg",
-        quantity: 2,
-        amount: 1900,
-      },
-      trackingNo: "101201201110010",
-      status: "processing",
-    },
-    {
-      id: "120012",
-      date: "12-Nov-2024, 12:15Pm",
-      product: {
-        name: "Black LIVA Straight Printed 2 Piece Set",
-        image: "/product-1.jpg",
-        quantity: 2,
-        amount: 1900,
-      },
-      trackingNo: "101201201110010",
-      status: "delivered",
-      deliveredDate: "12-10-2025",
-    },
-    {
-      id: "120013",
-      date: "12-Nov-2024, 12:15Pm",
-      product: {
-        name: "Black LIVA Straight Printed 2 Piece Set",
-        image: "/product-2.jpg",
-        quantity: 2,
-        amount: 1900,
-      },
-      trackingNo: "101201201110010",
-      status: "processing",
-    },
-  ];
-   const handleTrackOrder = (orderId) => {
+  const handleTrackOrder = (orderId) => {
+    console.log(orderId, "orderId...");
     setSelectedOrderId(orderId);
     setCurrentView("track-order");
   };
   // Render logic for main dashboard tabs (unchanged except minor cleanups)
-   const renderTabContent = () => {
+  const renderTabContent = () => {
+
     switch (activeTab) {
       case "orders":
         return (
@@ -495,7 +514,7 @@ const handleRateProduct = (product) => {
                 <h2 className="text-2xl font-semibold">All Orders</h2>
                 <p className="text-sm text-gray-600">From anytime</p>
               </div>
-              <div className="relative w-full sm:w-80">
+              {/* <div className="relative w-full sm:w-80">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
@@ -504,35 +523,55 @@ const handleRateProduct = (product) => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
-              </div>
+              </div> */}
             </div>
+            {/* Loading */}
+            {orderLoading && <p className="text-center">Loading orders...</p>}
+
+            {/* Empty */}
+            {!orderLoading && orders.length === 0 && (
+              <p className="text-center text-gray-500">No orders found</p>
+            )}
 
             <div className="space-y-6">
-              {orders.map((order, idx) => (
+              {orders?.map((order, idx) => (
                 <div
                   key={order.id}
                   className="bg-white border-2 border-[#D2CABD] rounded-xl overflow-hidden"
                 >
                   <div className="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <span className="bg-[#F5F5F5] px-6 py-2 rounded-md font-semibold">
-                      Order ID: {order.id}
+                      Order ID: {order.order_id}
                     </span>
-                    <span className="text-sm">Placed on {order.date}</span>
+                    <span className="text-sm">Placed on {new Date(order.ordered_at).toLocaleDateString()}</span>
                   </div>
 
                   <div className="p-6 flex flex-col lg:flex-row gap-6">
                     <img
-                      src={order.product.image}
-                      alt={order.product.name}
+                      src={order.first_item.image || NO_IMAGE}
+                      alt={order.first_item.product_title}
                       className="w-24 h-28 object-cover rounded-lg"
                     />
                     <div className="flex-1">
-                      <h4 className="font-medium mb-3">{order.product.name}</h4>
-                      <p className="text-sm text-gray-600">Amount: ₹{order.product.amount}</p>
-                      <p className="text-sm text-gray-600">Quantity: {order.product.quantity}</p>
-                      {order.deliveredDate && (
+                      <h4 className="font-medium mb-3">{order.first_item.product_title}</h4>
+                      <p className="text-sm text-gray-600">Amount: ₹{order.total_amount}</p>
+                      <p className="text-sm text-gray-600">Quantity: {order.items_count}</p>
+                      <p
+                        className={`mt-2 text-sm font-medium ${order.order_status === "pending"
+                          ? "text-orange-600"
+                          : "text-green-600"
+                          }`}
+                      >
+                        Order Status: {order.order_status}
+                      </p>
+
+                      <p className="text-sm text-gray-600">
+                        Payment: {order.payment_method.toUpperCase()} (
+                        {order.payment_status})
+                      </p>
+                      {order?.deliveredDate && (
                         <p className="text-sm text-green-600 mt-2">
-                          Delivered on {order.deliveredDate}
+                          Delivered on {order?.deliveredDate}
                         </p>
                       )}
                     </div>
@@ -540,10 +579,10 @@ const handleRateProduct = (product) => {
                     <div className="space-y-4">
                       <div className="bg-gray-50 rounded-lg p-4 text-sm">
                         <p className="text-gray-600">Tracking No.</p>
-                        <p className="font-medium">{order.trackingNo}</p>
+                        <p className="font-medium">{order?.trackingNo}</p>
                         {idx !== 1 && (
                           <button
-                            onClick={() => handleTrackOrder(order.id)}
+                            onClick={() => handleTrackOrder(order.order_id)}
                             className="text-green-600 font-medium mt-2 block hover:underline"
                           >
                             Track Order →
@@ -564,9 +603,32 @@ const handleRateProduct = (product) => {
                 </div>
               ))}
             </div>
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-3 mt-10">
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="px-4 py-2 border rounded disabled:opacity-50"
+                >
+                  Prev
+                </button>
+
+                <span className="text-sm">
+                  Page {page} of {totalPages}
+                </span>
+
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="px-4 py-2 border rounded disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+
           </div>
         );
-
       case "address":
         return (
           <div className="p-4 sm:p-6 lg:p-8">
@@ -620,43 +682,63 @@ const handleRateProduct = (product) => {
             </div>
           </div>
         );
-
       case "favorites":
         return (
           <div className="p-4 sm:p-6 lg:p-8">
             <h2 className="text-2xl font-semibold mb-8">My Favorites</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-              {productsData.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            {productsData(items)?.length === 0 ? (
+              <div className="text-center py-16">
+                <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-foreground mb-2">Your wishlist is empty</h2>
+                <p className="text-muted-foreground mb-6">
+                  Start adding items you love to your wishlist by clicking the heart icon on products.
+                </p>
+                <Button onClick={() => window.location.href = "/"} className="bg-primary hover:bg-primary/90">
+                  <ShoppingBag className="h-4 w-4 mr-2" />
+                  Continue Shopping
+                </Button>
+              </div>
+            ) : (
+              <>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {productsData(items)?.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+                {wishtotalPages > 1 && (
+                  <div className="flex justify-center items-center gap-3 mt-10">
+                    <button
+                      disabled={wishpage === 1 || loading}
+                      onClick={() => setWishPage(wishpage - 1)}
+                      className="px-4 py-2 border rounded disabled:opacity-50"
+                    >
+                      Prev
+                    </button>
+
+                    <span className="text-sm">
+                      Page {wishpage} of {wishtotalPages}
+                    </span>
+
+                    <button
+                      disabled={wishpage === wishtotalPages || loading}
+                      onClick={() => setWishPage(wishpage + 1)}
+                      className="px-4 py-2 border rounded disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+
+              </>
+
+            )}
           </div>
         );
-
-      case "privacy":
-        return (
-          <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
-            <h2 className="text-2xl font-semibold mb-8">{cmsData?.title}</h2>
-            <div className="prose text-gray-600 space-y-6">
-              {/* Your privacy content here */}
-              {cmsData?.content && (
-                <div
-                  className="prose max-w-none"
-                  dangerouslySetInnerHTML={{ __html: cmsData.content }}
-                />
-              )}
-              {/* <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit...
-              </p> */}
-            </div>
-          </div>
-        );
-
       default:
         return null;
     }
   };
-
 
   const MainDashboard = () => (
     <div className="min-h-screen bg-[#FAF6F2]">
@@ -698,10 +780,10 @@ const handleRateProduct = (product) => {
 
   if (currentView === "track-order") {
     // You can extract TrackOrderPage and RateProductPage similarly
-    return <TrackOrderPage onBack={resetFormAndView} />;
+    return <TrackOrderPage onBack={resetFormAndView} orderId={selectedOrderId} />;
   }
   if (currentView === "rate-product") {
-    return <RateProductPage onBack={resetFormAndView} productRating={selectedProductForRating}/>;
+    return <RateProductPage onBack={resetFormAndView} productRating={selectedProductForRating} />;
   }
 
   return <MainDashboard />;

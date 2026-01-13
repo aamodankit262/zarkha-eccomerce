@@ -1,7 +1,26 @@
+import { NO_IMAGE } from "@/api/endpoints";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
+import { useApi } from "@/hooks/useApi";
+import { orderService } from "@/services/orderService";
+import { useAuthStore } from "@/store/authStore";
 import { ArrowLeft, Download } from "lucide-react";
+import { useEffect } from "react";
 
-const TrackOrderPage = ({onBack}) => (
+const TrackOrderPage = ({onBack , orderId}) => {
+  console.log(orderId, "orderId in track order page...");
+  const { data: orderResp, request: fetchOrderDetails, loading: orderderLoading } = useApi(orderService.getOrderDetails);
+  const {userDetails} = useAuthStore()
+   useEffect(() => {
+    if (orderId) {
+      fetchOrderDetails(orderId);
+    };
+  }, [orderId]);
+  console.log("Order Details:", orderResp);
+  const orderDetails = orderResp?.body || {};
+  const getShippingAddress = orderDetails.shipping_address || {};
+  const getItems = orderDetails.items || [];
+  if (orderderLoading) return <p>Loading order details...</p>;
+  return (
     <div className="min-h-screen bg-[#FAF6F2]">
       <HeaderOtherPages />
 
@@ -18,12 +37,13 @@ const TrackOrderPage = ({onBack}) => (
           {/* Delivery Address */}
           <div className="bg-[#FAF6F2] rounded-lg p-6">
             <h3 className="font-semibold mb-4">Delivery Address</h3>
-            <p className="font-medium mb-2">Name Customer Here</p>
+            <p className="font-medium mb-2">{getShippingAddress?.first_name} {getShippingAddress?.last_name}</p>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Shop no 9-10, Ram mandir, Govind Marg, near DISCOUNT Fashion Hub,
-              opp. Dashera Maidan, Raja Park, Jaipur, Rajasthan 302004
+              {/* Shop no 9-10, Ram mandir, Govind Marg, near DISCOUNT Fashion Hub,
+              opp. Dashera Maidan, Raja Park, Jaipur, Rajasthan 302004 */}
+              {getShippingAddress?.address}, {getShippingAddress?.city}, {getShippingAddress?.state} - {getShippingAddress?.pin_code}
             </p>
-            <p className="text-sm text-gray-600 mt-4">+91 8912345678</p>
+            <p className="text-sm text-gray-600 mt-4">+91 {userDetails.phone}</p>
           </div>
 
           {/* Order Info */}
@@ -32,23 +52,23 @@ const TrackOrderPage = ({onBack}) => (
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Tracking No.</span>
-                <span className="font-medium">12001220</span>
+                <span className="font-medium">{orderDetails?.tracking_number || "N/A"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Ship By</span>
-                <span className="font-medium">DHL</span>
+                <span className="font-medium">{orderDetails?.courier_name || "N/A"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Order ID</span>
-                <span className="font-medium">12001220</span>
+                <span className="font-medium">{orderId || "N/A"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Order Date</span>
-                <span className="font-medium">12-Nov-2024, 12:10 Pm</span>
+                <span className="font-medium">{new Date(orderDetails?.ordered_at).toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Payment</span>
-                <span className="font-medium text-green-600">Done</span>
+                <span className="font-medium text-green-600">{orderDetails?.payment_status}</span>
               </div>
             </div>
           </div>
@@ -67,19 +87,19 @@ const TrackOrderPage = ({onBack}) => (
           <div className="bg-white rounded-lg p-6">
             <h3 className="font-semibold mb-6">Product Details</h3>
             <div className="space-y-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex gap-4 pb-6 border-b last:border-0">
+              {getItems?.map((i) => (
+                <div key={i._id} className="flex gap-4 pb-6 border-b last:border-0">
                   <img
-                    src="/product-1.jpg"
-                    alt="Product"
+                    src={i.image || NO_IMAGE}
+                    alt={i.product_title || "Product Image"}
                     className="w-20 h-24 object-cover rounded"
                   />
                   <div>
                     <p className="font-medium mb-2">
-                      Black LIVA Straight Printed 2 Piece Set
+                      {i.product_title || "Product Title"}
                     </p>
-                    <p className="text-sm text-gray-600">Amount Paid: ₹ 1900</p>
-                    <p className="text-sm text-gray-600">QTY: 02</p>
+                    <p className="text-sm text-gray-600">Amount Paid: ₹ {i.final_price || i.discount_price}</p>
+                    <p className="text-sm text-gray-600">QTY: {i.quantity}</p>
                   </div>
                 </div>
               ))}
@@ -90,10 +110,10 @@ const TrackOrderPage = ({onBack}) => (
             <h3 className="font-semibold mb-6">Track Order</h3>
             <div className="bg-[#FAF6F2] rounded-md p-4 mb-6">
               <p>
-                <strong>Tracking No.:</strong> 12001220
+                <strong>Tracking No.:</strong> {orderDetails?.tracking_number || "N/A"}
               </p>
               <p>
-                <strong>Ship By:</strong> DHL
+                <strong>Ship By:</strong> {orderDetails?.courier_name || "N/A"}
               </p>
             </div>
 
@@ -124,4 +144,5 @@ const TrackOrderPage = ({onBack}) => (
       </div>
     </div>
   );
+}
 export default TrackOrderPage

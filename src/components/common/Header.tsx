@@ -6,7 +6,8 @@ import { useNavigate } from "react-router-dom";
 import SignupModal from "../auth/SignupModal";
 import MegaMenu from "./MegaMenu";
 import Navigation from "./Navigation";
-import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png";
+// import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png";
+import logoImage from "/assets/logo.png";
 import { useAuthStore } from "@/store/authStore";
 import TopBar from "./TopBar";
 
@@ -102,9 +103,9 @@ const Header = () => {
                     </span>
                   )}
                 </div>
-                <div className="hidden md:flex items-center gap-2 text-gray-700 hover:text-orange-500 cursor-pointer">
+                <div onClick={() => navigate("/wishlist")} className="hidden md:flex items-center gap-2 text-gray-700 hover:text-orange-500 cursor-pointer">
                   <Heart className="h-5 w-5" />
-                  <span className="text-sm">Favorites</span>
+                  {/* <span className="text-sm">Favorites</span> */}
                 </div>
                 <div className="flex items-center">
                   {isLogin ? (

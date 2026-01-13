@@ -1,4 +1,5 @@
 export const NO_IMAGE = "/assets/no_image.jpg"
+export const logoImage = "/assets/logo.png"
 export const API_ENDPOINTS = {
   BASE_URL: import.meta.env.VITE_API_BASE_URL,
   HOME: "/web/home",
@@ -10,6 +11,7 @@ export const API_ENDPOINTS = {
     LIST: "/web/list/industry",
     CATEGORY: {
       LIST: "/web/list/category",
+      CategorySubCategory: "/web/list/categories-with-subcategories",
       SUBCATEGORY: {
         LIST: "/web/list/subcategory",
       }
@@ -22,15 +24,16 @@ export const API_ENDPOINTS = {
     RARTING: "/web/products/ratings",
     DETAIL: "/web/products/details",
   },
+  WISHLIST: {
+    ADD: "/web/wishlist/add",
+    REMOVE: "/web/wishlist/remove",
+    LIST: "/web/wishlist/list",
+  },
   CART: {
     GET: "/web/products/cart",
     ADD: "/web/products/cart/add",
     UPDATE: "/web/products/cart/update",
     REMOVE: "/web/products/cart/remove",
-  },
-  ORDER: {
-    CREATE: "/orders",
-    HISTORY: "/orders/history",
   },
   USER: {
     PROFILE: "/user/profile",
@@ -42,6 +45,9 @@ export const API_ENDPOINTS = {
     LIST: "/web/address/list",
     DELETE: "/web/address/delete",
   },
+  FAQ: {
+    LIST: "/web/faq/list",
+  },
   LIST: {
     STATES: "/web/list/states",
     CITY: "/web/list/cities",
@@ -50,6 +56,11 @@ export const API_ENDPOINTS = {
     LIST: "/web/coupon/list",
     APPLY: "/web/coupon/add",
     REMOVE: "/web/coupon/remove",
+  },
+  ORDERS: {
+    CREATE: "/web/order/create",
+    LIST: "/web/order/list",
+    VIEW: "/web/order/view",
   },
   CMS : "/web/user/cms/get",
   CONTACT_US : "/web/contact-us"

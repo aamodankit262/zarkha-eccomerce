@@ -32,6 +32,7 @@ import AffiliateSales from "@/components/affiliate/AffiliateSales";
 import AffiliateEarnings from "@/components/affiliate/AffiliateEarnings";
 import AffiliateProfile from "@/components/affiliate/AffiliateProfile";
 import { useAffiliate } from "@/contexts/AffiliateContext";
+import { logoImage } from "@/api/endpoints";
 
 const AffiliateDashboard = () => {
   const { affiliate, isLoggedIn, logout } = useAffiliate();
@@ -115,8 +116,14 @@ const AffiliateDashboard = () => {
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
             <Link to="/" className="flex items-center gap-2">
-              <ShoppingBag className="h-6 w-6 text-primary" />
-              <span className="font-bold text-foreground">Ethnic Store</span>
+              {/* <ShoppingBag className="h-6 w-6 text-primary" />
+              <span className="font-bold text-foreground">Ethnic Store</span> */}
+              <img
+                  src={logoImage}
+                  alt="Zarkha"
+                  className="h-8 w-auto cursor-pointer"
+                  onClick={() => navigate("/")}
+                />
             </Link>
             <Badge variant="secondary" className="hidden sm:flex">Affiliate Partner</Badge>
           </div>
