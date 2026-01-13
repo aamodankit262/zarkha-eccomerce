@@ -1,15 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/common/Layout";
+import { CMS_TYPES } from "@/services/cms.service";
+import { useCms } from "@/hooks/useCms";
+import { faqService } from "@/services/faqService";
+import { useApi } from "@/hooks/useApi";
 
 const FAQ = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+  const {data, request} = useApi(faqService.list);
+  const getQuestions = data?.body|| [];
+  // const allQuestions = getQuestions.flatMap((category: any) => 
+  //   category.questions.map((q: any) => ({ ...q, category: category.category }))
+  // );
+  console.log(getQuestions );
+//   const loadFaqs = async () => {
+//   const res = await faqService.list({ search: "order" });
+//   console.log(res.data);
+// };
+// const { data, loading } = useCms(CMS_TYPES.FAQ);
 
+//   if (loading) return null;
+useEffect(() => {
+    request();
+}, []);
   const faqCategories = [
     {
       category: "Orders & Payment",
@@ -143,7 +162,7 @@ const FAQ = () => {
     }
   ];
 
-  const allQuestions = faqCategories.flatMap(category => 
+  const allQuestions = getQuestions.flatMap(category => 
     category.questions.map(q => ({ ...q, category: category.category }))
   );
 
@@ -232,17 +251,17 @@ const FAQ = () => {
                 </div>
               )}
             </div>
-          ) : (
-            // Category View
+          ) 
+          : (
             <div className="space-y-8">
-              {faqCategories.map((category) => (
+              {getQuestions?.map((category) => (
                 <Card key={category.category}>
-                  <CardHeader>
+                  {/* <CardHeader>
                     <CardTitle className="flex items-center gap-3">
                       <span className="text-2xl">{category.icon}</span>
                       {category.category}
                     </CardTitle>
-                  </CardHeader>
+                  </CardHeader> */}
                   <CardContent>
                     <div className="space-y-4">
                       {category.questions.map((question) => (
@@ -269,7 +288,8 @@ const FAQ = () => {
                 </Card>
               ))}
             </div>
-          )}
+          )
+          }
         </div>
 
         {/* Still Need Help */}

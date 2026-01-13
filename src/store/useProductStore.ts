@@ -111,7 +111,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     category: [],
     subCategory: [],
     discount: [],
-    sort: "bestseller",
+    sort: "popular",
     price: [],
     size: [],
     color: [],
@@ -146,6 +146,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       };
 
       const res = await productService.getAll(payload);
+      console.log("Fetched Products:", res);
       set({
         productsList: res?.body ,
         totalPages: res.total_pages || 1,

@@ -29,68 +29,74 @@ const CouponModal = ({
         </DialogHeader>
 
         <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-          {coupons?.map((coupon) => {
-            const isEligible = subtotal >= coupon.min_cart_value;
+          {!coupons || coupons.length === 0 ? (
+            <div className="text-center py-10 text-sm text-muted-foreground">
+              No coupons available right now.
+            </div>
+          ) : (
+            coupons.map((coupon) => {
+              const isEligible = subtotal >= coupon.min_cart_value;
 
-            return (
-              <div
-                key={coupon._id}
-                className={`border rounded-lg p-4 transition ${
-                  isEligible
-                    ? "hover:border-primary cursor-pointer"
-                    : "opacity-60"
-                }`}
-                onClick={() => isEligible && onApplyCoupon(coupon)}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-primary/10 px-3 py-1 rounded">
-                      <span className="font-bold text-primary text-sm">
-                        {coupon.code}
-                      </span>
+              return (
+                <div
+                  key={coupon._id}
+                  className={`border rounded-lg p-4 transition ${isEligible
+                      ? "hover:border-primary cursor-pointer"
+                      : "opacity-60"
+                    }`}
+                  onClick={() => isEligible && onApplyCoupon(coupon)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-primary/10 px-3 py-1 rounded">
+                        <span className="font-bold text-primary text-sm">
+                          {coupon.code}
+                        </span>
+                      </div>
+
+                      {coupon.discount_type === "percentage" ? (
+                        <span className="text-sm font-semibold text-foreground">
+                          {coupon.discount_value}% OFF
+                        </span>
+                      ) : (
+                        <span className="text-sm font-semibold text-foreground">
+                          ₹{coupon.max_discount_amount} OFF
+                        </span>
+                      )}
                     </div>
 
-                    {coupon.discount_type === "percentage" ? (
-                      <span className="text-sm font-semibold text-foreground">
-                        {coupon.discount_value}% OFF
-                      </span>
-                    ) : (
-                      <span className="text-sm font-semibold text-foreground">
-                        ₹{coupon.max_discount_amount} OFF
-                      </span>
+                    {isEligible && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+                      >
+                        Apply
+                      </Button>
                     )}
                   </div>
 
-                  {isEligible && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-                    >
-                      Apply
-                    </Button>
+                  <p className="text-sm text-muted-foreground">
+                    {coupon.description}
+                  </p>
+
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Min. order: ₹{coupon.min_cart_value}
+                    {coupon.max_discount_amount &&
+                      ` • Max discount: ₹${coupon.max_discount_amount}`}
+                  </p>
+
+                  {!isEligible && (
+                    <p className="text-xs text-red-500 mt-2">
+                      Add ₹{coupon.min_cart_value - subtotal} more to unlock this coupon
+                    </p>
                   )}
                 </div>
-
-                <p className="text-sm text-muted-foreground">
-                  {coupon.description}
-                </p>
-
-                <p className="text-xs text-muted-foreground mt-1">
-                  Min. order: ₹{coupon.min_cart_value}
-                  {coupon.max_discount_amount &&
-                    ` • Max discount: ₹${coupon.max_discount_amount}`}
-                </p>
-
-                {!isEligible && (
-                  <p className="text-xs text-red-500 mt-2">
-                    Add ₹{coupon.min_cart_value - subtotal} more to unlock this coupon
-                  </p>
-                )}
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
+
       </DialogContent>
     </Dialog>
   );

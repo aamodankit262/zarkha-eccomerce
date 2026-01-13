@@ -21,6 +21,7 @@ export default function NewArrivals({ products }: any) {
       discount, // percentage
       image: product?.images?.[0]?.url || "/assets/no_image.jpg",
       isNew: product.isNew,
+      isWish: product.isWish,
       colors: product.color ? [product.color] : [], // FIXED
       size: product.size,
       variantId: product.item_code_ids?.[0]

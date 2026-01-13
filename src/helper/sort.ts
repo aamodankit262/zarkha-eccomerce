@@ -1,6 +1,6 @@
 // src/constants/sort.ts
 export type SortOption =
-  | "bestseller"
+  | "popular"
   | "price_asc"
   | "price_desc"
   | "newest"
@@ -9,7 +9,7 @@ export type SortOption =
 
 export const SORT_OPTIONS: { label: string; value: SortOption }[] = [
   { label: "All", value: "all" },
-  { label: "Bestsellers", value: "bestseller" },
+  { label: "Bestsellers", value: "popular" },
   { label: "Price: Low to High", value: "price_asc" },
   { label: "Price: High to Low", value: "price_desc" },
   { label: "Newest First", value: "newest" },

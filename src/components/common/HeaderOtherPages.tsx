@@ -37,23 +37,25 @@ export default function HeaderOtherPages() {
                 className="flex items-center gap-1 cursor-pointer text-gray-600 hover:text-orange-500"
               >
                 <Search className="h-5 w-5" />
-                <span className="text-sm hidden lg:inline">Search</span>
+                {/* <span className="text-sm hidden lg:inline">Search</span> */}
               </div>
               <div
                 onClick={openCart}
                 className="flex items-center gap-1 cursor-pointer relative text-gray-600 hover:text-orange-500"
               >
                 <ShoppingCart className="h-5 w-5" />
-                <span className="text-sm hidden lg:inline">Cart</span>
+                {/* <span className="text-sm hidden lg:inline">Cart</span> */}
                 {totalItems > 0 && (
                   <span className="absolute -top-2 -right-3 bg-orange-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1 cursor-pointer text-gray-600 hover:text-orange-500">
+              <div  
+              onClick={() => navigate("/wishlist")}
+              className="flex items-center gap-1 cursor-pointer text-gray-600 hover:text-orange-500">
                 <Heart className="h-5 w-5" />
-                <span className="text-sm hidden lg:inline">Favorites</span>
+                {/* <span className="text-sm hidden lg:inline">Favorites</span> */}
               </div>
               <button
                 onClick={

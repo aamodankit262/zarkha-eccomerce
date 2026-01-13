@@ -4,9 +4,10 @@ import { X } from "lucide-react";
 interface OrderSuccessProps {
   isOpen: boolean;
   onClose: () => void;
+  orderId: string;
 }
 
-const OrderSuccess: React.FC<OrderSuccessProps> = ({ isOpen, onClose }) => {
+const OrderSuccess: React.FC<OrderSuccessProps> = ({ isOpen, onClose, orderId }) => {
   if (!isOpen) return null;
 
   return (
@@ -37,7 +38,9 @@ const OrderSuccess: React.FC<OrderSuccessProps> = ({ isOpen, onClose }) => {
           Thank You For Your Purchase — We’re Getting Your Order Ready And Will
           Update You Soon!
         </p>
-
+        <p className="text-gray-800 font-medium mb-6">
+          Your Order ID: <span className="font-bold">{orderId}</span>
+        </p>
         {/* Ok Button */}
         <button
           onClick={onClose}

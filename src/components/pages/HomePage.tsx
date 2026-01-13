@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useProducts } from "../../hooks/useProducts";
 import { BusinessCategorySection as OldCategorySection } from "../business";
 import Layout from "../common/Layout";
 import BestSellers from "../sections/BestSellers";
@@ -9,7 +8,6 @@ import HeroSection from "../sections/HeroSection";
 import MonthStartSpecial from "../sections/MonthStartPlan";
 import MostWantedBanner from "../sections/MostWantedBanner";
 import NewArrivals from "../sections/NewArrivals";
-import NewArrivalsSection from "../sections/NewArrivalsSection";
 import PerfectBottomWear from "../sections/PerfectBottomWear";
 import UnmissableDeals from "../sections/UnbeatableDeals";
 import { useApi } from "@/hooks/useApi";
@@ -57,7 +55,7 @@ const HomePage = () => {
         <HeroSection slides={heroSlides} />
         <UnmissableDeals dealsData={dealsData} />
         {/* Category Section - Shows when category is selected */}
-        {selectedCategory && (
+        {/* {selectedCategory && (
           <div className="absolute top-0 left-0 right-0 z-20 bg-white shadow-lg">
             <div className="flex justify-center">
               <OldCategorySection
@@ -67,7 +65,7 @@ const HomePage = () => {
               />
             </div>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Month Start Special Section */}

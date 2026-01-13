@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   Wallet
 } from "lucide-react";
+import { logoImage } from "@/api/endpoints";
 
 const AffiliateLanding = () => {
   const benefits = [
@@ -66,8 +67,12 @@ const AffiliateLanding = () => {
       <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-            <span className="text-lg sm:text-xl font-bold text-foreground">Ethnic Store</span>
+           <img
+                  src={logoImage}
+                  alt="Zarkha"
+                  className="h-8 w-auto cursor-pointer"
+                  // onClick={() => navigate("/")}
+                />
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
             <Link to="/affiliate/login">

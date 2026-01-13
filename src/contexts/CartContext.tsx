@@ -34,7 +34,7 @@ interface CartContextType {
 
   openCart: () => void;
   closeCart: () => void;
-
+fetchCart: (id: string) => Promise<void>;
   getTotalItems: () => number;
   getTotalPrice: () => number;
   updateQuantity: (
@@ -114,7 +114,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       // update items directly
       fetchCart(res.cartId)
       // setItems(res.cart.items || []);
-      openCart();
+      // openCart();
     } catch (err) {
       console.error("Add to cart failed", err);
     }
@@ -173,18 +173,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // const removeItem = (productId: string, variantId: string) => {
-  //   setItems((prev) =>
-  //     prev.filter(
-  //       (item) =>
-  //         !(
-  //           item.product_id === productId &&
-  //           item.item_id === variantId
-  //         )
-  //     )
-  //   );
-  // };
-
   /* ---------- HELPERS ---------- */
   const getTotalItems = () =>
     items.reduce((sum, item) => sum + item.quantity, 0);
@@ -214,6 +202,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         closeCart,
         getTotalItems,
         getTotalPrice,
+        fetchCart,
       }}
     >
       {children}

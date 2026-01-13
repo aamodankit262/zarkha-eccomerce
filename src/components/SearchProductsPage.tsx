@@ -5,11 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { useApi } from "@/hooks/useApi";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
 import { ProductCard } from "@/components/common/ProductCard";
+import { productService } from "@/services/productService";
 
 // Assume you have a search API endpoint
 const searchProductsApi = async (query: string) => {
   // Replace with your actual API endpoint
-  const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
+  const response = await fetch(`/web/products/search?q=${encodeURIComponent(query)}`);
   if (!response.ok) throw new Error("Failed to search");
   return response.json();
 };
@@ -20,10 +21,20 @@ const SearchProductsPage = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-  const { data, loading, error, request } = useApi(searchProductsApi);
+  const [page, setPage] = useState(1);
+  const { data, loading, error, request } = useApi(productService.getAll);
 
   // Debounce search query
+  useEffect(() => {
+    if (!debouncedQuery) return;
+
+    request({
+      search: debouncedQuery,
+      page: 1,
+      limit: 20,
+    });
+  }, [debouncedQuery]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query.trim());
@@ -33,11 +44,11 @@ const SearchProductsPage = () => {
   }, [query]);
 
   // Trigger search when debounced query changes
-  useEffect(() => {
-    if (debouncedQuery) {
-      request(debouncedQuery);
-    }
-  }, [debouncedQuery, request]);
+  // useEffect(() => {
+  //   if (debouncedQuery) {
+  //     request(debouncedQuery);
+  //   }
+  // }, [debouncedQuery]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -115,25 +126,52 @@ const SearchProductsPage = () => {
               )}
 
               {!loading && products.length > 0 && (
-                <div className="max-h-96 overflow-y-auto">
-                  {products.slice(0, 8).map((product: any) => (
-                    <button
-                      key={product.id}
-                      onClick={() => handleProductClick(product.id)}
-                      className="w-full text-left px-6 py-4 hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-0 flex items-center gap-4"
-                    >
-                      <img
-                        src={product.image || "/placeholder.jpg"}
-                        alt={product.name}
-                        className="w-12 h-12 object-cover rounded-lg"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">{product.name}</p>
-                        <p className="text-sm text-orange-600 font-semibold">₹{product.price}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <>
+                  <div className="max-h-96 overflow-y-auto">
+                    {products.slice(0, 8).map((product: any) => (
+                      <button
+                        key={product.id}
+                        onClick={() => handleProductClick(product.id)}
+                        className="w-full text-left px-6 py-4 hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-0 flex items-center gap-4"
+                      >
+                        <img
+                          src={product.image || "/placeholder.jpg"}
+                          alt={product.name}
+                          className="w-12 h-12 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{product.name}</p>
+                          <p className="text-sm text-orange-600 font-semibold">₹{product.price}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  {/* {data?.pagination?.totalPages > 1 && (
+                    <div className="flex justify-center gap-4 mt-10">
+                      <button
+                        disabled={page === 1}
+                        onClick={() => setPage((p) => p - 1)}
+                        className="px-4 py-2 border rounded"
+                      >
+                        Prev
+                      </button>
+
+                      <span>
+                        Page {page} of {data.pagination.totalPages}
+                      </span>
+
+                      <button
+                        disabled={page === data.pagination.totalPages}
+                        onClick={() => setPage((p) => p + 1)}
+                        className="px-4 py-2 border rounded"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )} */}
+
+                </>
+
               )}
             </div>
           )}

@@ -75,7 +75,7 @@ const ProductListingPage = () => {
       title: p.name,
       price: p.product_price,
       originalPrice: p.mrp ? `MRP ₹${p.mrp}` : undefined,
-      discount: p.discount ? `Save ${p.discount}` : undefined,
+      discount: p.discount ? `Save ₹${p.discount}` : undefined,
       colors: p.color ? p.color.map((c: string) => {
         switch (c.toLowerCase()) {
           case "red": return "#FF0000";
@@ -146,7 +146,7 @@ const ProductListingPage = () => {
     switch (sortBy) {
       case "all":
         return result;
-      case "bestseller":
+      case "popular":
         return result.filter(p => p.isBestSeller===1);
 
       case "price_asc":
@@ -317,27 +317,30 @@ const ProductListingPage = () => {
   const navigate = useNavigate();
 
   const ProductCard = ({ product }: { product: (typeof products)[0] }) => {
-    const handleAddToCart = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      addItem({
-      productId: product.id,
-      variantId: product.variantId,
-      quantity: 1
-    });
-      // addItem({
-      //   id: product.id,
-      //   name: product.title,
-      //   image: product.image,
-      //   size: product.selectedSize,
-      //   color: product.color,
-      //   price: +product.price,
-      //   quantity: product.quantity,
-      // });
-      toast({
-        title: "Added to cart",
-        description: `${product.title} has been added to your cart`,
-      });
-    };
+    // const handleAddToCart = (e: React.MouseEvent) => {
+    //   e.stopPropagation();
+    //   addItem({
+    //   productId: product.id,
+    //   variantId: product.variantId,
+    //   quantity: 1
+    // });
+    //   // addItem({
+    //   //   id: product.id,
+    //   //   name: product.title,
+    //   //   image: product.image,
+    //   //   size: product.selectedSize,
+    //   //   color: product.color,
+    //   //   price: +product.price,
+    //   //   quantity: product.quantity,
+    //   // });
+    //   toast({
+    //     title: "Added to cart",
+    //     description: `${product.title} has been added to your cart`,
+    //   });
+    // };
+ const goToDetails = () => {
+    navigate(`/product/${product.id}`);
+  };
 
     if (viewMode === "compact") {
       return (
@@ -374,7 +377,7 @@ const ProductListingPage = () => {
                 <h3 className="text-sm sm:text-base font-medium text-gray-900 mb-2 line-clamp-2">
                   {product.title}
                 </h3>
-                <div className="flex items-center gap-1 mb-3">
+                {/* <div className="flex items-center gap-1 mb-3">
                   <span className="text-sm text-gray-600 mr-2">Colors:</span>
                   {product.colors.map((color: string, index: number) => (
                     <div
@@ -383,7 +386,7 @@ const ProductListingPage = () => {
                       style={{ backgroundColor: color }}
                     />
                   ))}
-                </div>
+                </div> */}
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg sm:text-xl font-bold text-gray-900">
                     {product.price}
@@ -415,7 +418,7 @@ const ProductListingPage = () => {
               <div className="flex items-center justify-between">
                 <button
                   className="flex-1 mr-3 border border-orange-500 text-orange-500 py-2 px-4 rounded text-sm font-medium hover:bg-orange-50 transition-colors"
-                  onClick={handleAddToCart}
+                  onClick={goToDetails}
                 >
                   Add To Cart
                 </button>
@@ -471,7 +474,7 @@ const ProductListingPage = () => {
           <h3 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2">
             {product.title}
           </h3>
-          <div className="flex items-center gap-1 mb-2">
+          {/* <div className="flex items-center gap-1 mb-2">
             {product.colors.map((color: string, index: number) => (
               <div
                 key={index}
@@ -479,10 +482,10 @@ const ProductListingPage = () => {
                 style={{ backgroundColor: color }}
               />
             ))}
-          </div>
+          </div> */}
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg font-bold text-gray-900">
-              {product.price}
+             ₹ {product.price}
             </span>
             <span className="text-sm text-gray-500 line-through">
               {product.originalPrice}
@@ -491,7 +494,7 @@ const ProductListingPage = () => {
               {product.discount}
             </span>
           </div>
-          <div className="flex items-center gap-1 mb-3">
+          {/* <div className="flex items-center gap-1 mb-3">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -504,12 +507,12 @@ const ProductListingPage = () => {
               ))}
             </div>
             <span className="text-xs text-gray-500">({product.reviews})</span>
-          </div>
+          </div> */}
           <button
             className="w-full border border-orange-500 text-orange-500 py-2 px-4 rounded text-sm font-medium hover:bg-orange-50 transition-colors"
-            onClick={handleAddToCart}
+            onClick={goToDetails}
           >
-            Add To Cart
+            View Details
           </button>
         </div>
       </div>
