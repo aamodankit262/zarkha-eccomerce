@@ -68,6 +68,7 @@ const AppContent = () => {
           <Route path="/returns" element={<Returns />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/size-guide" element={<SizeGuide />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/invoice" element={<TaxInvoice />} />
 
           {/* Affiliate Public */}
@@ -78,7 +79,6 @@ const AppContent = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/track-order/:orderId" element={<TrackOrder />} />
             <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
           </Route>
