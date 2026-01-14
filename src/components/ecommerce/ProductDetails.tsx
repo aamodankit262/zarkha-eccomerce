@@ -49,7 +49,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const [audioProgress, setAudioProgress] = useState(0.5);
   const [showRatingsPage, setShowRatingsPage] = useState(false);
   const [showSizeChart, setShowSizeChart] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<number>(0);
+  // const [selectedImage, setSelectedImage] = useState<number>(0);
   const { openCart, addItem } = useCart();
   const id = useParams().id || "";
   const { data, request } = useApi(productService.getById);
@@ -118,7 +118,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
         : 0,
     };
   });
-  console.log(ratingBreakdown, 'ratingBreakdown')
+  // console.log(ratingBreakdown, 'ratingBreakdown')
 
   const customerReviews =
     data?.body?.feedback?.feedback_list?.map(
@@ -244,9 +244,6 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
 
                 {/* Action Icons */}
                 <div className="absolute top-4 right-4 flex gap-2">
-                  {/* <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
-                    <Heart className="h-5 w-5 text-gray-600" />
-                  </button> */}
                   <WishlistButton productId={id} />
 
                   {/* <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">

@@ -31,13 +31,3 @@ export const productService = {
     return await apiClient.post<Product>(API_ENDPOINTS.PRODUCTS.DETAIL, { product_id: id, item_id: itemId });
   },
 };
-
-
-// export const productService = {
-//   // getAll: () => apiClient.get(API_ENDPOINTS.PRODUCTS.LIST),
-//    getAll: async (): Promise<Product[]> => {
-//     const res= await apiClient.get<Product[]>(API_ENDPOINTS.PRODUCTS.LIST);
-//     return res.data;
-//   },
-//   getById: (id: string) => apiClient.get(API_ENDPOINTS.PRODUCTS.DETAIL(id)),
-// };
