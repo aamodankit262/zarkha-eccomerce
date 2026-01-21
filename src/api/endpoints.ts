@@ -64,12 +64,17 @@ export const API_ENDPOINTS = {
     UPDATE: "/web/order/update",
     CANCEL: "/web/order/cancel",
   },
+  // API_ENDPOINTS.ts
+  PAYMENT: {
+    CREATE_ORDER: "/web/payment/create-order",
+    VERIFY: "/web/payment/verify",
+  },
   CMS: "/web/user/cms/get",
   CONTACT_US: "/web/contact-us",
-  
+
   // API_ENDPOINTS.ts
   AFFILIATE: {
-  SIGNUP: "/web/affiliate/signup",
-  LOGIN: "/web/affiliate/login",
-}
+    SIGNUP: "/web/affiliate/signup",
+    LOGIN: "/web/affiliate/login",
+  }
 };

@@ -27,6 +27,7 @@ import { orderService } from "@/services/orderService";
 import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
 import { Layout } from "@/components";
 import { set } from "date-fns";
+import { paymentService } from "@/services/paymentService";
 export interface Coupon {
     code: string;
     _id: string;
@@ -92,7 +93,7 @@ const CheckoutPage = () => {
     const { request: removeCouponApi } = useApi(removeCoupon);
     const { request: createOrder, loading: createOrderLoading } = useApi(orderService.createOrder);
     const { cartId, fetchCart } = useCart()
-    // const { Razorpay } = useRazorpay();
+    const { Razorpay } = useRazorpay();
 
     useEffect(() => {
         if (isLogin) {
@@ -109,7 +110,7 @@ const CheckoutPage = () => {
     useEffect(() => {
         if (!token) return;
         getCouponList().then((res) => {
-            console.log(res, 'coupons')
+            // console.log(res, 'coupons')
             setCouponList(res?.body || []);
         });
     }, [token]);
@@ -360,105 +361,103 @@ const CheckoutPage = () => {
     };
 
     /* ---------------- PAYMENT ---------------- */
-    const handlePayment = async () => {
-        if (!isLogin) {
-            toast.error("please varify mobile number first");
-            return;
-        }
-        if (!items.length) {
-            toast.error("Please add items to cart before placing order");
-            return;
-        }
-        if (!selectedAddressId) {
-            toast.error("Please select delivery address");
-            return;
-        }
-        try {
-            const res: any = await createOrder({
-                address_id: selectedAddressId,
-                payment_method: "cod", // or online
-                cart_id: cartId,
-                customer_notes: "Please deliver between 10 AM - 6 PM",
-            });
-            toast.success("Order placed successfully");
-            setOrderId(res.body.order_id);
-            // console.log("Order Created:", res);
-            setShowSuccessModal(true);
-            await fetchCart(cartId);
-        } catch (err) {
-            console.error(err);
-        }
-    };
     // const handlePayment = async () => {
+    //     if (!isLogin) {
+    //         toast.error("please varify mobile number first");
+    //         return;
+    //     }
+    //     if (!items.length) {
+    //         toast.error("Please add items to cart before placing order");
+    //         return;
+    //     }
     //     if (!selectedAddressId) {
     //         toast.error("Please select delivery address");
     //         return;
     //     }
-
     //     try {
-    //         const res = await createOrder({
+    //         const res: any = await createOrder({
     //             address_id: selectedAddressId,
-    //             payment_method: "online",
+    //             payment_method: "cod", // or online
     //             cart_id: cartId,
     //             customer_notes: "Please deliver between 10 AM - 6 PM",
     //         });
-
-    //         const {
-    //             razorpay_order_id,
-    //             order_id,
-    //             amount,
-    //         } = res.body;
-
-    //         const options: RazorpayOrderOptions = {
-    //             key: RAZORPAY_KEY,
-    //             amount: amount, // in paise
-    //             currency: "INR",
-    //             name: "Zarkha",
-    //             description: "Order Payment",
-    //             order_id: razorpay_order_id,
-
-    //             handler: async (response) => {
-    //                 console.log("Payment Success", response);
-
-    //                 // 3️⃣ Verify payment API (backend)
-    //                 await orderService.verifyPayment({
-    //                     order_id,
-    //                     razorpay_order_id: response.razorpay_order_id,
-    //                     razorpay_payment_id: response.razorpay_payment_id,
-    //                     razorpay_signature: response.razorpay_signature,
-    //                 });
-
-    //                 toast.success("Payment successful");
-    //                 setShowSuccessModal(true);
-    //                 await fetchCart(cartId);
-    //             },
-
-    //             prefill: {
-    //                 name: userDetails?.name,
-    //                 email: userDetails?.email,
-    //                 contact: userDetails?.phone,
-    //             },
-
-    //             theme: {
-    //                 color: "#FF8A18",
-    //             },
-
-    //             modal: {
-    //                 ondismiss: () => {
-    //                     toast.info("Payment cancelled");
-    //                 },
-    //             },
-    //         };
-
-    //         // 4️⃣ Open Razorpay
-    //         const razorpay = new Razorpay(options);
-    //         razorpay.open();
-
-    //     } catch (error) {
-    //         console.error(error);
-    //         toast.error("Payment failed");
+    //         toast.success("Order placed successfully");
+    //         setOrderId(res.body.order_id);
+    //         setShowSuccessModal(true);
+    //         await fetchCart(cartId);
+    //     } catch (err) {
+    //         console.error(err);
     //     }
     // };
+    const handlePayment = async () => {
+        if (!selectedAddressId) {
+            toast.error("Please select delivery address");
+            return;
+        }
+
+        try {
+            const res = await paymentService.createPaymentOrder({
+                amount: totalAmount,
+                cart_id: cartId,
+                // address_id: selectedAddressId,
+                // payment_method: "online",
+                // customer_notes: "Please deliver between 10 AM - 6 PM",
+            });
+            console.log(res, 'payment create')
+            const {
+                order_id,
+                key_id,
+                amount
+            } = res.body;
+            setOrderId(order_id);
+            const options: RazorpayOrderOptions = {
+                key: key_id,
+                amount, // in paise
+                currency: "INR",
+                name: "Zarkha",
+                description: "Order Payment",
+                order_id: order_id,
+
+                handler: async (response) => {
+                    console.log("Payment handler", response);
+
+                    // 3️⃣ Verify payment API (backend)
+                    const res = await paymentService.verifyPayment({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                    });
+                   
+                    toast.success("Payment successful");
+                    setShowSuccessModal(true);
+                    await fetchCart(cartId);
+                },
+
+                prefill: {
+                    name: userDetails?.name || "",
+                    contact: userDetails?.phone || "",
+                },
+
+                theme: {
+                    color: "#ed8936",
+                },
+
+                modal: {
+                    ondismiss: () => {
+                        toast.info("Payment cancelled");
+                    },
+                },
+            };
+
+            // 4️⃣ Open Razorpay
+            const razorpay = new Razorpay(options);
+            razorpay.open();
+
+        } catch (error) {
+            console.error(error);
+            toast.error("Payment failed");
+        }
+    };
 
 
     return (
