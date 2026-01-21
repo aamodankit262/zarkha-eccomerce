@@ -70,7 +70,7 @@ export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const res = await affiliateAuthService.login({ email, password });
-
+      console.log(res, 'affilaite login')
       if (!res.success) {
         toast.error(res?.message); // 👈 pending approval message
         return false;
@@ -81,9 +81,8 @@ export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
         affiliate: res.body,
       };
 
-      const local = localStorage.setItem("affiliate-auth", JSON.stringify(authData));
+      localStorage.setItem("affiliate-auth", JSON.stringify(authData));
       // const local = localStorage.setItem("affiliate-auth", JSON.stringify(authData));
-      console.log(local)
       setAffiliate(authData?.affiliate);
       setToken(authData.token);
 
@@ -105,13 +104,14 @@ export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
         affiliate_category: data.category,
         aadhaar_card: data.aadhaarFile,
       });
-
-      if (res.data.success) {
-        toast.success(res.data.message); // 👈 pending approval message
+      console.log(res, 'affilaite signup')
+     
+      if (res.success) {
+        toast.success(res.message); // 👈 pending approval message
         return true;
       }
 
-      toast.error(res.data.message);
+      toast.error(res.message);
       return false;
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Signup failed");

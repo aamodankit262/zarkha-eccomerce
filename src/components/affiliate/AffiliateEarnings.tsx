@@ -73,7 +73,7 @@ const AffiliateEarnings = () => {
               </div>
               <div>
                 <p className="text-sm text-green-700">Total Earned</p>
-                <p className="text-2xl font-bold text-green-800">₹{affiliate?.totalEarnings.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-800">₹{affiliate?.totalEarnings?.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
