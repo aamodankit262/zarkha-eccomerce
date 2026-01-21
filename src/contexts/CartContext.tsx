@@ -29,6 +29,7 @@ interface CartContextType {
   addItem: (payload: {
     productId: string;
     variantId: string;
+    size: string;
     quantity?: number;
   }) => Promise<void>;
 
@@ -91,10 +92,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const addItem = async ({
     productId,
     variantId,
+    size,
     quantity = 1,
   }: {
     productId: string;
     variantId: string;
+    size: string;
     quantity?: number;
   }) => {
     try {
@@ -102,6 +105,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         cart_id: cartId,
         product_id: productId,
         item_id: variantId,
+        size : size,
         quantity,
       });
 

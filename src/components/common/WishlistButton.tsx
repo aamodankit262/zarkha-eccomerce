@@ -2,16 +2,20 @@ import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useWishlistStore } from "@/store/wishlistStore";
+import { useAuthStore } from "@/store/authStore";
 
 interface Props {
   productId: string;
   className?: string;
-  isWish?: 0 | 1; // 0 = not wishlisted, 1 = wishlisted
+  isWish?: boolean; // true = wishlisted, false = not wishlisted
 }
 
-const WishlistButton = ({ productId, className, isWish = 0 }: Props) => {
-  const [liked, setLiked] = useState(isWish === 1);
-
+const WishlistButton = ({ productId, className, isWish }: Props) => {
+  const [liked, setLiked] = useState(isWish);
+  const { isLogin } = useAuthStore();
+  if (!isLogin) {
+    return null;
+  }
   const {
     addToWishlist,
     removeFromWishlist,
@@ -22,14 +26,14 @@ const WishlistButton = ({ productId, className, isWish = 0 }: Props) => {
    * Sync if API value changes (safety)
    */
   useEffect(() => {
-    setLiked(isWish === 1);
+    setLiked(isWish === true);
   }, [isWish]);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
     const nextState = !liked;
-    setLiked(nextState); // 🔥 instant UI feedback
+    setLiked(nextState); 
 
     try {
       if (nextState) {

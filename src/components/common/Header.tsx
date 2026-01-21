@@ -103,10 +103,14 @@ const Header = () => {
                     </span>
                   )}
                 </div>
-                <div onClick={() => navigate("/wishlist")} className="hidden md:flex items-center gap-2 text-gray-700 hover:text-orange-500 cursor-pointer">
+                {isLogin && (
+                <div 
+                onClick={() => navigate("/wishlist")} 
+                className="hidden md:flex items-center gap-2 text-gray-700 hover:text-orange-500 cursor-pointer">
                   <Heart className="h-5 w-5" />
                   {/* <span className="text-sm">Favorites</span> */}
                 </div>
+                )}
                 <div className="flex items-center">
                   {isLogin ? (
                     <button

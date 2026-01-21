@@ -61,7 +61,15 @@ export const API_ENDPOINTS = {
     CREATE: "/web/order/create",
     LIST: "/web/order/list",
     VIEW: "/web/order/view",
+    UPDATE: "/web/order/update",
+    CANCEL: "/web/order/cancel",
   },
-  CMS : "/web/user/cms/get",
-  CONTACT_US : "/web/contact-us"
+  CMS: "/web/user/cms/get",
+  CONTACT_US: "/web/contact-us",
+  
+  // API_ENDPOINTS.ts
+  AFFILIATE: {
+  SIGNUP: "/web/affiliate/signup",
+  LOGIN: "/web/affiliate/login",
+}
 };

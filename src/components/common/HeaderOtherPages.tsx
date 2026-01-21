@@ -51,12 +51,14 @@ export default function HeaderOtherPages() {
                   </span>
                 )}
               </div>
+              {isLogin && (
               <div  
               onClick={() => navigate("/wishlist")}
               className="flex items-center gap-1 cursor-pointer text-gray-600 hover:text-orange-500">
                 <Heart className="h-5 w-5" />
                 {/* <span className="text-sm hidden lg:inline">Favorites</span> */}
               </div>
+              )}
               <button
                 onClick={
                   isLogin
