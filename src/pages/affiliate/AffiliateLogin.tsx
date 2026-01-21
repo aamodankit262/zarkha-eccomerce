@@ -88,14 +88,12 @@ const AffiliateLogin = () => {
             <span className="text-sm sm:hidden">Back</span>
           </Link>
           <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
-            {/* <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <span className="font-bold text-foreground text-sm sm:text-base">Ethnic Store</span> */}
             <img
-                  src={logoImage}
-                  alt="Zarkha"
-                  className="h-8 w-auto cursor-pointer"
-                  onClick={() => navigate("/")}
-                />
+              src={logoImage}
+              alt="Zarkha"
+              className="h-8 w-auto cursor-pointer"
+              onClick={() => navigate("/")}
+            />
           </Link>
         </div>
       </header>
@@ -111,8 +109,8 @@ const AffiliateLogin = () => {
               {isSignup ? "Join Affiliate Program" : "Affiliate Login"}
             </CardTitle>
             <CardDescription>
-              {isSignup 
-                ? "Create your affiliate account and start earning" 
+              {isSignup
+                ? "Create your affiliate account and start earning"
                 : "Sign in to access your affiliate dashboard"
               }
             </CardDescription>
@@ -177,8 +175,8 @@ const AffiliateLogin = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="category">Affiliate Category</Label>
-                    <Select 
-                      value={formData.category} 
+                    <Select
+                      value={formData.category}
                       onValueChange={(value) => setFormData({ ...formData, category: value })}
                     >
                       <SelectTrigger>
@@ -200,7 +198,7 @@ const AffiliateLogin = () => {
                           <span className="text-sm text-muted-foreground truncate flex-1">
                             {formData.aadhaarFile.name}
                           </span>
-                          <button 
+                          <button
                             type="button"
                             onClick={() => setFormData({ ...formData, aadhaarFile: null })}
                             className="text-destructive hover:text-destructive/80 ml-2"

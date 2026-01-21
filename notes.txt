@@ -1,0 +1,15 @@
+// this is notes file ..
+{
+  "success": true,
+  "message": "Affiliate account created successfully. Your account is pending approval.",
+  "body": {
+    "_id": "69707dc04a33455fa5be245f",
+    "full_name": "ankit",
+    "email": "admin@example.com",
+    "phone_number": "9876543211",
+    "affiliate_category": "Instagram Affiliate Seller",
+    "aadhaar_card": null,
+    "status": "pending",
+    "createdAt": "2026-01-21T07:18:24.656Z"
+  }
+}

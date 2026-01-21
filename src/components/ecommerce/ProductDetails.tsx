@@ -24,6 +24,7 @@ import { productService } from "@/services/productService";
 import SizeChartDialog from "../SizeChart";
 import { toast } from "sonner";
 import WishlistButton from "../common/WishlistButton";
+import { useAuthStore } from "@/store/authStore";
 
 interface ProductDetailsPageProps {
   onClose: () => void;
@@ -39,7 +40,7 @@ const sizeChartData = [
 const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const navigate = useNavigate();
   // const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState("XL");
+  const [selectedSize, setSelectedSize] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showProductDetails, setShowProductDetails] = useState(true);
@@ -49,17 +50,22 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const [audioProgress, setAudioProgress] = useState(0.5);
   const [showRatingsPage, setShowRatingsPage] = useState(false);
   const [showSizeChart, setShowSizeChart] = useState(false);
+  const { isLogin } = useAuthStore();
+  const [searchParams] = useSearchParams();
+
   // const [selectedImage, setSelectedImage] = useState<number>(0);
   const { openCart, addItem } = useCart();
   const id = useParams().id || "";
-  const { data, request } = useApi(productService.getById);
+  const { data, request, error } = useApi(productService.getById);
   useEffect(() => {
     if (!id) return;
     request(id);
   }, [id]);
-  const [searchParams] = useSearchParams();
+  // console.log(error, 'prductdetails')
+ 
+
   const selectedVariantId = searchParams.get("variant");
-  console.log(selectedVariantId, 'variantId')
+  // console.log(selectedVariantId, 'variantId')
   const productVariants = data?.body?.variants ?? [];
   const activeVariant = productVariants.find(
     (v) => v.item_code_id === selectedVariantId
@@ -82,7 +88,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     return text.charAt(0).toUpperCase() + text.slice(1);
   };
 
-
+  const productData = data?.body
   // console.log("Product Data:", data);
 
   const productImages =
@@ -174,6 +180,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     addItem({
       productId: id,
       variantId: activeVariant.item_code_id,
+      size: activeVariant.size,
       quantity,
     });
 
@@ -188,6 +195,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     addItem({
       productId: id,
       variantId: activeVariant.item_code_id,
+      size: activeVariant?.size,
       quantity,
     });
     navigate("/checkout");
@@ -205,7 +213,20 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   if (showRatingsPage) {
     return <RatingsPage onBack={handleBackFromRatings} />;
   }
+if (error) {
+  return (
+    <div className="text-center py-10">
+      <h2 className="text-xl font-semibold">{error}</h2>
+      <p className="text-gray-500">
+        This product may have been removed or is unavailable.
+      </p>
+    </div>
+  );
+}
 
+if (!data) {
+  return null; // or fallback UI
+}
   return (
     <Layout>
       <div className="min-h-screen bg-white">
@@ -243,13 +264,11 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                 )}
 
                 {/* Action Icons */}
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <WishlistButton productId={id} />
-
-                  {/* <button className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
-                    <Share2 className="h-5 w-5 text-gray-600" />
-                  </button> */}
-                </div>
+                {isLogin && (
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    <WishlistButton productId={id} isWish={productData?.isWishList} />
+                  </div>
+                )}
               </div>
 
               {/* Thumbnail Images */}
@@ -500,11 +519,11 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                         Product Descriptions
                       </h3>
                       <ChevronDown
-                        className={`h-5 w-5 transition-transform ${showAudioInfo ? "rotate-180" : ""
+                        className={`h-5 w-5 transition-transform ${showProductInfo ? "rotate-180" : ""
                           }`}
                       />
                     </button>
-                    {showAudioInfo && (
+                    {showProductInfo && (
                       <div className="px-4 pb-4 border-t">
                         <div className="mt-4 pt-4">
                           <p className="text-sm text-gray-600 leading-relaxed"

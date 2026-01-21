@@ -24,6 +24,17 @@ const OrderItems = ({
   subtotal,
   onEditCart,
 }: OrderItemsProps) => {
+  if (items.length === 0) {
+    return (
+      <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6">
+        <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">
+          Order Items
+        </h2>
+        <p className="text-sm text-muted-foreground">No items in the order.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6">
       {/* Header */}
@@ -31,7 +42,7 @@ const OrderItems = ({
         <h2 className="text-base sm:text-lg font-semibold text-foreground">
           Order Items ({items.length})
         </h2>
-{/* 
+        {/* 
         {onEditCart && (
           <Button
             variant="ghost"
@@ -47,7 +58,7 @@ const OrderItems = ({
 
       {/* Items */}
       <div className="space-y-4">
-        {items.map((item) => (
+        {items?.map((item) => (
           <div
             key={item._id}
             className="flex gap-4 pb-4 border-b last:border-b-0 last:pb-0"

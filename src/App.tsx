@@ -74,13 +74,14 @@ const AppContent = () => {
           {/* Affiliate Public */}
           <Route path="/affiliate" element={<AffiliateLanding />} />
           <Route path="/affiliate/login" element={<AffiliateLogin />} />
+          <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
+
 
           {/* 🔐 Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/track-order/:orderId" element={<TrackOrder />} />
-            <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
           </Route>
 
           {/* 404 */}

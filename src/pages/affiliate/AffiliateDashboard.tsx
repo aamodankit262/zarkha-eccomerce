@@ -70,19 +70,19 @@ const AffiliateDashboard = () => {
   const stats = [
     { 
       title: "Total Earnings", 
-      value: `₹${affiliate.totalEarnings.toLocaleString()}`, 
+      value: `₹${affiliate?.totalEarnings?.toLocaleString()}`, 
       icon: <DollarSign className="h-5 w-5" />,
       color: "text-green-600 bg-green-100"
     },
     { 
       title: "Pending Payment", 
-      value: `₹${affiliate.pendingPayment.toLocaleString()}`, 
+      value: `₹${affiliate?.pendingPayment?.toLocaleString()}`, 
       icon: <Wallet className="h-5 w-5" />,
       color: "text-orange-600 bg-orange-100"
     },
     { 
       title: "Total Sales", 
-      value: affiliate.totalSales.toString(), 
+      value: affiliate?.totalSales?.toString() || 2000, 
       icon: <TrendingUp className="h-5 w-5" />,
       color: "text-blue-600 bg-blue-100"
     },
@@ -152,8 +152,8 @@ const AffiliateDashboard = () => {
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                   <User className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-semibold text-foreground">{affiliate.name}</h3>
-                <p className="text-sm text-muted-foreground">{affiliate.category}</p>
+                <h3 className="font-semibold text-foreground">{affiliate.full_name}</h3>
+                <p className="text-sm text-muted-foreground">{affiliate.affiliate_category}</p>
               </div>
               <nav className="space-y-1">
                 {menuItems.map((item) => (
@@ -217,7 +217,7 @@ const AffiliateDashboard = () => {
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">{stat.title}</p>
-                          <p className="text-xl font-bold text-foreground">{stat.value}</p>
+                          {/* <p className="text-xl font-bold text-foreground">{stat.value}</p> */}
                         </div>
                       </div>
                     </CardContent>

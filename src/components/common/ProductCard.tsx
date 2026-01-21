@@ -3,9 +3,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import WishlistButton from "./WishlistButton";
+import { useAuthStore } from "@/store/authStore";
 
 export const ProductCard = ({ product }) => {
   const navigate = useNavigate();
+  const {isLogin} = useAuthStore();
   //  console.log(product, 'newarivalvdsafadsfdasfadsfs')
   const goToDetails = () => {
     navigate(`/product/${product.id}`);
@@ -26,9 +28,12 @@ export const ProductCard = ({ product }) => {
         )}
 
         {/* Hover Buttons */}
+        {isLogin && (
+
         <div className="absolute z-50 top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
           <WishlistButton productId={product.id} isWish={product.isWish} />
         </div>
+        )}
 
         {/* Product Image */}
         <div className="aspect-[4/5] overflow-hidden">

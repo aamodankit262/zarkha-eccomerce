@@ -1,24 +1,24 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { affiliateAuthService } from "@/services/affiliateAuthService";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+// import { affiliateAuthService } from "@/api/services/affiliateAuthService";
+import { toast } from "sonner";
+
+/* ---------------- Types ---------------- */
 
 interface AffiliateUser {
-  id: string;
-  name: string;
+  _id: string;
+  full_name: string;
   email: string;
-  phone: string;
-  referralCode: string;
-  category: string;
-  joinDate: string;
-  totalEarnings: number;
-  pendingPayment: number;
-  totalSales: number;
-}
-
-interface AffiliateContextType {
-  affiliate: AffiliateUser | null;
-  isLoggedIn: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  signup: (data: SignupData) => Promise<boolean>;
+  phone_number: string;
+  affiliate_category: string;
+  aadhaar_card?: File;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+  referralCode?: string;
+  joinDate?: string;
+  totalEarnings?: number;
+  pendingPayment?: number;
+  totalSales?: number;
 }
 
 interface SignupData {
@@ -27,71 +27,115 @@ interface SignupData {
   password: string;
   phone: string;
   category: string;
+  aadhaarFile?: File | null;
+}
+
+interface AffiliateContextType {
+  affiliate: AffiliateUser | null;
+  isLoggedIn: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  signup: (data: SignupData) => Promise<boolean>;
+  logout: () => void;
 }
 
 const AffiliateContext = createContext<AffiliateContextType | undefined>(undefined);
 
+/* ---------------- Hook ---------------- */
+
 export const useAffiliate = () => {
   const context = useContext(AffiliateContext);
   if (!context) {
-    throw new Error('useAffiliate must be used within an AffiliateProvider');
+    throw new Error("useAffiliate must be used within AffiliateProvider");
   }
   return context;
 };
 
+/* ---------------- Provider ---------------- */
+
 export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
   const [affiliate, setAffiliate] = useState<AffiliateUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
-  const generateReferralCode = (name: string) => {
-    const prefix = name.substring(0, 3).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `${prefix}${random}`;
-  };
+  /* -------- Restore session -------- */
+  useEffect(() => {
+    const stored = localStorage.getItem("affiliate-auth");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setAffiliate(parsed.affiliate);
+      setToken(parsed.token);
+    }
+  }, []);
 
+  /* ---------------- Login ---------------- */
   const login = async (email: string, password: string): Promise<boolean> => {
-    if (email && password) {
-      setAffiliate({
-        id: "aff_001",
-        name: "John Affiliate",
-        email: email,
-        phone: "+91 9876543210",
-        referralCode: "JOH8K2M",
-        category: "Fashion Influencer",
-        joinDate: "2024-01-15",
-        totalEarnings: 45680,
-        pendingPayment: 12500,
-        totalSales: 156
-      });
+    try {
+      const res = await affiliateAuthService.login({ email, password });
+
+      if (!res.success) {
+        toast.error(res?.message); // 👈 pending approval message
+        return false;
+      }
+
+      const authData = {
+        token: res?.token,
+        affiliate: res.body,
+      };
+
+      const local = localStorage.setItem("affiliate-auth", JSON.stringify(authData));
+      // const local = localStorage.setItem("affiliate-auth", JSON.stringify(authData));
+      console.log(local)
+      setAffiliate(authData?.affiliate);
+      setToken(authData.token);
+
       return true;
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Login failed");
+      return false;
     }
-    return false;
   };
 
-  const logout = () => {
-    setAffiliate(null);
-  };
-
+  /* ---------------- Signup ---------------- */
   const signup = async (data: SignupData): Promise<boolean> => {
-    if (data.name && data.email && data.password) {
-      setAffiliate({
-        id: "aff_" + Date.now(),
-        name: data.name,
+    try {
+      const res = await affiliateAuthService.signup({
+        full_name: data.name,
         email: data.email,
-        phone: data.phone,
-        referralCode: generateReferralCode(data.name),
-        category: data.category,
-        joinDate: new Date().toISOString().split('T')[0],
-        totalEarnings: 0,
-        pendingPayment: 0,
-        totalSales: 0
+        password: data.password,
+        phone_number: data.phone,
+        affiliate_category: data.category,
+        aadhaar_card: data.aadhaarFile,
       });
-      return true;
+
+      if (res.data.success) {
+        toast.success(res.data.message); // 👈 pending approval message
+        return true;
+      }
+
+      toast.error(res.data.message);
+      return false;
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Signup failed");
+      return false;
     }
-    return false;
+  };
+
+  /* ---------------- Logout ---------------- */
+  const logout = () => {
+    localStorage.removeItem("affiliate-auth");
+    setAffiliate(null);
+    setToken(null);
   };
 
   return (
-    <AffiliateContext.Provider value={{ affiliate, isLoggedIn: !!affiliate, login, logout, signup }}>
+    <AffiliateContext.Provider
+      value={{
+        affiliate,
+        isLoggedIn: !!token,
+        login,
+        signup,
+        logout,
+      }}
+    >
       {children}
     </AffiliateContext.Provider>
   );

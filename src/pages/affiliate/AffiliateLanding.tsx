@@ -1,20 +1,23 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  DollarSign, 
-  Users, 
-  TrendingUp, 
-  Gift, 
-  CheckCircle, 
+import {
+  DollarSign,
+  Users,
+  TrendingUp,
+  Gift,
+  CheckCircle,
   ArrowRight,
   Percent,
   ShoppingBag,
   Wallet
 } from "lucide-react";
 import { logoImage } from "@/api/endpoints";
+import { useAffiliate } from "@/contexts/AffiliateContext";
 
 const AffiliateLanding = () => {
+  const { affiliate, isLoggedIn, logout } = useAffiliate();
+
   const benefits = [
     {
       icon: <Percent className="h-8 w-8" />,
@@ -67,20 +70,29 @@ const AffiliateLanding = () => {
       <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-           <img
-                  src={logoImage}
-                  alt="Zarkha"
-                  className="h-8 w-auto cursor-pointer"
-                  // onClick={() => navigate("/")}
-                />
+            <img
+              src={logoImage}
+              alt="Zarkha"
+              className="h-8 w-auto cursor-pointer"
+            // onClick={() => navigate("/")}
+            />
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
-            <Link to="/affiliate/login">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">Login</Button>
-            </Link>
-            <Link to="/affiliate/login?signup=true">
-              <Button className="bg-primary hover:bg-primary/90 text-xs sm:text-sm" size="sm">Join Now</Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link to="/affiliate/dashboard">
+                <Button variant="outline" size="sm" className="text-xs sm:text-sm">Go To Dashboard</Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/affiliate/login">
+                  <Button variant="outline" size="sm" className="text-xs sm:text-sm">Login</Button>
+                </Link>
+                <Link to="/affiliate/login?signup=true">
+                  <Button className="bg-primary hover:bg-primary/90 text-xs sm:text-sm" size="sm">Join Now</Button>
+                </Link>
+              </>
+            )}
+
           </div>
         </div>
       </header>
@@ -93,11 +105,11 @@ const AffiliateLanding = () => {
               Affiliate Program
             </span>
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">
-              Turn Your Influence Into 
+              Turn Your Influence Into
               <span className="text-primary"> Income</span>
             </h1>
             <p className="text-sm sm:text-lg text-muted-foreground mb-6 sm:mb-8 px-2">
-              Join our affiliate program and earn up to 20% commission on every sale. 
+              Join our affiliate program and earn up to 20% commission on every sale.
               Share beautiful ethnic fashion with your audience and get rewarded.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
@@ -191,8 +203,8 @@ const AffiliateLanding = () => {
           </div>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
             {categories.map((category, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-6 sm:py-3 bg-card border border-border rounded-full"
               >
                 <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
@@ -210,7 +222,7 @@ const AffiliateLanding = () => {
             Ready to Start Earning?
           </h2>
           <p className="text-sm sm:text-base text-primary-foreground/90 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
-            Join thousands of affiliates who are already earning with us. 
+            Join thousands of affiliates who are already earning with us.
             Sign up today and get your first commission within days!
           </p>
           <Link to="/affiliate/login?signup=true">

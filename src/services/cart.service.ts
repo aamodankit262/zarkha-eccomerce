@@ -5,6 +5,7 @@ export interface AddToCartPayload {
   cart_id: string;
   product_id: string;
   item_id: string;
+  size: string;
   quantity: number;
 }
 

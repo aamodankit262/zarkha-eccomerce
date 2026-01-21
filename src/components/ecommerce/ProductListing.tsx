@@ -23,6 +23,7 @@ import FilterSkeleton from "../FilterSkeleton";
 import { NoProductsFound } from "../NoProductsFound";
 import ProductCardSkeleton from "../ProductCardSkeleton";
 import { ProductCompactSkeleton } from "../ProductCompactSkeleton";
+import { ProductCard } from "../common/ProductCard";
 type FilterKey = "category" | "subCategory";
 type FilterSectionProps = {
   title: string;
@@ -316,208 +317,208 @@ const ProductListingPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const ProductCard = ({ product }: { product: (typeof products)[0] }) => {
-    // const handleAddToCart = (e: React.MouseEvent) => {
-    //   e.stopPropagation();
-    //   addItem({
-    //   productId: product.id,
-    //   variantId: product.variantId,
-    //   quantity: 1
-    // });
-    //   // addItem({
-    //   //   id: product.id,
-    //   //   name: product.title,
-    //   //   image: product.image,
-    //   //   size: product.selectedSize,
-    //   //   color: product.color,
-    //   //   price: +product.price,
-    //   //   quantity: product.quantity,
-    //   // });
-    //   toast({
-    //     title: "Added to cart",
-    //     description: `${product.title} has been added to your cart`,
-    //   });
-    // };
- const goToDetails = () => {
-    navigate(`/product/${product.id}`);
-  };
+//   const ProductCard = ({ product }: { product: (typeof products)[0] }) => {
+//     // const handleAddToCart = (e: React.MouseEvent) => {
+//     //   e.stopPropagation();
+//     //   addItem({
+//     //   productId: product.id,
+//     //   variantId: product.variantId,
+//     //   quantity: 1
+//     // });
+//     //   // addItem({
+//     //   //   id: product.id,
+//     //   //   name: product.title,
+//     //   //   image: product.image,
+//     //   //   size: product.selectedSize,
+//     //   //   color: product.color,
+//     //   //   price: +product.price,
+//     //   //   quantity: product.quantity,
+//     //   // });
+//     //   toast({
+//     //     title: "Added to cart",
+//     //     description: `${product.title} has been added to your cart`,
+//     //   });
+//     // };
+//  const goToDetails = () => {
+//     navigate(`/product/${product.id}`);
+//   };
 
-    if (viewMode === "compact") {
-      return (
-        <div
-          className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => handleProductClick(product.id)}
-        >
-          <div className="flex p-3 sm:p-4 gap-3 sm:gap-4">
-            {/* Image Section */}
-            <div className="relative flex-shrink-0">
-              <img
-                src={product.image}
-                alt={product.title}
-                className="w-24 h-28 sm:w-32 sm:h-40 object-cover rounded-lg"
-              />
-              {/* === CHANGE: Badges container for left alignment and stacking === */}
-              <div className="absolute top-1 left-1 flex flex-col items-start gap-y-1">
-                {product.isNew && (
-                  <div className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded">
-                    New
-                  </div>
-                )}
-                {product.isBestSeller && (
-                  <div className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">
-                    Bestseller
-                  </div>
-                )}
-              </div>
-            </div>
+//     if (viewMode === "compact") {
+//       return (
+//         <div
+//           className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+//           onClick={() => handleProductClick(product.id)}
+//         >
+//           <div className="flex p-3 sm:p-4 gap-3 sm:gap-4">
+//             {/* Image Section */}
+//             <div className="relative flex-shrink-0">
+//               <img
+//                 src={product.image}
+//                 alt={product.title}
+//                 className="w-24 h-28 sm:w-32 sm:h-40 object-cover rounded-lg"
+//               />
+//               {/* === CHANGE: Badges container for left alignment and stacking === */}
+//               <div className="absolute top-1 left-1 flex flex-col items-start gap-y-1">
+//                 {product.isNew && (
+//                   <div className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded">
+//                     New
+//                   </div>
+//                 )}
+//                 {product.isBestSeller && (
+//                   <div className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">
+//                     Bestseller
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
 
-            {/* Content Section */}
-            <div className="flex-1 flex flex-col justify-between">
-              <div>
-                <h3 className="text-sm sm:text-base font-medium text-gray-900 mb-2 line-clamp-2">
-                  {product.title}
-                </h3>
-                {/* <div className="flex items-center gap-1 mb-3">
-                  <span className="text-sm text-gray-600 mr-2">Colors:</span>
-                  {product.colors.map((color: string, index: number) => (
-                    <div
-                      key={index}
-                      className="w-5 h-5 rounded-full border border-gray-300"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div> */}
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg sm:text-xl font-bold text-gray-900">
-                    {product.price}
-                  </span>
-                  <span className="text-sm text-gray-500 line-through">
-                    {product.originalPrice}
-                  </span>
-                  <span className="text-sm text-green-600 font-medium">
-                    {product.discount}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${i < Math.floor(product.rating)
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
-                          }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {product.rating} ({product.reviews} reviews)
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <button
-                  className="flex-1 mr-3 border border-orange-500 text-orange-500 py-2 px-4 rounded text-sm font-medium hover:bg-orange-50 transition-colors"
-                  onClick={goToDetails}
-                >
-                  Add To Cart
-                </button>
-                <button
-                  className="p-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Heart className="h-5 w-5 text-gray-500" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
+//             {/* Content Section */}
+//             <div className="flex-1 flex flex-col justify-between">
+//               <div>
+//                 <h3 className="text-sm sm:text-base font-medium text-gray-900 mb-2 line-clamp-2">
+//                   {product.title}
+//                 </h3>
+//                 {/* <div className="flex items-center gap-1 mb-3">
+//                   <span className="text-sm text-gray-600 mr-2">Colors:</span>
+//                   {product.colors.map((color: string, index: number) => (
+//                     <div
+//                       key={index}
+//                       className="w-5 h-5 rounded-full border border-gray-300"
+//                       style={{ backgroundColor: color }}
+//                     />
+//                   ))}
+//                 </div> */}
+//                 <div className="flex items-center gap-2 mb-2">
+//                   <span className="text-lg sm:text-xl font-bold text-gray-900">
+//                     {product.price}
+//                   </span>
+//                   <span className="text-sm text-gray-500 line-through">
+//                     {product.originalPrice}
+//                   </span>
+//                   <span className="text-sm text-green-600 font-medium">
+//                     {product.discount}
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center gap-2 mb-4">
+//                   <div className="flex items-center">
+//                     {[...Array(5)].map((_, i) => (
+//                       <Star
+//                         key={i}
+//                         className={`h-4 w-4 ${i < Math.floor(product.rating)
+//                           ? "fill-yellow-400 text-yellow-400"
+//                           : "text-gray-300"
+//                           }`}
+//                       />
+//                     ))}
+//                   </div>
+//                   <span className="text-sm text-gray-500">
+//                     {product.rating} ({product.reviews} reviews)
+//                   </span>
+//                 </div>
+//               </div>
+//               <div className="flex items-center justify-between">
+//                 <button
+//                   className="flex-1 mr-3 border border-orange-500 text-orange-500 py-2 px-4 rounded text-sm font-medium hover:bg-orange-50 transition-colors"
+//                   onClick={goToDetails}
+//                 >
+//                   Add To Cart
+//                 </button>
+//                 <button
+//                   className="p-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+//                   onClick={(e) => e.stopPropagation()}
+//                 >
+//                   <Heart className="h-5 w-5 text-gray-500" />
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       );
+//     }
 
-    // Grid view
-    return (
-      <div
-        className="bg-white rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-        onClick={() => handleProductClick(product?.id)}
-      >
-        <div className="relative">
-          <img
-            src={product.image}
-            alt={product.title}
-            className="w-full h-48 sm:h-56 lg:h-64 object-cover"
-          />
-          {/* === CHANGE: Badges container for left alignment and stacking === */}
-          <div className="absolute top-2 left-2 flex flex-col items-start gap-y-1.5">
-            {product.isNew && (
-              <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded">
-                New Arrivals
-              </div>
-            )}
-            {product.isBestSeller && (
-              <div className="bg-red-500 text-white text-xs px-2 py-1 rounded">
-                Best Seller
-              </div>
-            )}
-          </div>
-          {product.hasWishlist && (
-            <button
-              className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow hover:shadow-md"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Heart className="h-4 w-4 text-gray-500" />
-            </button>
-          )}
-        </div>
+//     // Grid view
+//     return (
+//       <div
+//         className="bg-white rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+//         onClick={() => handleProductClick(product?.id)}
+//       >
+//         <div className="relative">
+//           <img
+//             src={product.image}
+//             alt={product.title}
+//             className="w-full h-48 sm:h-56 lg:h-64 object-cover"
+//           />
+//           {/* === CHANGE: Badges container for left alignment and stacking === */}
+//           <div className="absolute top-2 left-2 flex flex-col items-start gap-y-1.5">
+//             {product.isNew && (
+//               <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded">
+//                 New Arrivals
+//               </div>
+//             )}
+//             {product.isBestSeller && (
+//               <div className="bg-red-500 text-white text-xs px-2 py-1 rounded">
+//                 Best Seller
+//               </div>
+//             )}
+//           </div>
+//           {product.hasWishlist && (
+//             <button
+//               className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow hover:shadow-md"
+//               onClick={(e) => e.stopPropagation()}
+//             >
+//               <Heart className="h-4 w-4 text-gray-500" />
+//             </button>
+//           )}
+//         </div>
 
-        <div className="p-3">
-          <h3 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2">
-            {product.title}
-          </h3>
-          {/* <div className="flex items-center gap-1 mb-2">
-            {product.colors.map((color: string, index: number) => (
-              <div
-                key={index}
-                className="w-4 h-4 rounded-full border border-gray-200"
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div> */}
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg font-bold text-gray-900">
-             ₹ {product.price}
-            </span>
-            <span className="text-sm text-gray-500 line-through">
-              {product.originalPrice}
-            </span>
-            <span className="text-sm text-green-600 font-medium">
-              {product.discount}
-            </span>
-          </div>
-          {/* <div className="flex items-center gap-1 mb-3">
-            <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-3 w-3 ${i < Math.floor(product.rating)
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-gray-300"
-                    }`}
-                />
-              ))}
-            </div>
-            <span className="text-xs text-gray-500">({product.reviews})</span>
-          </div> */}
-          <button
-            className="w-full border border-orange-500 text-orange-500 py-2 px-4 rounded text-sm font-medium hover:bg-orange-50 transition-colors"
-            onClick={goToDetails}
-          >
-            View Details
-          </button>
-        </div>
-      </div>
-    );
-  };
+//         <div className="p-3">
+//           <h3 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2">
+//             {product.title}
+//           </h3>
+//           {/* <div className="flex items-center gap-1 mb-2">
+//             {product.colors.map((color: string, index: number) => (
+//               <div
+//                 key={index}
+//                 className="w-4 h-4 rounded-full border border-gray-200"
+//                 style={{ backgroundColor: color }}
+//               />
+//             ))}
+//           </div> */}
+//           <div className="flex items-center gap-2 mb-3">
+//             <span className="text-lg font-bold text-gray-900">
+//              ₹ {product.price}
+//             </span>
+//             <span className="text-sm text-gray-500 line-through">
+//               {product.originalPrice}
+//             </span>
+//             <span className="text-sm text-green-600 font-medium">
+//               {product.discount}
+//             </span>
+//           </div>
+//           {/* <div className="flex items-center gap-1 mb-3">
+//             <div className="flex items-center">
+//               {[...Array(5)].map((_, i) => (
+//                 <Star
+//                   key={i}
+//                   className={`h-3 w-3 ${i < Math.floor(product.rating)
+//                     ? "fill-yellow-400 text-yellow-400"
+//                     : "text-gray-300"
+//                     }`}
+//                 />
+//               ))}
+//             </div>
+//             <span className="text-xs text-gray-500">({product.reviews})</span>
+//           </div> */}
+//           <button
+//             className="w-full border border-orange-500 text-orange-500 py-2 px-4 rounded text-sm font-medium hover:bg-orange-50 transition-colors"
+//             onClick={goToDetails}
+//           >
+//             View Details
+//           </button>
+//         </div>
+//       </div>
+//     );
+//   };
 
   const FilterModal = () => (
     <div

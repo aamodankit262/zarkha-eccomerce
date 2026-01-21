@@ -9,7 +9,14 @@ export interface CreateOrderPayload {
   cart_id: string;
   customer_notes?: string;
 }
-
+export interface OrderUpdateStatusPayload {
+  order_id: string;
+  order_status: "confirmed" | "pending" | "cancelled"; // adjust if more
+}
+export interface OrderCancelPayload {
+  order_id: string;
+  reason: string;
+}
 export interface OrderListPayload {
   page?: number;
   limit?: number;
@@ -65,6 +72,30 @@ export const orderService = {
 
     const res = await apiClient.post(
       API_ENDPOINTS.ORDERS.VIEW,
+      formData
+    );
+
+    return res;
+  },
+  updateOrderStatus: async (payload: OrderUpdateStatusPayload) => {
+    const formData = new FormData();
+    formData.append("order_id", payload.order_id);
+    formData.append("order_status", payload.order_status);
+
+    const res = await apiClient.post(
+      API_ENDPOINTS.ORDERS.UPDATE,
+      formData
+    );
+
+    return res;
+  },
+  cancelOrder: async (payload: OrderCancelPayload) => {
+    const formData = new FormData();
+    formData.append("order_id", payload.order_id);
+    formData.append("reason", payload.reason);
+
+    const res = await apiClient.post(
+      API_ENDPOINTS.ORDERS.CANCEL,
       formData
     );
 
