@@ -70,11 +70,11 @@ const HomePage = () => {
 
       {/* Month Start Special Section */}
       <section className="py-8 md:py-4 bg-[#FAF6F2] relative">
-        <MonthStartSpecial banner ={getMonthStartBanner3}/>
+        <MonthStartSpecial banner={getMonthStartBanner3} />
       </section>
 
       {/* Perfect Bottom Wear Banners */}
-      <PerfectBottomWear bottomWearImages={getPerfectBanner3}/>
+      <PerfectBottomWear bottomWearImages={getPerfectBanner3} />
       {!loading && getNewArrivals.length > 0 && (
         <section className="py-4 md:py-4 bg-[#FAF6F2] relative">
           <NewArrivals products={getNewArrivals} />

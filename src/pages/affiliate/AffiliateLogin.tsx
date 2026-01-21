@@ -55,19 +55,22 @@ const AffiliateLogin = () => {
           return;
         }
         const success = await signup(formData);
+        console.log(success, 'signup');
         if (success) {
-          toast.success("Account created successfully!");
+          // toast.success("Account created successfully!");
           navigate('/affiliate/dashboard');
         } else {
-          toast.error("Signup failed. Please try again.");
+          // toast.error("Signup failed. Please try again.");
         }
       } else {
         const success = await login(formData.email, formData.password);
+        console.log(success, 'login');
         if (success) {
-          toast.success("Welcome back!");
+          // toast.success("Welcome back!");
           navigate('/affiliate/dashboard');
         } else {
-          toast.error("Invalid credentials");
+          // toast.error("Your account is pending approval. Please wait for admin approval");
+          // toast.error("Invalid credentials");
         }
       }
     } catch (error) {
@@ -231,12 +234,10 @@ const AffiliateLogin = () => {
                   </div>
                 </>
               )}
-
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
                 {loading ? "Please wait..." : (isSignup ? "Create Account" : "Sign In")}
               </Button>
             </form>
-
             <div className="mt-6 text-center">
               <p className="text-muted-foreground">
                 {isSignup ? "Already have an account?" : "Don't have an account?"}
