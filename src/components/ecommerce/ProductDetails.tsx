@@ -25,6 +25,7 @@ import SizeChartDialog from "../SizeChart";
 import { toast } from "sonner";
 import WishlistButton from "../common/WishlistButton";
 import { useAuthStore } from "@/store/authStore";
+import { productsData } from "@/data/product";
 
 interface ProductDetailsPageProps {
   onClose: () => void;
@@ -150,26 +151,26 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     // { label: "Suitable For", value: details?.suitable_for || "-" },
   ];
 
-  const productsData = similarProductsRaw?.map((product: any) => {
-    const discount =
-      product.mrp && product.product_price
-        ? Math.round(
-          ((product.mrp - product.product_price) / product.mrp) * 100
-        )
-        : 0;
+  // const productsData = similarProductsRaw?.map((product: any) => {
+  //   const discount =
+  //     product.mrp && product.product_price
+  //       ? Math.round(
+  //         ((product.mrp - product.product_price) / product.mrp) * 100
+  //       )
+  //       : 0;
 
-    return {
-      id: product.id,
-      title: product.name,
-      price: product.discount_price,
-      originalPrice: product.mrp || product.product_price,
-      discount, // percentage
-      image: product?.images?.[0]?.url || "/assets/no_image.jpg",
-      isNew: true,
-      colors: product.color ? [product.color] : [], // FIXED
-      size: product.size,
-    };
-  });
+  //   return {
+  //     id: product.id,
+  //     title: product.name,
+  //     price: product.discount_price,
+  //     originalPrice: product.mrp || product.product_price,
+  //     discount, // percentage
+  //     image: product?.images?.[0]?.url || "/assets/no_image.jpg",
+  //     isNew: true,
+  //     colors: product.color ? [product.color] : [], // FIXED
+  //     size: product.size,
+  //   };
+  // });
 
   const handleAddToCart = () => {
     if (!activeVariant) return;
@@ -702,7 +703,7 @@ if (!data) {
               </div>
             </div>
           </div>
-          {productsData.length > 0 && (
+          {productsData(similarProductsRaw)?.length > 0 && (
             <div className="max-w-7xl mx-auto px-4 py-12">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
@@ -718,7 +719,7 @@ if (!data) {
 
               {/* Grid - Already responsive */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {productsData?.map((product) => (
+                {productsData(similarProductsRaw)?.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>

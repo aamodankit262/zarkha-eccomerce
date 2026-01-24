@@ -8,13 +8,13 @@
 
     return {
       id: product._id,
-      title: product.name,
+      title: product.product_title,
       price: product.product_price,
       originalPrice: product.mrp,
       discount, // percentage
       image: product?.images?.[0]?.url || "/assets/no_image.jpg",
       isNew: product.isNew,
-      isWish: product.isWishList,
+      isWish: product.isWishList || product.isWish,
       colors: product.color ? [product.color] : [], // FIXED
       size: product.size,
       variantId: product.item_code_ids?.[0]

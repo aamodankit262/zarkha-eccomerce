@@ -26,11 +26,29 @@ export interface VerifyPaymentPayload {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
+  address_id: string
+  cart_id?: string
+  customer_notes?: string
 }
 
 export interface VerifyPaymentResponse {
   success: boolean;
   message: string;
+  body?: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    verified: boolean
+    order: {
+      order_id: string;
+      total_amount: number;
+      items_count: number;
+      payment_method: string;
+      order_status: string;
+      _id: string;
+      ordered_at: string;
+    };
+  };
 }
 
 export const paymentService = {
@@ -65,6 +83,9 @@ export const paymentService = {
     params.append("razorpay_order_id", payload.razorpay_order_id);
     params.append("razorpay_payment_id", payload.razorpay_payment_id);
     params.append("razorpay_signature", payload.razorpay_signature);
+    params.append("address_id", payload.address_id);
+    params.append("cart_id", payload.cart_id);
+    params.append("customer_notes", payload.customer_notes);
 
     const res = await apiClient.post<VerifyPaymentResponse>(
       API_ENDPOINTS.PAYMENT.VERIFY,

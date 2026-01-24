@@ -61,8 +61,8 @@ export const CartSlider = () => {
         className={`fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
           }`}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-end px-4 py-3 border-b border-gray-200">
+          {/* <div className="flex items-center gap-3">
             {steps.map((step, index) => (
               <div key={step} className="flex items-center">
                 <span
@@ -80,7 +80,7 @@ export const CartSlider = () => {
                 )}
               </div>
             ))}
-          </div>
+          </div> */}
           <button
             onClick={closeCart}
             className="p-1 hover:bg-gray-100 rounded-full"

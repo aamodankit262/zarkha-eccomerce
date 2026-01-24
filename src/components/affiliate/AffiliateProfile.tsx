@@ -13,10 +13,10 @@ const AffiliateProfile = () => {
   const { affiliate } = useAffiliate();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: affiliate?.name || "",
+    name: affiliate?.full_name || "",
     email: affiliate?.email || "",
-    phone: affiliate?.phone || "",
-    category: affiliate?.category || "",
+    phone: affiliate?.phone_number || "",
+    category: affiliate?.affiliate_category || "",
   });
 
   const categories = [
@@ -35,7 +35,7 @@ const AffiliateProfile = () => {
   };
 
   const bankDetails = {
-    accountName: affiliate?.name || "",
+    accountName: affiliate?.full_name || "",
     bankName: "HDFC Bank",
     accountNumber: "•••• •••• •••• 4521",
     ifscCode: "HDFC0001234",
@@ -93,7 +93,7 @@ const AffiliateProfile = () => {
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
                   ) : (
-                    <span className="font-medium">{affiliate?.name}</span>
+                    <span className="font-medium">{affiliate?.full_name}</span>
                   )}
                 </div>
               </div>
@@ -126,7 +126,7 @@ const AffiliateProfile = () => {
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
                   ) : (
-                    <span className="font-medium">{affiliate?.phone}</span>
+                    <span className="font-medium">{affiliate?.phone_number}</span>
                   )}
                 </div>
               </div>
@@ -150,7 +150,7 @@ const AffiliateProfile = () => {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <Badge variant="secondary">{affiliate?.category}</Badge>
+                    <Badge variant="secondary">{affiliate?.affiliate_category}</Badge>
                   )}
                 </div>
               </div>

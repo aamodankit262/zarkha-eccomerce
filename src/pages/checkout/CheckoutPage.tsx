@@ -48,6 +48,7 @@ const CheckoutPage = () => {
     const [loader, setLoading] = useState(false);
     const [showCouponModal, setShowCouponModal] = useState(false);
     const [orderId, setOrderId] = useState("");
+    const [orderDetail, setOrderDetail] = useState<any>("");
 
     /* ---------------- ADDRESS STATE ---------------- */
     const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
@@ -390,6 +391,10 @@ const CheckoutPage = () => {
     //     }
     // };
     const handlePayment = async () => {
+        if (!isOtpVerified) {
+            toast.error("Please varify your mobile number");
+            return;
+        }
         if (!selectedAddressId) {
             toast.error("Please select delivery address");
             return;
@@ -409,7 +414,7 @@ const CheckoutPage = () => {
                 key_id,
                 amount
             } = res.body;
-            setOrderId(order_id);
+            // setOrderId(order_id);
             const options: RazorpayOrderOptions = {
                 key: key_id,
                 amount, // in paise
@@ -426,11 +431,20 @@ const CheckoutPage = () => {
                         razorpay_order_id: response.razorpay_order_id,
                         razorpay_payment_id: response.razorpay_payment_id,
                         razorpay_signature: response.razorpay_signature,
+                        address_id: selectedAddressId,
+                        cart_id: cartId,
+                        customer_notes: "Please deliver between 10 AM - 6 PM",
                     });
-                   
-                    toast.success("Payment successful");
-                    setShowSuccessModal(true);
-                    await fetchCart(cartId);
+                    // setOrderDetail()
+                    const { verified, order } = res?.body
+                    if (res?.success) {
+                        setOrderDetail(order)
+                        setOrderId(order?.order_id)
+                        toast.success(res.message ||"Payment successful");
+                        setShowSuccessModal(true);
+                        await fetchCart(cartId);
+                    }
+
                 },
 
                 prefill: {

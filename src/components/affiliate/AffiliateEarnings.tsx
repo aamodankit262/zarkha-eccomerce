@@ -172,7 +172,6 @@ const AffiliateEarnings = () => {
           </div>
         </CardContent>
       </Card>
-
       {/* Bank Details Info */}
       <Card>
         <CardContent className="p-6">
