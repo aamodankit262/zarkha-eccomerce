@@ -83,7 +83,7 @@ export default function MonthStartSpecial({banner}) {
 
           {/* Right Images Section (bigger width) */}
           <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {banner.map((item) => (
+            {banner?.map((item) => (
               <CategoryCard
                 key={item._id}
                 title={item.title}
