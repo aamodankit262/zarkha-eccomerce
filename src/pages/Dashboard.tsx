@@ -302,7 +302,7 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [currentView, setCurrentView] = useState<"dashboard" | "add-address" | "track-order" | "rate-product">(
     "dashboard"
@@ -700,7 +700,6 @@ const Dashboard = () => {
               </div>
             ) : (
               <>
-
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                   {productsData(items)?.map((product) => (
                     <ProductCard key={product.id} product={product} />
