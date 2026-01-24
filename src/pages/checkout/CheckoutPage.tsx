@@ -92,7 +92,7 @@ const CheckoutPage = () => {
     const { data, request, loading } = useApi(getAddressList);
     const { request: applyCouponRequest, loading: applyCouponLoading } = useApi(applyCoupon);
     const { request: removeCouponApi } = useApi(removeCoupon);
-    const { request: createOrder, loading: createOrderLoading } = useApi(orderService.createOrder);
+    // const { request: createOrder, loading: createOrderLoading } = useApi(orderService.createOrder);
     const { cartId, fetchCart } = useCart()
     const { Razorpay } = useRazorpay();
 
@@ -135,7 +135,15 @@ const CheckoutPage = () => {
     }, [token]);
 
     useEffect(() => {
-        if (data?.body) setSavedAddresses(data.body);
+        if (!data?.body) return;
+        setSavedAddresses(data.body);
+        const defaultAddress = data.body.find(
+            (addr: any) => addr.is_default === true
+        );
+
+        if (defaultAddress) {
+            setSelectedAddressId(defaultAddress._id);
+        }
     }, [data]);
 
     const handleSendOtp = async () => {
@@ -267,9 +275,9 @@ const CheckoutPage = () => {
                 toast.info("Your new address has been saved.");
             }
             await request();
-            if (savedAddress.is_default) {
-                setSelectedAddressId(savedAddress._id);
-            }
+            // if (savedAddress.is_default) {
+            //     setSelectedAddressId(savedAddress._id);
+            // }
             setIsEditingAddress(false);
             setEditingAddressId(null);
         } catch (error) {
@@ -399,14 +407,15 @@ const CheckoutPage = () => {
             toast.error("Please select delivery address");
             return;
         }
+        if (!items.length) {
+            toast.error("Please add product in you cart ");
+            return;
+        }
 
         try {
             const res = await paymentService.createPaymentOrder({
                 amount: totalAmount,
                 cart_id: cartId,
-                // address_id: selectedAddressId,
-                // payment_method: "online",
-                // customer_notes: "Please deliver between 10 AM - 6 PM",
             });
             console.log(res, 'payment create')
             const {
@@ -440,7 +449,7 @@ const CheckoutPage = () => {
                     if (res?.success) {
                         setOrderDetail(order)
                         setOrderId(order?.order_id)
-                        toast.success(res.message ||"Payment successful");
+                        toast.success(res.message || "Payment successful");
                         setShowSuccessModal(true);
                         await fetchCart(cartId);
                     }

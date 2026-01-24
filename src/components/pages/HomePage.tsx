@@ -31,8 +31,8 @@ const HomePage = () => {
   const getNewArrivals = HomData?.newArrivals || [];
   const getBestSelling = HomData?.bestSelling || [];
   const getExclusiveCollections = HomData?.exclusiveCollections || [];
+  const getMonthStartBanner2 = HomData?.banner2
   const getPerfectBanner3 = HomData?.banner3
-  const getMonthStartBanner3 = HomData?.banner2
   //  console.log("Home Data:", HomData); 
   const handleSubcategorySelect = (category: string, subcategory: string) => {
     setSelectedSubcategory(subcategory);
@@ -68,12 +68,10 @@ const HomePage = () => {
         )} */}
       </div>
 
-      {/* Month Start Special Section */}
       <section className="py-8 md:py-4 bg-[#FAF6F2] relative">
-        <MonthStartSpecial banner={getMonthStartBanner3} />
+        <MonthStartSpecial banner={getMonthStartBanner2} />
       </section>
 
-      {/* Perfect Bottom Wear Banners */}
       <PerfectBottomWear bottomWearImages={getPerfectBanner3} />
       {!loading && getNewArrivals.length > 0 && (
         <section className="py-4 md:py-4 bg-[#FAF6F2] relative">
