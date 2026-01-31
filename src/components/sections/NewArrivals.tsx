@@ -1,32 +1,33 @@
 // import { productsData } from "@/data/product";
+import { productsData } from "@/data/product";
 import { ProductCard } from "../common/ProductCard";
 import { useNavigate } from "react-router-dom";
 // import { useCart } from "@/contexts/CartContext";
 
 export default function NewArrivals({ products }: any) {
   const navigate = useNavigate();
-  const productsData = products?.map((product: any) => {
-    const discount =
-      product.mrp && product.product_price
-        ? Math.round(
-          ((product.mrp - product.product_price) / product.mrp) * 100
-        )
-        : 0;
+  // const productsData = products?.map((product: any) => {
+  //   const discount =
+  //     product.mrp && product.product_price
+  //       ? Math.round(
+  //         ((product.mrp - product.product_price) / product.mrp) * 100
+  //       )
+  //       : 0;
 
-    return {
-      id: product._id,
-      title: product.name,
-      price: product.product_price,
-      originalPrice: product.mrp,
-      discount, // percentage
-      image: product?.images?.[0]?.url || "/assets/no_image.jpg",
-      isNew: product.isNew,
-      isWish: product.isWishList,
-      colors: product.color ? [product.color] : [], // FIXED
-      size: product.size,
-      variantId: product.item_code_ids?.[0]
-    };
-  });
+  //   return {
+  //     id: product._id,
+  //     title: product.name,
+  //     price: product.product_price,
+  //     originalPrice: product.mrp,
+  //     discount, // percentage
+  //     image: product?.images?.[0]?.url || "/assets/no_image.jpg",
+  //     isNew: product.isNew,
+  //     isWish: product.isWishList,
+  //     colors: product.color ? [product.color] : [], // FIXED
+  //     size: product.size,
+  //     variantId: product.item_code_ids?.[0]
+  //   };
+  // });
   // console.log(productsData, "producctsdata.....")
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
@@ -45,7 +46,7 @@ export default function NewArrivals({ products }: any) {
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {productsData?.map((product) => (
+        {productsData(products)?.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

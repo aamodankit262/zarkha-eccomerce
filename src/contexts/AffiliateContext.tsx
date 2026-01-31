@@ -26,6 +26,9 @@ interface SignupData {
   email: string;
   password: string;
   phone: string;
+  country?: string;
+  state: string;
+  city: string;
   category: string;
   aadhaarFile?: File | null;
 }
@@ -101,6 +104,8 @@ export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
         email: data.email,
         password: data.password,
         phone_number: data.phone,
+        state_id: data.state,
+        city_id: data.city,
         affiliate_category: data.category,
         aadhaar_card: data.aadhaarFile,
       });

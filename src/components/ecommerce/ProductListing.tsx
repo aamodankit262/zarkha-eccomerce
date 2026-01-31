@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronDown,
-  Heart,
-  Star,
   Filter,
   ChevronLeft,
   ChevronRight,
@@ -24,6 +22,7 @@ import { NoProductsFound } from "../NoProductsFound";
 import ProductCardSkeleton from "../ProductCardSkeleton";
 import { ProductCompactSkeleton } from "../ProductCompactSkeleton";
 import { ProductCard } from "../common/ProductCard";
+import { productsData } from "@/data/product";
 type FilterKey = "category" | "subCategory";
 type FilterSectionProps = {
   title: string;
@@ -69,6 +68,8 @@ const ProductListingPage = () => {
     return "Products";
   }, [loading, subCategoryId, categoryId, industryId, filterByName]);
 
+  // const products = productsData(productsList)
+
   const products = productsList?.map((p: any) => {
     return {
       id: p._id,
@@ -77,18 +78,7 @@ const ProductListingPage = () => {
       price: p.product_price,
       originalPrice: p.mrp ? `MRP ₹${p.mrp}` : undefined,
       discount: p.discount ? `Save ₹${p.discount}` : undefined,
-      colors: p.color ? p.color.map((c: string) => {
-        switch (c.toLowerCase()) {
-          case "red": return "#FF0000";
-          case "blue": return "#0000FF";
-          case "green": return "#008000";
-          case "yellow": return "#FFFF00";
-          case "black": return "#000000";
-          case "white": return "#FFFFFF";
-          case "pink": return "#FFC0CB";
-          case "purple": return "#800080";
-        }  return "#808080"; // default gray for unknown colors
-      }) : [],
+      colors: p.color_codes ? [p.color_codes] : [], // FIXED
       isNew: p.isNew || false,
       isWish: p.isWishList || false,
       isBestSeller: p.isBestSeller || false,
@@ -96,7 +86,7 @@ const ProductListingPage = () => {
       rating: p.rating,
       reviews: p.reviews,
       selectedSize: p.size && p.size.length > 0 ? p.size[0] : "M",
-      color: p.color && p.color.length > 0 ? p.color[0] : "Default",
+      // color: p.color && p.color.length > 0 ? p.color[0] : "Default",
       quantity: 1,
       createdAt: p.create_at,
       variantId: p.item_code_ids?.[0]
@@ -140,7 +130,7 @@ const ProductListingPage = () => {
     fetchProducts();
   }, [debouncedFilters, page, fetchProducts]);
 
-   const sortedProducts = useMemo(() => {
+  const sortedProducts = useMemo(() => {
     if (!products || products.length === 0) return [];
 
     let result = [...products];
@@ -149,7 +139,7 @@ const ProductListingPage = () => {
       case "all":
         return result;
       case "popular":
-        return result.filter(p => p.isBestSeller===1);
+        return result.filter(p => p.isBestSeller === 1);
 
       case "price_asc":
         return result.sort((a, b) => a.price - b.price);
@@ -387,37 +377,37 @@ const ProductListingPage = () => {
           <div className="flex gap-6">
             {(industryId || categoryId) && (
 
-            <div
-              className="hidden lg:block w-64 bg-white rounded-lg shadow-sm h-fit sticky top-4"
-              style={{ top: "11rem" }}
-            >
-              { }
-              <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-5 w-5 text-gray-600" />
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Filter
-                  </h2>
+              <div
+                className="hidden lg:block w-64 bg-white rounded-lg shadow-sm h-fit sticky top-4"
+                style={{ top: "11rem" }}
+              >
+                { }
+                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-5 w-5 text-gray-600" />
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Filter
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setFilters({
+                        category: [],
+                        subCategory: [],
+                        discount: [],
+                        price: [],
+                        size: [],
+                        color: [],
+                        fabric: [],
+                      })
+                    }
+                    className="text-sm text-orange-600 hover:text-orange-700"
+                  >
+                    Clear all
+                  </button>
                 </div>
-                <button
-                  onClick={() =>
-                    setFilters({
-                      category: [],
-                      subCategory: [],
-                      discount: [],
-                      price: [],
-                      size: [],
-                      color: [],
-                      fabric: [],
-                    })
-                  }
-                  className="text-sm text-orange-600 hover:text-orange-700"
-                >
-                  Clear all
-                </button>
-              </div>
-              <div className="p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-                {/* {filterData.map((f) => (
+                <div className="p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+                  {/* {filterData.map((f) => (
                   <FilterSection
                     key={f.key}
                     title={f.title}
@@ -425,25 +415,25 @@ const ProductListingPage = () => {
                     filterKey={f.key}
                   />
                 ))} */}
-                {industryId && loadingCategories[industryId] ? (
-                  <FilterSkeleton />
-                ) : (
-                  filterData.map((f) => (
-                    <FilterSection
-                      key={f.key}
-                      title={f.title}
-                      items={f.items}
-                      filterKey={f.key}
-                    />
-                  ))
-                )}
+                  {industryId && loadingCategories[industryId] ? (
+                    <FilterSkeleton />
+                  ) : (
+                    filterData.map((f) => (
+                      <FilterSection
+                        key={f.key}
+                        title={f.title}
+                        items={f.items}
+                        filterKey={f.key}
+                      />
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
             )}
-          {(industryId || categoryId) && (
+            {(industryId || categoryId) && (
 
-            <FilterModal />
-          ) }
+              <FilterModal />
+            )}
 
             <div className="flex-1">
               <div className="bg-white shadow-sm rounded-lg p-4 mb-4">
@@ -496,7 +486,7 @@ const ProductListingPage = () => {
                         onChange={(e) => handleSortChange(e.target.value as SortOption)}
                         className="border border-gray-300 px-3 py-1 text-sm bg-white rounded focus:ring-2 focus:ring-orange-500 flex-1 sm:flex-initial"
                       >
-                        
+
                         {SORT_OPTIONS?.map((opt) => (
                           <option key={opt.value} value={opt.value}>
                             {opt.label}
