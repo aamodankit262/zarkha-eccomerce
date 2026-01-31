@@ -10,6 +10,7 @@ type SizeRow = {
   bust: string;
   waist: string;
   hip: string;
+  _id: string;
 };
 
 interface SizeChartDialogProps {
@@ -46,8 +47,8 @@ const SizeChartDialog = ({
             </thead>
 
             <tbody>
-              {sizeChart.map((row) => (
-                <tr key={row.size} className="border-b">
+              {sizeChart?.map((row) => (
+                <tr key={row._id} className="border-b">
                   <td className="p-3 font-medium">{row.size}</td>
                   <td className="p-3">{row.bust}</td>
                   <td className="p-3">{row.waist}</td>

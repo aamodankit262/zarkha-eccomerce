@@ -24,6 +24,11 @@ export const API_ENDPOINTS = {
     RARTING: "/web/products/ratings",
     DETAIL: "/web/products/details",
   },
+  SIZE: {
+    LIST: "/web/size-chart/list",
+    PRODUCT: "/web/size-chart/product",
+    CATEGORY: "/web/size-chart/category",
+  },
   WISHLIST: {
     ADD: "/web/wishlist/add",
     REMOVE: "/web/wishlist/remove",
@@ -76,5 +81,9 @@ export const API_ENDPOINTS = {
   AFFILIATE: {
     SIGNUP: "/web/affiliate/signup",
     LOGIN: "/web/affiliate/login",
+    DASHBOARD_STATS: "/web/affiliate/dashboard-stats",
+    PRODUCT_CATEGORY_LIST: "/web/affiliate/product-category-list",
+    PRODUCT_LIST: "/web/affiliate/product-list",
+
   }
 };

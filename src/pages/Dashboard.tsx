@@ -300,7 +300,6 @@ const Dashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [orderLoading, setOrderLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -400,7 +399,7 @@ const Dashboard = () => {
         limit,
         search: searchQuery,
       });
-      console.log(res, "order list response...");
+      // console.log(res, "order list response...");
       const data: any = res;
       setOrders(data.body || []);
       setTotalPages(data.pagination?.totalPages ?? 1);
@@ -532,7 +531,6 @@ const Dashboard = () => {
             {!orderLoading && orders.length === 0 && (
               <p className="text-center text-gray-500">No orders found</p>
             )}
-
             <div className="space-y-6">
               {orders?.map((order, idx) => (
                 <div
@@ -641,7 +639,9 @@ const Dashboard = () => {
                 + Add New Address
               </button>
             </div>
-
+            {addresses.length === 0 && (
+              <p className="text-center text-gray-500">No Address found</p>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {addresses?.map((addr) => (
                 <div key={addr._id} className="bg-white border rounded-xl p-6">
@@ -679,6 +679,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
+
             </div>
           </div>
         );

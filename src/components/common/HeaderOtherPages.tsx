@@ -33,7 +33,7 @@ export default function HeaderOtherPages() {
 
             <div className="flex items-center gap-4 lg:gap-6">
               <div
-                onClick={() => navigate("/products")}
+                onClick={() => navigate("/search")}
                 className="flex items-center gap-1 cursor-pointer text-gray-600 hover:text-orange-500"
               >
                 <Search className="h-5 w-5" />

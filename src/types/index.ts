@@ -27,7 +27,7 @@ export type SortOption =
   | "price_asc"
   | "price_desc"
   | "newest";
-  
+
 
 export interface ProductListPayload {
   category_id?: string;
@@ -41,8 +41,15 @@ export interface ProductListPayload {
   fabric_id?: string;
   page?: number;
   limit?: number;
-  search?: string; 
-  sort_by?: string; 
+  search?: string;
+  sort_by?: string;
+}
+export interface ChartListPayload {
+  category_id?: string;
+  subcategory_id?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
 }
 export interface AddressPayload {
   user_id: string;
@@ -52,7 +59,7 @@ export interface AddressPayload {
   pin_code: string;
   country: string;
   stateId: string;
-  cityId : string;
+  cityId: string;
   home?: string;
   office?: string;
   other?: string;
@@ -65,17 +72,17 @@ export interface UpdateAddressPayload extends AddressPayload {
 type AddressType = "Home" | "Office" | "Other";
 
 export interface SavedAddress {
-   _id: string;
+  _id: string;
   user_id?: string;
   first_name?: string;
   last_name: string;
   address: string;
   pin_code: string;
-  cityId ?: {
+  cityId?: {
     _id: string;
     name: string;
   };
-  city ?: string;
+  city?: string;
   state?: string;
   stateId?: {
     _id: string;
@@ -97,7 +104,29 @@ export interface CartItem {
   price: number;
   discount_price?: number;
 }
+export interface SizeChart {
+  _id?: string;
+  product?: string;
+  measurements: measurements;
+  title?: string;
+  category?: string;
+  subcategory?: string;
+  unit?: string;
+  status?: string;
+  createdAt?: string;
+}
 
+export interface measurements {
+  _id: string;
+  size: string;
+  bust: string;
+  waist: string;
+  hip: string;
+  chest: string;
+  sleeve: string;
+  shoulder: string;
+  length: string;
+}
 export interface User {
   id: string;
   name: string;

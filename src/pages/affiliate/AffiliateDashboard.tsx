@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { 
-  ShoppingBag, 
-  DollarSign, 
-  TrendingUp, 
-  Copy, 
-  Gift, 
+import {
+  ShoppingBag,
+  DollarSign,
+  TrendingUp,
+  Copy,
+  Gift,
   Users,
   LogOut,
   User,
@@ -33,19 +33,28 @@ import AffiliateEarnings from "@/components/affiliate/AffiliateEarnings";
 import AffiliateProfile from "@/components/affiliate/AffiliateProfile";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { logoImage } from "@/api/endpoints";
+import { useApi } from "@/hooks/useApi";
+import { affiliateService } from "@/services/affiliateService";
 
 const AffiliateDashboard = () => {
-  const { affiliate, isLoggedIn, logout } = useAffiliate();
+  const {affiliate, isLoggedIn, logout } = useAffiliate();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  const { data: dashBoardStats, error, loading, request: fetchDashboard } = useApi(affiliateService.dashboardStats)
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/affiliate/login');
+    } else {
+      if (loading) return;
+      fetchDashboard();
     }
   }, [isLoggedIn, navigate]);
-
+  console.log(dashBoardStats, 'dashboard')
+  const data = dashBoardStats?.body
+  // useEffect(() => {
+  //   fetchDashboard();
+  // }, []);
   const handleLogout = () => {
     logout();
     toast.success("Logged out successfully");
@@ -68,27 +77,27 @@ const AffiliateDashboard = () => {
   if (!affiliate) return null;
 
   const stats = [
-    { 
-      title: "Total Earnings", 
-      value: `₹${affiliate?.totalEarnings?.toLocaleString()}`, 
+    {
+      title: "Total Earnings",
+      value: `₹${data?.total_earnings?.toLocaleString()}`,
       icon: <DollarSign className="h-5 w-5" />,
       color: "text-green-600 bg-green-100"
     },
-    { 
-      title: "Pending Payment", 
-      value: `₹${affiliate?.pendingPayment?.toLocaleString()}`, 
+    {
+      title: "Pending Payment",
+      value: `₹${data?.pending_commission?.toLocaleString()}`,
       icon: <Wallet className="h-5 w-5" />,
       color: "text-orange-600 bg-orange-100"
     },
-    { 
-      title: "Total Sales", 
-      value: affiliate?.totalSales?.toString() || 2000, 
+    {
+      title: "Total Sales",
+      value: data?.total_sales?.toString(),
       icon: <TrendingUp className="h-5 w-5" />,
       color: "text-blue-600 bg-blue-100"
     },
-    { 
-      title: "Active Coupons", 
-      value: "5", 
+    {
+      title: "Active Coupons",
+      value: data?.active_coupon?.toString() || "N/A",
       icon: <Gift className="h-5 w-5" />,
       color: "text-purple-600 bg-purple-100"
     }
@@ -109,7 +118,7 @@ const AffiliateDashboard = () => {
       <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               className="lg:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -119,11 +128,11 @@ const AffiliateDashboard = () => {
               {/* <ShoppingBag className="h-6 w-6 text-primary" />
               <span className="font-bold text-foreground">Ethnic Store</span> */}
               <img
-                  src={logoImage}
-                  alt="Zarkha"
-                  className="h-8 w-auto cursor-pointer"
-                  onClick={() => navigate("/")}
-                />
+                src={logoImage}
+                alt="Zarkha"
+                className="h-8 w-auto cursor-pointer"
+                onClick={() => navigate("/")}
+              />
             </Link>
             <Badge variant="secondary" className="hidden sm:flex">Affiliate Partner</Badge>
           </div>
@@ -160,11 +169,10 @@ const AffiliateDashboard = () => {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors ${
-                      activeTab === item.id 
-                        ? "bg-primary text-primary-foreground" 
-                        : "text-muted-foreground hover:bg-secondary"
-                    }`}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors ${activeTab === item.id
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-secondary"
+                      }`}
                   >
                     {item.icon}
                     {item.label}
@@ -187,11 +195,10 @@ const AffiliateDashboard = () => {
                       setActiveTab(item.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors ${
-                      activeTab === item.id 
-                        ? "bg-primary text-primary-foreground" 
-                        : "text-muted-foreground hover:bg-secondary"
-                    }`}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors ${activeTab === item.id
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-secondary"
+                      }`}
                   >
                     {item.icon}
                     {item.label}
@@ -217,7 +224,7 @@ const AffiliateDashboard = () => {
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">{stat.title}</p>
-                          {/* <p className="text-xl font-bold text-foreground">{stat.value}</p> */}
+                          <p className="text-xl font-bold text-foreground">{stat.value}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -280,7 +287,6 @@ const AffiliateDashboard = () => {
               </div>
             </div>
           )}
-
           {activeTab === "products" && <AffiliateProducts />}
           {activeTab === "coupons" && <AffiliateCoupons />}
           {activeTab === "sales" && <AffiliateSales />}

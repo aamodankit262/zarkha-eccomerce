@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BusinessCategorySection as OldCategorySection } from "../business";
+// import { BusinessCategorySection as OldCategorySection } from "../business";
 import Layout from "../common/Layout";
 import BestSellers from "../sections/BestSellers";
 import ExclusiveCollectionCarousel from "../sections/ExclusiveCarousel";

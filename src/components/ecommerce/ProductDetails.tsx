@@ -8,13 +8,14 @@ import {
   ChevronDown,
   Heart,
   Minus,
+  Pause,
   Play,
   Plus,
   Share2,
   Star,
   Volume2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Layout } from "../common";
 import { ProductCard } from "../common/ProductCard";
 import { RatingsPage } from "./RatingPage";
@@ -26,18 +27,19 @@ import { toast } from "sonner";
 import WishlistButton from "../common/WishlistButton";
 import { useAuthStore } from "@/store/authStore";
 import { productsData } from "@/data/product";
+import { measurements } from "@/types";
 
 interface ProductDetailsPageProps {
   onClose: () => void;
 }
-const sizeChartData = [
-  { size: "XS", bust: "32-34", waist: "26-28", hip: "36-38" },
-  { size: "S", bust: "34-36", waist: "28-30", hip: "38-40" },
-  { size: "M", bust: "36-38", waist: "30-32", hip: "40-42" },
-  { size: "L", bust: "38-40", waist: "32-34", hip: "42-44" },
-  { size: "XL", bust: "40-42", waist: "34-36", hip: "44-46" },
-  { size: "XXL", bust: "42-44", waist: "36-38", hip: "46-48" },
-];
+// const sizeChartData = [
+//   { size: "XS", bust: "32-34", waist: "26-28", hip: "36-38" },
+//   { size: "S", bust: "34-36", waist: "28-30", hip: "38-40" },
+//   { size: "M", bust: "36-38", waist: "30-32", hip: "40-42" },
+//   { size: "L", bust: "38-40", waist: "32-34", hip: "42-44" },
+//   { size: "XL", bust: "40-42", waist: "34-36", hip: "44-46" },
+//   { size: "XXL", bust: "42-44", waist: "36-38", hip: "46-48" },
+// ];
 const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const navigate = useNavigate();
   // const [selectedImage, setSelectedImage] = useState(0);
@@ -48,29 +50,61 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const [showAudioInfo, setShowAudioInfo] = useState(true);
   const [showProductInfo, setShowProductInfo] = useState(true);
   const [showRatingsReviews, setShowRatingsReviews] = useState(true);
-  const [audioProgress, setAudioProgress] = useState(0.5);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [showRatingsPage, setShowRatingsPage] = useState(false);
   const [showSizeChart, setShowSizeChart] = useState(false);
+  const [sizeChartData, setSizeChartData] = useState<measurements[]>(null);
   const { isLogin } = useAuthStore();
   const [searchParams] = useSearchParams();
 
   // const [selectedImage, setSelectedImage] = useState<number>(0);
   const { openCart, addItem } = useCart();
   const id = useParams().id || "";
-  const { data, request, error } = useApi(productService.getById);
-  useEffect(() => {
-    if (!id) return;
-    request(id);
-  }, [id]);
-  // console.log(error, 'prductdetails')
- 
+  const affiliate = searchParams.get("affiliate")
 
-  const selectedVariantId = searchParams.get("variant");
-  // console.log(selectedVariantId, 'variantId')
+  const { data, request, error } = useApi(productService.getById);
+  const { data: ChartList, request: fetchChartList, error: chartError } = useApi(productService.getSizeChartList);
+   const selectedVariantId = searchParams.get("variant");
   const productVariants = data?.body?.variants ?? [];
   const activeVariant = productVariants.find(
     (v) => v.item_code_id === selectedVariantId
   ) || productVariants[0];
+  useEffect(() => {
+    if (!id) return;
+    request(id);
+  }, [id]);
+  useEffect(() => {
+    if (!showSizeChart || ChartList) return;
+    fetchChartList({
+      category_id: "",
+      subcategory_id: "",
+      status: "",
+      page: 1,
+      limit: 10,
+    });
+  }, [showSizeChart]);
+  useEffect(() => {
+    if (ChartList?.body?.length > 0) {
+      setSizeChartData(ChartList?.body[0]?.measurements); // ✅ first chart
+    }
+  }, [ChartList]);
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+
+    setIsPlaying(!isPlaying);
+  };
+ 
   useEffect(() => {
     if (
       !selectedVariantId &&
@@ -84,6 +118,31 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     }
   }, [selectedVariantId, productVariants, id, navigate]);
 
+ useEffect(() => {
+  const audio = audioRef.current;
+  if (!audio) return;
+
+  const updateProgress = () => {
+    setCurrentTime(audio.currentTime);
+    setDuration(audio.duration || 0);
+    setAudioProgress(audio.currentTime / audio.duration || 0);
+  };
+
+  audio.addEventListener("timeupdate", updateProgress);
+  audio.addEventListener("loadedmetadata", updateProgress);
+
+  return () => {
+    audio.removeEventListener("timeupdate", updateProgress);
+    audio.removeEventListener("loadedmetadata", updateProgress);
+  };
+}, [showAudioInfo]);
+
+  const formatTime = (time: number) => {
+    if (!time) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
   const capitalizeFirst = (text?: string) => {
     if (!text) return "";
     return text.charAt(0).toUpperCase() + text.slice(1);
@@ -126,6 +185,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     };
   });
   // console.log(ratingBreakdown, 'ratingBreakdown')
+  const audioSrc = productData?.audio_information || "/assets/file_example.mp3";
 
   const customerReviews =
     data?.body?.feedback?.feedback_list?.map(
@@ -150,28 +210,6 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     { label: "Fit Type", value: details?.fit_type || "-" },
     // { label: "Suitable For", value: details?.suitable_for || "-" },
   ];
-
-  // const productsData = similarProductsRaw?.map((product: any) => {
-  //   const discount =
-  //     product.mrp && product.product_price
-  //       ? Math.round(
-  //         ((product.mrp - product.product_price) / product.mrp) * 100
-  //       )
-  //       : 0;
-
-  //   return {
-  //     id: product.id,
-  //     title: product.name,
-  //     price: product.discount_price,
-  //     originalPrice: product.mrp || product.product_price,
-  //     discount, // percentage
-  //     image: product?.images?.[0]?.url || "/assets/no_image.jpg",
-  //     isNew: true,
-  //     colors: product.color ? [product.color] : [], // FIXED
-  //     size: product.size,
-  //   };
-  // });
-
   const handleAddToCart = () => {
     if (!activeVariant) return;
     if (!selectedSize) {
@@ -214,20 +252,20 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   if (showRatingsPage) {
     return <RatingsPage onBack={handleBackFromRatings} />;
   }
-if (error) {
-  return (
-    <div className="text-center py-10">
-      <h2 className="text-xl font-semibold">{error}</h2>
-      <p className="text-gray-500">
-        This product may have been removed or is unavailable.
-      </p>
-    </div>
-  );
-}
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <h2 className="text-xl font-semibold">{error}</h2>
+        <p className="text-gray-500">
+          This product may have been removed or is unavailable.
+        </p>
+      </div>
+    );
+  }
 
-if (!data) {
-  return null; // or fallback UI
-}
+  if (!data) {
+    return null; // or fallback UI
+  }
   return (
     <Layout>
       <div className="min-h-screen bg-white">
@@ -561,22 +599,36 @@ if (!data) {
                   </button>
                   {showAudioInfo && (
                     <div className="px-4 pb-4 border-t">
+                      <audio ref={audioRef} src={audioSrc} preload="metadata" />
+
                       <div className="pt-4">
                         <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
-                          <button className="p-2 bg-white rounded-full shadow-sm hover:shadow-md">
-                            <Play className="h-5 w-5 text-gray-700" />
+
+                          <button
+                            onClick={togglePlay}
+                            className="p-2 bg-white rounded-full shadow-sm hover:shadow-md"
+                          >
+                            {isPlaying ? (
+
+                              <Pause className="h-5 w-5 text-gray-700" />
+                            ): (
+                              <Play className="h-5 w-5 text-gray-700" />
+                            )}
                           </button>
+
                           <div className="flex-1">
                             <div className="text-sm text-gray-600 mb-1">
-                              0:30 / 0:05
+                              {formatTime(currentTime)} / {formatTime(duration)}
                             </div>
+
                             <div className="w-full bg-gray-200 rounded-full h-2">
                               <div
                                 className="bg-gray-800 h-2 rounded-full"
                                 style={{ width: `${audioProgress * 100}%` }}
-                              ></div>
+                              />
                             </div>
                           </div>
+
                           <button className="p-2">
                             <Volume2 className="h-5 w-5 text-gray-700" />
                           </button>
@@ -584,6 +636,7 @@ if (!data) {
                       </div>
                     </div>
                   )}
+
                 </div>
 
                 {/* Ratings & Reviews Accordion */}

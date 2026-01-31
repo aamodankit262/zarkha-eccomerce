@@ -9,12 +9,15 @@ import { useAffiliate } from "@/contexts/AffiliateContext";
 import { toast } from "sonner";
 import { ShoppingBag, Eye, EyeOff, ArrowLeft, Upload, X } from "lucide-react";
 import { logoImage } from "@/api/endpoints";
+import { getCityList, getStateList } from "@/services/address.service";
 
 const AffiliateLogin = () => {
   const [searchParams] = useSearchParams();
   const [isSignup, setIsSignup] = useState(searchParams.get('signup') === 'true');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
   const navigate = useNavigate();
   const { login, signup, isLoggedIn } = useAffiliate();
 
@@ -23,6 +26,8 @@ const AffiliateLogin = () => {
     email: "",
     password: "",
     phone: "",
+    state: "",
+    city: "",
     category: "",
     aadhaarFile: null as File | null
   });
@@ -32,6 +37,18 @@ const AffiliateLogin = () => {
       navigate('/affiliate/dashboard');
     }
   }, [isLoggedIn, navigate]);
+  useEffect(() => {
+    getStateList().then((res) => setStates(res?.data || []));
+  }, []);
+
+  // Fetch cities when state changes
+  useEffect(() => {
+    if (!formData.state) {
+      setCities([]);
+      return;
+    }
+    getCityList(formData.state).then((res) => setCities(res?.data || []));
+  }, [formData.state]);
 
   const categories = [
     "Fashion Influencer",
@@ -172,8 +189,48 @@ const AffiliateLogin = () => {
                       type="tel"
                       placeholder="Enter your phone number"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        phone: e.target.value.replace(/\D/g, "").slice(0,10)
+                      })}
                     />
+                  </div>
+                  <div
+                    // className="grid md:grid-cols-2 gap-4"
+                    className="space-y-2"
+                  >
+                    <Label htmlFor="state">State</Label>
+                    <Select value={formData.state} onValueChange={(v) => setFormData({ ...formData, state: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select State *" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {states.map((state) => (
+                          <SelectItem key={state._id} value={state._id}>
+                            {state.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Select
+                      value={formData.city}
+                      onValueChange={(v) => setFormData({ ...formData, city: v })}
+                      disabled={!formData.state}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select City *" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cities.map((city) => (
+                          <SelectItem key={city._id} value={city._id}>
+                            {city.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
