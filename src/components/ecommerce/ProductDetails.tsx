@@ -1,19 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-// import { productsData } from "@/data/product";
-// import { useToast } from "@/hooks/use-toast";
 import {
   ChevronDown,
-  Heart,
   Minus,
   Pause,
   Play,
   Plus,
-  Share2,
   Star,
-  Volume2,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Layout } from "../common";
 import { ProductCard } from "../common/ProductCard";
 import { RatingsPage } from "./RatingPage";
@@ -26,6 +21,8 @@ import WishlistButton from "../common/WishlistButton";
 import { useAuthStore } from "@/store/authStore";
 import { productsData } from "@/data/product";
 import { measurements } from "@/types";
+import ProductImages from "../product/ProductImages";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
 interface ProductDetailsPageProps {
   onClose: () => void;
@@ -48,130 +45,65 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const [showAudioInfo, setShowAudioInfo] = useState(false);
   const [showProductInfo, setShowProductInfo] = useState(true);
   const [showRatingsReviews, setShowRatingsReviews] = useState(true);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [showRatingsPage, setShowRatingsPage] = useState(false);
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [sizeChartData, setSizeChartData] = useState<measurements[]>(null);
-  const { isLogin } = useAuthStore();
+  // const { isLogin } = useAuthStore();
   const [searchParams] = useSearchParams();
-
-  // const [selectedImage, setSelectedImage] = useState<number>(0);
   const { openCart, addItem } = useCart();
   const id = useParams().id || "";
-  const affiliate = searchParams.get("affiliate")
-
+  // const affiliate = searchParams.get("affiliate")
   const { data, request, error } = useApi(productService.getById);
   const { data: ChartList, request: fetchChartList, error: chartError } = useApi(productService.getSizeChartList);
   const selectedVariantId = searchParams.get("variant");
-  const productVariants = data?.body?.variants ?? [];
-  const activeVariant = productVariants.find(
-    (v) => v.item_code_id === selectedVariantId
-  ) || productVariants[0];
-  useEffect(() => {
-    if (!id) return;
-    request(id);
-  }, [id]);
-  useEffect(() => {
-    if (!showSizeChart || ChartList) return;
-    fetchChartList({
-      category_id: "",
-      subcategory_id: "",
-      status: "",
-      page: 1,
-      limit: 10,
-    });
-  }, [showSizeChart]);
-  useEffect(() => {
-    if (ChartList?.body?.length > 0) {
-      setSizeChartData(ChartList?.body[0]?.measurements); // ✅ first chart
-    }
-  }, [ChartList]);
-  const togglePlay = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
 
-    if (audio.paused) {
-      await audio.play(); // 👈 MUST await
-      setIsPlaying(true);
-    } else {
-      audio.pause();
-      setIsPlaying(false);
-    }
-  };
+  const product = data?.body;
 
-  useEffect(() => {
-    if (
-      !selectedVariantId &&
-      productVariants &&
-      productVariants.length > 0
-    ) {
-      navigate(
-        `/product/${id}?variant=${productVariants[0].item_code_id}`,
-        { replace: true }
-      );
-    }
-  }, [selectedVariantId, productVariants, id, navigate]);
+  const productVariants = useMemo(
+    () => product?.variants ?? [],
+    [product]
+  );
+  // const activeVariant = productVariants.find(
+  //   (v) => v.item_code_id === selectedVariantId
+  // ) || productVariants[0];
+  const activeVariant = useMemo(
+    () =>
+      productVariants.find(v => v.item_code_id === selectedVariantId) ||
+      productVariants[0],
+    [productVariants, selectedVariantId]
+  );
+  const details = product?.product_details;
 
-  useEffect(() => {
-    if (!showAudioInfo) return;
+  // const productImages =
+  //   activeVariant?.images?.length > 0
+  //     ? activeVariant.images
+  //     : product?.images || [];
+  const productImages = useMemo(
+    () =>
+      activeVariant?.images?.length > 0
+        ? activeVariant.images
+        : product?.images ?? [],
+    [activeVariant, product]
+  );
+  const sizes = product?.select_size?.map((size: any) => size) || [];
+  const rating = product?.ratings || 4.5;
+  const shortDescription = product?.product_details?.short_discription ?? "";
+  const longDescription = product?.product_details?.long_discription ?? "";
 
-    const audio = audioRef.current;
-    if (!audio) return;
+  const ratingsCount = product?.ratings_and_reviews;
+  const similarProductsRaw = product?.similar_products ?? [];
+  const audioSrc =
+    product?.audio_information?.trim()
+      ? product.audio_information
+      : "/assets/file_example.mp3";
 
-    const onLoadedMetadata = () => {
-      setDuration(audio.duration || 0);
-    };
-
-    const onTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-      if (audio.duration) {
-        setAudioProgress(audio.currentTime / audio.duration);
-      }
-    };
-
-    audio.addEventListener("loadedmetadata", onLoadedMetadata);
-    audio.addEventListener("timeupdate", onTimeUpdate);
-
-    return () => {
-      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-      audio.removeEventListener("timeupdate", onTimeUpdate);
-    };
-  }, [showAudioInfo]);
-
-
-  const formatTime = (time: number) => {
-    if (!time) return "0:00";
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60).toString().padStart(2, "0");
-    return `${minutes}:${seconds}`;
-  };
-  const capitalizeFirst = (text?: string) => {
-    if (!text) return "";
-    return text.charAt(0).toUpperCase() + text.slice(1);
-  };
-
-  const productData = data?.body
-  // console.log("Product Data:", data);
-
-  const productImages =
-    activeVariant?.images?.length > 0
-      ? activeVariant.images
-      : data?.body?.images || [];
-  const sizes = data?.body?.select_size?.map((size: any) => size) || [];
-  // const colors = data?.body?.color.map((color: any) => color.color_code);
-  const rating = data?.body?.ratings || 4.5;
-  const shortDescription = data?.body?.product_details?.short_discription ?? "";
-  const longDescription = data?.body?.product_details?.long_discription ?? "";
-
-  const ratingsCount = data?.body?.ratings_and_reviews;
-  const details = data?.body?.product_details;
-  const similarProductsRaw = data?.body?.similar_products ?? [];
-  const audioSrc = productData?.audio_information || "/assets/file_example.mp3";
+  const {
+    audioRef,
+    isPlaying,
+    progress,
+    currentTime,
+    duration,
+    toggle } = useAudioPlayer(audioSrc, showAudioInfo);
 
   // console.log("Ratings Count:", ratingsCount);
 
@@ -195,7 +127,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   // console.log(ratingBreakdown, 'ratingBreakdown')
 
   const customerReviews =
-    data?.body?.feedback?.feedback_list?.map(
+    product?.feedback?.feedback_list?.map(
       (item: any, index: number) => ({
         id: index + 1,
         name: item.customer_name,
@@ -205,18 +137,61 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
         images: item.feedback_image ?? [],
       })
     ) ?? [];
-  //  const totalReviews =  data?.body?.feedback?
+
   const productDetails = [
     { label: "Color", value: details?.color?.map((color, i) => color.color_name).join(",") || "-" },
-    { label: "Work", value: details?.Work || "-" },
-    { label: "Fabric", value: details?.fabric || "-" },
-    // {
-    //   label: "Pattern / Ideal For",
-    //   value: details?.pattern || details?.ideal_for || "-",
-    // },
-    { label: "Fit Type", value: details?.fit_type || "-" },
-    // { label: "Suitable For", value: details?.suitable_for || "-" },
+    { label: "Work", value: details?.Work || "N/A" },
+    { label: "Fabric", value: details?.fabric || "N/A" },
+    { label: "Fit Type", value: details?.fit_type || "N/A" },
   ];
+
+  useEffect(() => {
+    if (!id) return;
+    request(id);
+  }, [id]);
+
+  useEffect(() => {
+    if (!showSizeChart || ChartList) return;
+    fetchChartList({
+      category_id: "",
+      subcategory_id: "",
+      status: "",
+      page: 1,
+      limit: 10,
+    });
+  }, [showSizeChart, ChartList]);
+
+  useEffect(() => {
+    if (ChartList?.body?.length > 0) {
+      setSizeChartData(ChartList?.body[0]?.measurements); // ✅ first chart
+    }
+  }, [ChartList]);
+
+  useEffect(() => {
+    if (
+      !selectedVariantId &&
+      productVariants &&
+      productVariants.length > 0
+    ) {
+      navigate(
+        `/product/${id}?variant=${productVariants[0].item_code_id}`,
+        { replace: true }
+      );
+    }
+  }, [selectedVariantId, productVariants, id, navigate]);
+
+  const formatTime = (time: number) => {
+    if (!time) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
+  const capitalizeFirst = (text?: string) => {
+    if (!text) return "";
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
+
   const handleAddToCart = () => {
     if (!activeVariant) return;
     if (!selectedSize) {
@@ -293,66 +268,21 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
         <div className="max-w-7xl mx-auto px-4 pb-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Product Images */}
-            <div className="space-y-4">
-              {/* Main Image */}
-              <div className="relative">
-                <img
-                  src={productImages?.[activeImage]?.url || "/assets/no_image.jpg"}
-                  alt={productImages?.[activeImage]?.alt_text || "Product image"}
-                  //  {/* CHANGE: Responsive height for main image */}
-                  className="w-full h-[400px] md:h-[500px] object-cover rounded-lg"
-                />
-                {/* New Arrivals Badge */}
-                {details?.isNew === 1 && (
-                  <div className="absolute top-4 left-4 bg-orange-500 text-white text-xs px-3 py-1 rounded">
-                    New Arrivals
-                  </div>
-                )}
+            <ProductImages
+              images={productImages}
+              activeIndex={activeImage}
+              onChange={setActiveImage}
+              productId={product.id}
+              isWishList={product.isWishList}
+              isNew={product.isNew}
+            />
 
-                {/* Action Icons */}
-                {isLogin && (
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    <WishlistButton productId={id} isWish={productData?.isWishList} />
-                  </div>
-                )}
-              </div>
-
-              {/* Thumbnail Images */}
-              {/* CHANGE: Horizontal scroll on mobile for thumbnails */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {productImages?.map((image, index) => (
-                  <button
-                    key={index}
-                    // onClick={() => setSelectedImage(image.id || index)}
-                    onClick={() => setActiveImage(index)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${activeImage === index
-                      ? "border-orange-500"
-                      : "border-gray-200"
-                      }`}
-                  >
-                    <img
-                      src={image.url || '/assets/no_images.jpg'}
-                      alt={image.alt_text}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
             <div className="space-y-4 md:space-y-6">
-              {/* Title and Rating */}
               <div>
-                {/* CHANGE: Responsive font size for title */}
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
-                  {/* Purple Lehenga Set With Hand Embroidered Blouse And Dupatta */}
-                  {capitalizeFirst(data?.body?.product_title)}
+                  {capitalizeFirst(product?.product_title)}
                 </h1>
                 <div className="flex items-center gap-2">
-                  {/* <div className="flex items-center">
-                    <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
-                    <span className="ml-1 text-sm font-medium">{rating}</span>
-                  </div> */}
-                  {/* <span className="text-sm text-gray-500">1 Rating 320</span> */}
                   <span className="text-sm text-gray-500">{shortDescription ?? ''}</span>
                 </div>
               </div>
@@ -360,18 +290,17 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
               {/* Price */}
               <div className="space-y-1">
                 <div className="flex items-center gap-3">
-                  {/* CHANGE: Responsive font size for price */}
                   <span className="text-xl md:text-2xl font-bold text-gray-900">
-                    ₹{data?.body?.discount_price}
+                    ₹{product?.discount_price}
                   </span>
                   <span className="text-base md:text-lg text-gray-500 line-through">
-                    MRP ₹{data?.body?.product_price}
+                    MRP ₹{product?.product_price}
                   </span>
                   <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-sm font-medium">
-                    Save {data?.body?.save_in}%
+                    Save {product?.save_in}%
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">{data?.body?.taxes}</p>
+                <p className="text-sm text-gray-600">{product?.taxes}</p>
               </div>
 
               {/* Color Selection */}
@@ -391,11 +320,10 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                             })
                           }
                           className={`
-        w-8 h-8 rounded-full border-2 transition-all
-        ${isActive
+                               w-8 h-8 rounded-full border-2 transition-all
+                              ${isActive
                               ? "border-orange-500 ring-2 ring-orange-400 ring-offset-2 scale-110"
-                              : "border-gray-300 hover:border-orange-400"}
-      `}
+                              : "border-gray-300 hover:border-orange-400"}`}
                           style={{ backgroundColor: variant.color.color_code }}
                         />
                       );
@@ -491,23 +419,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                 </div>
               </div>
 
-              {/* Delivery */}
-              {/* <div className="space-y-3 pt-4 border-t">
-                <h3 className="font-medium text-gray-900">Delivery</h3>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {" "}
-                  <input
-                    type="text"
-                    placeholder="Enter Delivery Address"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  />
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6">
-                    Check Now
-                  </Button>
-                </div>
-              </div> */}
               <div className="mt-12 space-y-6">
-                {/* Product Details Accordion */}
                 <div className="rounded-lg">
                   <button
                     onClick={() => setShowProductDetails(!showProductDetails)}
@@ -530,7 +442,8 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                               {detail.label}
                             </span>
                             <span className="text-gray-900">
-                              {detail.value || "—"}
+                              { detail.value.length > 50 ? detail?.value.slice(0, 50) + "..."  : detail?.value || "N/A"}
+                              {/* {detail?.value || "N/A"} */}
                             </span>
                           </div>
                         ))}
@@ -554,7 +467,6 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                   )}
                 </div>
 
-                {/* Information Accordion */}
                 {longDescription.length > 0 && (
                   <div className=" rounded-lg">
                     <button
@@ -590,70 +502,67 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                     )}
                   </div>
                 )}
-                {/* Audio Information Accordion */}
-                <div className=" rounded-lg">
-                  <button
-                    onClick={() => setShowAudioInfo(!showAudioInfo)}
-                    className="w-full flex items-center justify-between p-4 text-left"
-                  >
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Audio Information
-                    </h3>
-                    <ChevronDown
-                      className={`h-5 w-5 transition-transform ${showAudioInfo ? "rotate-180" : ""
-                        }`}
-                    />
-                  </button>
-                  {showAudioInfo && (
-                    <>
-                      <audio
-                        ref={audioRef}
-                        src={audioSrc} // fallback
-                        preload="metadata"
+                {audioSrc && (
+                  <div className=" rounded-lg">
+                    <button
+                      onClick={() => setShowAudioInfo(!showAudioInfo)}
+                      className="w-full flex items-center justify-between p-4 text-left"
+                    >
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Audio Information
+                      </h3>
+                      <ChevronDown
+                        className={`h-5 w-5 transition-transform ${showAudioInfo ? "rotate-180" : ""
+                          }`}
                       />
+                    </button>
+                    {showAudioInfo && (
+                      <>
+                        <audio
+                          ref={audioRef}
+                          src={audioSrc} // fallback
+                          preload="metadata"
+                        />
 
-                      <div className="px-4 pb-4 border-t">
-                        <div className="pt-4">
-                          <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+                        <div className="px-4 pb-4 border-t">
+                          <div className="pt-4">
+                            <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
 
-                            {/* PLAY BUTTON */}
-                            <button
-                              onClick={togglePlay}
-                              className="p-2 bg-white rounded-full shadow-sm hover:shadow-md"
-                            >
-                              {isPlaying ? (
-                                <Pause className="h-5 w-5 text-gray-700" />
-                              ) : (
-                                <Play className="h-5 w-5 text-gray-700" />
-                              )}
-                            </button>
+                              {/* PLAY BUTTON */}
+                              <button
+                                onClick={toggle}
+                                className="p-2 bg-white rounded-full shadow-sm hover:shadow-md"
+                              >
+                                {isPlaying ? (
+                                  <Pause className="h-5 w-5 text-gray-700" />
+                                ) : (
+                                  <Play className="h-5 w-5 text-gray-700" />
+                                )}
+                              </button>
 
-                            {/* PROGRESS */}
-                            <div className="flex-1">
-                              <div className="text-sm text-gray-600 mb-1">
-                                {formatTime(currentTime)} / {formatTime(duration)}
-                                {/* {Math.floor(currentTime)} / {Math.floor(duration)} sec */}
+                              {/* PROGRESS */}
+                              <div className="flex-1">
+                                <div className="text-sm text-gray-600 mb-1">
+                                  {formatTime(currentTime)} / {formatTime(duration)}
+                                </div>
+
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-gray-800 h-2 rounded-full transition-all"
+                                    style={{ width: `${progress * 100}%` }}
+                                  />
+                                </div>
                               </div>
 
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                  className="bg-gray-800 h-2 rounded-full transition-all"
-                                  style={{ width: `${audioProgress * 100}%` }}
-                                />
-                              </div>
+                              {/* <Volume2 className="h-5 w-5 text-gray-700" /> */}
                             </div>
-
-                            {/* <Volume2 className="h-5 w-5 text-gray-700" /> */}
                           </div>
                         </div>
-                      </div>
-                    </>
-                  )}
+                      </>
+                    )}
 
-
-                </div>
-
-                {/* Ratings & Reviews Accordion */}
+                  </div>
+                )}
                 <div className=" rounded-lg">
                   <button
                     onClick={() => setShowRatingsReviews(!showRatingsReviews)}
