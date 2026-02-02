@@ -1,6 +1,3 @@
-import { useCart } from "@/contexts/CartContext";
-import { useToast } from "@/hooks/use-toast";
-import { Eye, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import WishlistButton from "./WishlistButton";
 import { useAuthStore } from "@/store/authStore";
@@ -71,9 +68,12 @@ export const ProductCard = ({ product }) => {
           <span className="text-[15px] font-bold text-gray-900">
             ₹{product.price}
           </span>
+          {product.originalPrice && (
+
           <span className="text-[12px] text-gray-500 line-through">
             ₹{product.originalPrice}
           </span>
+          )}
           <span className="text-[11px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-semibold">
             Save {product.discount}%
           </span>
