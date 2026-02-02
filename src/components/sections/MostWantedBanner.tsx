@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 export default function MostWantedBanner() {
+  const navigate = useNavigate();
   return (
     <section className="relative w-full min-h-[420px] md:min-h-[500px] lg:min-h-[560px]">
       {/* Left Image */}
@@ -38,7 +41,9 @@ export default function MostWantedBanner() {
         <p className="text-[22px] md:text-[28px] lg:text-[34px] font-semibold text-white mb-6">
           Up To 60% Off
         </p>
-        <button className="px-5 py-1.5 md:px-6 md:py-2 border border-white text-white font-medium text-[14px] md:text-[15px] hover:bg-white hover:text-black transition-all rounded">
+        <button 
+         onClick={() => navigate("/products")}
+        className="px-5 py-1.5 md:px-6 md:py-2 border border-white text-white font-medium text-[14px] md:text-[15px] hover:bg-white hover:text-black transition-all rounded">
           Shop Now
         </button>
       </div>
