@@ -1,9 +1,7 @@
-"use client"; // Assuming you might use client-side hooks, good practice to keep it.
-
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 // import { productsData } from "@/data/product";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import {
   ChevronDown,
   Heart,
@@ -47,7 +45,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showProductDetails, setShowProductDetails] = useState(true);
-  const [showAudioInfo, setShowAudioInfo] = useState(true);
+  const [showAudioInfo, setShowAudioInfo] = useState(false);
   const [showProductInfo, setShowProductInfo] = useState(true);
   const [showRatingsReviews, setShowRatingsReviews] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -69,7 +67,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
 
   const { data, request, error } = useApi(productService.getById);
   const { data: ChartList, request: fetchChartList, error: chartError } = useApi(productService.getSizeChartList);
-   const selectedVariantId = searchParams.get("variant");
+  const selectedVariantId = searchParams.get("variant");
   const productVariants = data?.body?.variants ?? [];
   const activeVariant = productVariants.find(
     (v) => v.item_code_id === selectedVariantId
@@ -93,18 +91,19 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
       setSizeChartData(ChartList?.body[0]?.measurements); // ✅ first chart
     }
   }, [ChartList]);
-  const togglePlay = () => {
-    if (!audioRef.current) return;
+  const togglePlay = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
-    if (isPlaying) {
-      audioRef.current.pause();
+    if (audio.paused) {
+      await audio.play(); // 👈 MUST await
+      setIsPlaying(true);
     } else {
-      audioRef.current.play();
+      audio.pause();
+      setIsPlaying(false);
     }
-
-    setIsPlaying(!isPlaying);
   };
- 
+
   useEffect(() => {
     if (
       !selectedVariantId &&
@@ -118,24 +117,32 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     }
   }, [selectedVariantId, productVariants, id, navigate]);
 
- useEffect(() => {
-  const audio = audioRef.current;
-  if (!audio) return;
+  useEffect(() => {
+    if (!showAudioInfo) return;
 
-  const updateProgress = () => {
-    setCurrentTime(audio.currentTime);
-    setDuration(audio.duration || 0);
-    setAudioProgress(audio.currentTime / audio.duration || 0);
-  };
+    const audio = audioRef.current;
+    if (!audio) return;
 
-  audio.addEventListener("timeupdate", updateProgress);
-  audio.addEventListener("loadedmetadata", updateProgress);
+    const onLoadedMetadata = () => {
+      setDuration(audio.duration || 0);
+    };
 
-  return () => {
-    audio.removeEventListener("timeupdate", updateProgress);
-    audio.removeEventListener("loadedmetadata", updateProgress);
-  };
-}, [showAudioInfo]);
+    const onTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+      if (audio.duration) {
+        setAudioProgress(audio.currentTime / audio.duration);
+      }
+    };
+
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("timeupdate", onTimeUpdate);
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+    };
+  }, [showAudioInfo]);
+
 
   const formatTime = (time: number) => {
     if (!time) return "0:00";
@@ -164,6 +171,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const ratingsCount = data?.body?.ratings_and_reviews;
   const details = data?.body?.product_details;
   const similarProductsRaw = data?.body?.similar_products ?? [];
+  const audioSrc = productData?.audio_information || "/assets/file_example.mp3";
 
   // console.log("Ratings Count:", ratingsCount);
 
@@ -185,7 +193,6 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     };
   });
   // console.log(ratingBreakdown, 'ratingBreakdown')
-  const audioSrc = productData?.audio_information || "/assets/file_example.mp3";
 
   const customerReviews =
     data?.body?.feedback?.feedback_list?.map(
@@ -598,44 +605,51 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                     />
                   </button>
                   {showAudioInfo && (
-                    <div className="px-4 pb-4 border-t">
-                      <audio ref={audioRef} src={audioSrc} preload="metadata" />
+                    <>
+                      <audio
+                        ref={audioRef}
+                        src={audioSrc} // fallback
+                        preload="metadata"
+                      />
 
-                      <div className="pt-4">
-                        <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+                      <div className="px-4 pb-4 border-t">
+                        <div className="pt-4">
+                          <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
 
-                          <button
-                            onClick={togglePlay}
-                            className="p-2 bg-white rounded-full shadow-sm hover:shadow-md"
-                          >
-                            {isPlaying ? (
+                            {/* PLAY BUTTON */}
+                            <button
+                              onClick={togglePlay}
+                              className="p-2 bg-white rounded-full shadow-sm hover:shadow-md"
+                            >
+                              {isPlaying ? (
+                                <Pause className="h-5 w-5 text-gray-700" />
+                              ) : (
+                                <Play className="h-5 w-5 text-gray-700" />
+                              )}
+                            </button>
 
-                              <Pause className="h-5 w-5 text-gray-700" />
-                            ): (
-                              <Play className="h-5 w-5 text-gray-700" />
-                            )}
-                          </button>
+                            {/* PROGRESS */}
+                            <div className="flex-1">
+                              <div className="text-sm text-gray-600 mb-1">
+                                {formatTime(currentTime)} / {formatTime(duration)}
+                                {/* {Math.floor(currentTime)} / {Math.floor(duration)} sec */}
+                              </div>
 
-                          <div className="flex-1">
-                            <div className="text-sm text-gray-600 mb-1">
-                              {formatTime(currentTime)} / {formatTime(duration)}
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-gray-800 h-2 rounded-full transition-all"
+                                  style={{ width: `${audioProgress * 100}%` }}
+                                />
+                              </div>
                             </div>
 
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-gray-800 h-2 rounded-full"
-                                style={{ width: `${audioProgress * 100}%` }}
-                              />
-                            </div>
+                            {/* <Volume2 className="h-5 w-5 text-gray-700" /> */}
                           </div>
-
-                          <button className="p-2">
-                            <Volume2 className="h-5 w-5 text-gray-700" />
-                          </button>
                         </div>
                       </div>
-                    </div>
+                    </>
                   )}
+
 
                 </div>
 

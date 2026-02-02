@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   Heart,
@@ -29,11 +29,12 @@ import {
   getStateList,
   updateAddress,
 } from "@/services/address.service";
-import { useCms } from "@/hooks/useCms";
-import { CMS_TYPES } from "@/services/cms.service";
+// import { useCms } from "@/hooks/useCms";
+// import { CMS_TYPES } from "@/services/cms.service";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import dayjs from "dayjs";
 import {
   Select,
   SelectContent,
@@ -399,7 +400,7 @@ const Dashboard = () => {
         limit,
         search: searchQuery,
       });
-      // console.log(res, "order list response...");
+      console.log(res, "order list response...");
       const data: any = res;
       setOrders(data.body || []);
       setTotalPages(data.pagination?.totalPages ?? 1);
@@ -534,14 +535,15 @@ const Dashboard = () => {
             <div className="space-y-6">
               {orders?.map((order, idx) => (
                 <div
-                  key={order.id}
+                  key={order._id}
                   className="bg-white border-2 border-[#D2CABD] rounded-xl overflow-hidden"
                 >
                   <div className="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <span className="bg-[#F5F5F5] px-6 py-2 rounded-md font-semibold">
                       Order ID: {order.order_id}
                     </span>
-                    <span className="text-sm">Placed on {new Date(order.ordered_at).toLocaleDateString()}</span>
+                    <span className="text-sm">Placed on {dayjs(order.ordered_at).format("DD/MM/YYYY")  }</span>
+                    {/* <span className="text-sm">Placed on {new Date(order.ordered_at).toLocaleDateString()}</span> */}
                   </div>
 
                   <div className="p-6 flex flex-col lg:flex-row gap-6">
@@ -588,9 +590,9 @@ const Dashboard = () => {
                         )}
                       </div>
 
-                      {order.status === "delivered" && (
+                      {order.order_status === "confirmed" && (
                         <button
-                          onClick={() => handleRateProduct(order.product)}
+                          onClick={() => handleRateProduct(order.first_item)}
                           className="w-full bg-[#FF8A18] text-white py-3 rounded-lg font-medium hover:bg-orange-600"
                         >
                           Rate Product
