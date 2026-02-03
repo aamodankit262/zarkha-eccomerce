@@ -6,13 +6,15 @@ import { useApi } from "@/hooks/useApi";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
 import { ProductCard } from "@/components/common/ProductCard";
 import { productService } from "@/services/productService";
+import { useProductStore } from "@/store/useProductStore";
+import { productsData } from "@/data/product";
+import { NO_IMAGE } from "@/api/endpoints";
 
 // Assume you have a search API endpoint
 const searchProductsApi = async (query: string) => {
   // Replace with your actual API endpoint
-  const response = await fetch(`/web/products/search?q=${encodeURIComponent(query)}`);
-  if (!response.ok) throw new Error("Failed to search");
-  return response.json();
+  const { setFilters, fetchProducts } = useProductStore();
+
 };
 
 const SearchProductsPage = () => {
@@ -22,18 +24,37 @@ const SearchProductsPage = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const { data, loading, error, request } = useApi(productService.getAll);
+  // const { data, loading, error, request } = useApi(productService.getAll);
+  const {
+    productsList,
+    loading,
+    filters,
+    setFilters,
+    fetchProducts,
+  } = useProductStore();
 
-  // Debounce search query
   useEffect(() => {
-    if (!debouncedQuery) return;
+    const timer = setTimeout(() => {
+      setFilters({ search: query.trim() });
+    }, 400);
 
-    request({
-      search: debouncedQuery,
-      page: 1,
-      limit: 20,
-    });
-  }, [debouncedQuery]);
+    return () => clearTimeout(timer);
+  }, [query]);
+  // Debounce search query
+  // useEffect(() => {
+  //   if (!debouncedQuery) return;
+
+  //   request({
+  //     search: debouncedQuery,
+  //     page: 1,
+  //     limit: 20,
+  //   });
+  // }, [debouncedQuery]);
+  useEffect(() => {
+    if (filters.search !== undefined) {
+      fetchProducts();
+    }
+  }, [filters.search]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -61,7 +82,7 @@ const SearchProductsPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const products = data?.body || []; // Adjust based on your API response structure
+  const products = productsList || []; // Adjust based on your API response structure
 
   const handleProductClick = (productId: string) => {
     navigate(`/product/${productId}`);
@@ -70,6 +91,7 @@ const SearchProductsPage = () => {
 
   const clearSearch = () => {
     setQuery("");
+    setFilters({ search: "" });
     setDebouncedQuery("");
     setShowSuggestions(false);
   };
@@ -87,7 +109,7 @@ const SearchProductsPage = () => {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => debouncedQuery && setShowSuggestions(true)}
+              onFocus={() => query && setShowSuggestions(true)}
               placeholder="Search for products, brands, and more..."
               className="w-full pl-12 pr-12 py-4 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100 transition-all"
               autoFocus
@@ -103,7 +125,7 @@ const SearchProductsPage = () => {
           </div>
 
           {/* Search Suggestions Dropdown */}
-          {showSuggestions && (loading || products.length > 0 || error) && (
+          {showSuggestions && (loading || products.length > 0 ) && (
             <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50">
               {loading && (
                 <div className="p-8 text-center">
@@ -112,13 +134,13 @@ const SearchProductsPage = () => {
                 </div>
               )}
 
-              {!loading && error && (
+              {/* {!loading && error && (
                 <div className="p-8 text-center text-gray-600">
                   Something went wrong. Please try again.
                 </div>
-              )}
+              )} */}
 
-              {!loading && !error && products.length === 0 && debouncedQuery && (
+              {!loading && products.length === 0 && query && (
                 <div className="p-8 text-center text-gray-600">
                   <p className="text-lg font-medium">No products found</p>
                   <p className="text-sm mt-2">Try searching with different keywords</p>
@@ -128,22 +150,23 @@ const SearchProductsPage = () => {
               {!loading && products.length > 0 && (
                 <>
                   <div className="max-h-96 overflow-y-auto">
-                    {products.slice(0, 8).map((product: any) => (
-                      <button
-                        key={product.id}
-                        onClick={() => handleProductClick(product.id)}
-                        className="w-full text-left px-6 py-4 hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-0 flex items-center gap-4"
-                      >
-                        <img
-                          src={product.image || "/placeholder.jpg"}
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded-lg"
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{product.name}</p>
-                          <p className="text-sm text-orange-600 font-semibold">₹{product.price}</p>
-                        </div>
-                      </button>
+                    {productsData(products).slice(0, 8).map((p: any) => (
+                       <ProductCard key={p.id} product={p} />
+                      // <button
+                      //   key={product.id}
+                      //   onClick={() => handleProductClick(product.id)}
+                      //   className="w-full text-left px-6 py-4 hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-0 flex items-center gap-4"
+                      // >
+                      //   <img
+                      //     src={product.image || NO_IMAGE}
+                      //     alt={product.title}
+                      //     className="w-12 h-12 object-cover rounded-lg"
+                      //   />
+                      //   <div className="flex-1">
+                      //     <p className="font-medium text-gray-900">{product.title}</p>
+                      //     <p className="text-sm text-orange-600 font-semibold">₹{product.price}</p>
+                      //   </div>
+                      // </button>
                     ))}
                   </div>
                   {/* {data?.pagination?.totalPages > 1 && (
@@ -185,33 +208,33 @@ const SearchProductsPage = () => {
             </div>
           )}
 
-          {!loading && !error && products.length > 0 && (
+          {!loading && products.length > 0 && (
             <>
               <h2 className="text-2xl font-bold text-gray-900 mb-8">
-                Search Results for "{debouncedQuery}" ({products.length} items)
+                Search Results for "{filters.search}" ({products.length} items)
               </h2>
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products?.map((product: any) => (
+                {productsData(products)?.map((product: any) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             </>
           )}
 
-          {!loading && products?.length === 0 && debouncedQuery && (
+          {!loading && products?.length === 0 && filters.search && (
             <div className="text-center py-20">
               <div className="bg-gray-200 border-2 border-dashed rounded-xl w-32 h-32 mx-auto mb-6" />
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
                 No products found
               </h3>
               <p className="text-gray-600 max-w-md mx-auto">
-                We couldn't find any products matching "{debouncedQuery}". Try different keywords or check spelling.
+                We couldn't find any products matching "{filters.search}". Try different keywords or check spelling.
               </p>
             </div>
           )}
 
-          {!debouncedQuery && (
+          {!filters.search && (
             <div className="text-center py-20">
               <Search className="h-16 w-16 text-gray-300 mx-auto mb-6" />
               <h3 className="text-2xl font-semibold text-gray-800 mb-2">

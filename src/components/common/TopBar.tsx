@@ -17,8 +17,10 @@ const TopBar = () => {
           <span className="text-brand-orange">→</span>
         </div>
         <div className="flex items-center gap-4 text-warm-brown">
-          {/* <span>Wholesale</span>
-          <span>|</span> */}
+         <Link to={"/boutique"}>
+          <span>Boutique</span>
+          </Link>
+          <span>|</span>
           <Link to={"/affiliate"}>
           <span>Become A Partner</span>
           </Link>

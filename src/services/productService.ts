@@ -21,8 +21,6 @@ export const productService = {
         formData.append(key, String(value));
       }
     })
-    // if (!payload.page) formData.append("page", "1");
-    // if (!payload.limit) formData.append("limit", "30");
     const res = await apiClient.post<ApiResponse<Product[]>>(API_ENDPOINTS.PRODUCTS.LIST, formData);
     return res as any;
   },

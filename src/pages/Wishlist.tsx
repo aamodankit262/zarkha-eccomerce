@@ -14,14 +14,15 @@ const Wishlist = () => {
   const { isLogin } = useAuthStore();
   // const fetchWishlist = useWishlistStore((s) => s.fetchWishlist);
   const wishlistItems = useWishlistStore((s) => s.items);
+  console.log(wishlistItems, 'wishlist items')
   const {
-  items,
-  loading,
-  page,
-  totalPages,
-  fetchWishlist,
-  setPage,
-} = useWishlistStore();
+    items,
+    loading,
+    page,
+    totalPages,
+    fetchWishlist,
+    setPage,
+  } = useWishlistStore();
 
   useEffect(() => {
     if (isLogin) {
@@ -102,28 +103,28 @@ const Wishlist = () => {
                 ))}
               </div>
               {totalPages > 1 && (
-  <div className="flex justify-center items-center gap-3 mt-10">
-    <button
-      disabled={page === 1 || loading}
-      onClick={() => setPage(page - 1)}
-      className="px-4 py-2 border rounded disabled:opacity-50"
-    >
-      Prev
-    </button>
+                <div className="flex justify-center items-center gap-3 mt-10">
+                  <button
+                    disabled={page === 1 || loading}
+                    onClick={() => setPage(page - 1)}
+                    className="px-4 py-2 border rounded disabled:opacity-50"
+                  >
+                    Prev
+                  </button>
 
-    <span className="text-sm">
-      Page {page} of {totalPages}
-    </span>
+                  <span className="text-sm">
+                    Page {page} of {totalPages}
+                  </span>
 
-    <button
-      disabled={page === totalPages || loading}
-      onClick={() => setPage(page + 1)}
-      className="px-4 py-2 border rounded disabled:opacity-50"
-    >
-      Next
-    </button>
-  </div>
-)}
+                  <button
+                    disabled={page === totalPages || loading}
+                    onClick={() => setPage(page + 1)}
+                    className="px-4 py-2 border rounded disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
 
             </>
           )}

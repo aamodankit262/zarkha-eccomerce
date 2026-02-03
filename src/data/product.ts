@@ -11,11 +11,11 @@ export const productsData = (products: any[]) => products?.map((product: any) =>
     title: product.product_title || product?.name,
     price: product.product_price || product?.msp,
     originalPrice: product.mrp,
-    discount, // percentage
+    discount, 
     image: product?.images?.[0]?.url || "/assets/no_image.jpg",
     isNew: product.isNew,
     isBestSeller: product.isBestSeller || false,
-    isWish: product.isWishList || product.isWish,
+    isWish: product?.isWishList ||  product?.isWishlist,
     colors: product.color_codes ? [product.color_codes] : [], // FIXED
     size: product.size,
     variantId: product.item_code_ids?.[0]

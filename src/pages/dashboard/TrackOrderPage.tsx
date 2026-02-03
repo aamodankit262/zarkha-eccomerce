@@ -1,16 +1,17 @@
 import { NO_IMAGE } from "@/api/endpoints";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
 import { useApi } from "@/hooks/useApi";
+import { formatDate } from "@/lib/utils";
 import { orderService } from "@/services/orderService";
 import { useAuthStore } from "@/store/authStore";
 import { ArrowLeft, Download } from "lucide-react";
 import { useEffect } from "react";
 
-const TrackOrderPage = ({onBack , orderId}) => {
-  console.log(orderId, "orderId in track order page...");
+const TrackOrderPage = ({ onBack, orderId }) => {
   const { data: orderResp, request: fetchOrderDetails, loading: orderderLoading } = useApi(orderService.getOrderDetails);
-  const {userDetails} = useAuthStore()
-   useEffect(() => {
+  const { userDetails } = useAuthStore();
+ 
+  useEffect(() => {
     if (orderId) {
       fetchOrderDetails(orderId);
     };
@@ -50,6 +51,10 @@ const TrackOrderPage = ({onBack , orderId}) => {
           <div className="bg-[#FAF6F2] rounded-lg p-6">
             <h3 className="font-semibold mb-4">Order Details</h3>
             <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Order Status</span>
+                <span className="font-medium">{orderDetails?.order_status || "N/A"}</span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tracking No.</span>
                 <span className="font-medium">{orderDetails?.tracking_number || "N/A"}</span>
@@ -120,10 +125,26 @@ const TrackOrderPage = ({onBack , orderId}) => {
             <div className="relative pl-8">
               <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-300" />
               {[
-                { label: "Order Confirmed", date: "Fri, 3rd Nov 2024, 12:30PM", done: true },
-                { label: "Shipped", date: "Fri, 3rd Nov 2024, 12:30PM", done: true },
-                { label: "Out For Delivery", date: "Expected soon", done: false },
-                { label: "Delivered", date: "Pending", done: false },
+                {
+                  label: "Order Confirmed",
+                  date: formatDate(orderDetails?.confirmed_at),
+                  done: !!orderDetails?.confirmed_at,
+                },
+                {
+                  label: "Shipped",
+                  date: formatDate(orderDetails?.shipped_at),
+                  done: !!orderDetails?.shipped_at,
+                },
+                {
+                  label: "Out For Delivery",
+                  date: formatDate(orderDetails?.out_for_delivery_at, "Expected soon"),
+                  done: !!orderDetails?.out_for_delivery_at,
+                },
+                {
+                  label: "Delivered",
+                  date: formatDate(orderDetails?.delivered_at),
+                  done: !!orderDetails?.delivered_at,
+                },
               ].map((step, i) => (
                 <div key={i} className="relative mb-8 last:mb-0">
                   <div

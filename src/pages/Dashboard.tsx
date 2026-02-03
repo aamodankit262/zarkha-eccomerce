@@ -579,20 +579,20 @@ const Dashboard = () => {
                     <div className="space-y-4">
                       <div className="bg-gray-50 rounded-lg p-4 text-sm">
                         <p className="text-gray-600">Tracking No.</p>
-                        <p className="font-medium">{order?.trackingNo}</p>
-                        {idx !== 1 && (
+                        <p className="font-medium">{order?.trackingNo || "N/A"}</p>
+                        {/* {idx !== 1 && ( */}
                           <button
-                            onClick={() => handleTrackOrder(order.order_id)}
+                            onClick={() => handleTrackOrder(order?.order_id)}
                             className="text-green-600 font-medium mt-2 block hover:underline"
                           >
                             Track Order →
                           </button>
-                        )}
+                        {/* )} */}
                       </div>
 
-                      {order.order_status === "confirmed" && (
+                      {order.order_status === "delivered" && (
                         <button
-                          onClick={() => handleRateProduct(order.first_item)}
+                          onClick={() => handleRateProduct(order?.first_item)}
                           className="w-full bg-[#FF8A18] text-white py-3 rounded-lg font-medium hover:bg-orange-600"
                         >
                           Rate Product
