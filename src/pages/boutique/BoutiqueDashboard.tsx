@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Store, Package, ShoppingCart, TrendingUp, CreditCard, User, 
+import {
+  Store, Package, ShoppingCart, TrendingUp, CreditCard, User,
   LogOut, Search, Plus, Minus, Eye, IndianRupee, Calendar,
   CheckCircle, Clock, Truck, Filter, X, ChevronRight, Percent,
   FileText, MapPin, Phone, Mail, Headphones, UserCheck, Ticket,
@@ -25,6 +25,7 @@ import SalesAnalytics from "@/components/boutique/SalesAnalytics";
 import RMSupport from "@/components/boutique/RMSupport";
 import TicketSystem from "@/components/boutique/TicketSystem";
 import BoutiqueCart from "@/components/boutique/BoutiqueCart";
+import { logoImage } from "@/api/endpoints";
 // import { useBoutique } from "@/contexts/BoutiqueContext";
 // import { useBoutiqueCart } from "@/contexts/BoutiqueCartContext";
 // import BoutiqueCart from "@/components/boutique/BoutiqueCart";
@@ -37,7 +38,7 @@ const BoutiqueDashboard = () => {
   const { toast } = useToast();
   const { isLoggedIn, user, orders, sales, payments, logout, placeOrder } = useBoutique();
   const { addItem, getTotalItems } = useBoutiqueCart();
-  
+
   const [activeTab, setActiveTab] = useState("products");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -45,7 +46,7 @@ const BoutiqueDashboard = () => {
   const [orderQuantity, setOrderQuantity] = useState(1);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showCart, setShowCart] = useState(false);
-  
+
   // Product Filters
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [priceRange, setPriceRange] = useState([0, 10000]);
@@ -53,13 +54,13 @@ const BoutiqueDashboard = () => {
   const [stockFilter, setStockFilter] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Order Filters
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [orderDateFilter, setOrderDateFilter] = useState("all");
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [orderTypeFilter, setOrderTypeFilter] = useState("all");
-  
+
   // Customer Info for single order
   const [customerInfo, setCustomerInfo] = useState({
     name: "",
@@ -91,14 +92,14 @@ const BoutiqueDashboard = () => {
   }, [isLoggedIn, navigate]);
 
   const products = [
-    { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', adminPrice: 1800, mrp: 2500, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 50, discount: 28 },
-    { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', adminPrice: 1200, mrp: 1800, image: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png', stock: 35, discount: 33 },
-    { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', adminPrice: 4500, mrp: 6500, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 20, discount: 31 },
-    { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', adminPrice: 3200, mrp: 4500, image: '/lovable-uploads/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', stock: 25, discount: 29 },
-    { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', adminPrice: 1500, mrp: 2200, image: '/lovable-uploads/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', stock: 40, discount: 32 },
-    { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', adminPrice: 2000, mrp: 2800, image: '/lovable-uploads/15ff49d2-e060-4344-956a-c6030caf0a58.png', stock: 30, discount: 29 },
-    { id: '7', name: 'Bridal Lehenga Set', category: 'Lehengas', adminPrice: 8500, mrp: 12000, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 8, discount: 29 },
-    { id: '8', name: 'Party Wear Gown', category: 'Gowns', adminPrice: 3500, mrp: 5000, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 0, discount: 30 }
+    { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', adminPrice: 1800, mrp: 2500, image: '/assets/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 50, discount: 28 },
+    { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', adminPrice: 1200, mrp: 1800, image: '/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png', stock: 35, discount: 33 },
+    { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', adminPrice: 4500, mrp: 6500, image: '/assets/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 20, discount: 31 },
+    { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', adminPrice: 3200, mrp: 4500, image: '/assets/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', stock: 25, discount: 29 },
+    { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', adminPrice: 1500, mrp: 2200, image: '/assets/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', stock: 40, discount: 32 },
+    { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', adminPrice: 2000, mrp: 2800, image: '/assets/15ff49d2-e060-4344-956a-c6030caf0a58.png', stock: 30, discount: 29 },
+    { id: '7', name: 'Bridal Lehenga Set', category: 'Lehengas', adminPrice: 8500, mrp: 12000, image: '/assets/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 8, discount: 29 },
+    { id: '8', name: 'Party Wear Gown', category: 'Gowns', adminPrice: 3500, mrp: 5000, image: '/assets/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 0, discount: 30 }
   ];
 
   const categories = [...new Set(products.map(p => p.category))];
@@ -147,7 +148,7 @@ const BoutiqueDashboard = () => {
       toast({ title: "Error", description: "Please fill shipping address", variant: "destructive" });
       return;
     }
-    
+
     placeOrder({
       productId: selectedProduct.id,
       productName: selectedProduct.name,
@@ -159,7 +160,7 @@ const BoutiqueDashboard = () => {
       shippingAddress,
       billingAddress: sameAsShipping ? shippingAddress : billingAddress
     });
-    
+
     toast({ title: "Order Placed!", description: `${orderQuantity} x ${selectedProduct.name} ordered successfully.` });
     setShowOrderDialog(false);
     setSelectedProduct(null);
@@ -167,22 +168,22 @@ const BoutiqueDashboard = () => {
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.category.toLowerCase().includes(searchQuery.toLowerCase());
+      p.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
     const matchesPrice = p.adminPrice >= priceRange[0] && p.adminPrice <= priceRange[1];
-    const matchesDiscount = discountFilter === "all" || 
-                            (discountFilter === "10" && p.discount >= 10) ||
-                            (discountFilter === "20" && p.discount >= 20) ||
-                            (discountFilter === "30" && p.discount >= 30);
-    const matchesStock = stockFilter === "all" || 
-                         (stockFilter === "in_stock" && p.stock > 0) ||
-                         (stockFilter === "low_stock" && p.stock > 0 && p.stock <= 10) ||
-                         (stockFilter === "out_of_stock" && p.stock === 0);
+    const matchesDiscount = discountFilter === "all" ||
+      (discountFilter === "10" && p.discount >= 10) ||
+      (discountFilter === "20" && p.discount >= 20) ||
+      (discountFilter === "30" && p.discount >= 30);
+    const matchesStock = stockFilter === "all" ||
+      (stockFilter === "in_stock" && p.stock > 0) ||
+      (stockFilter === "low_stock" && p.stock > 0 && p.stock <= 10) ||
+      (stockFilter === "out_of_stock" && p.stock === 0);
     return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesStock;
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch(sortBy) {
+    switch (sortBy) {
       case "price-low": return a.adminPrice - b.adminPrice;
       case "price-high": return b.adminPrice - a.adminPrice;
       case "discount": return b.discount - a.discount;
@@ -193,12 +194,12 @@ const BoutiqueDashboard = () => {
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.productName.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-                          order.id.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-                          (order.customerInfo?.name.toLowerCase().includes(orderSearchQuery.toLowerCase()));
+      order.id.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
+      (order.customerInfo?.name.toLowerCase().includes(orderSearchQuery.toLowerCase()));
     const matchesStatus = orderStatusFilter === "all" || order.status === orderStatusFilter;
-    const matchesType = orderTypeFilter === "all" || 
-                        (orderTypeFilter === "bulk" && order.isBulkOrder) ||
-                        (orderTypeFilter === "single" && !order.isBulkOrder);
+    const matchesType = orderTypeFilter === "all" ||
+      (orderTypeFilter === "bulk" && order.isBulkOrder) ||
+      (orderTypeFilter === "single" && !order.isBulkOrder);
     return matchesSearch && matchesStatus && matchesType;
   });
 
@@ -240,16 +241,23 @@ const BoutiqueDashboard = () => {
       <header className="border-b border-border bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Store className="h-6 w-6 md:h-8 md:w-8 text-brand-orange" />
+            {/* <Store className="h-6 w-6 md:h-8 md:w-8 text-brand-orange" /> */}
+            <Link to="#" className="flex items-center gap-2">
+              <img
+                src={logoImage}
+                alt="Zarkha"
+                className="h-8 w-auto cursor-pointer"
+              />
+            </Link>
             <div className="hidden sm:block">
               <span className="text-lg md:text-xl font-bold text-warm-brown">{user?.shopName}</span>
               <p className="text-xs text-muted-foreground">{user?.category}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="relative"
               onClick={() => setShowCart(true)}
             >
@@ -357,29 +365,29 @@ const BoutiqueDashboard = () => {
 
           {/* Mobile tabs for RM, Support, Brand, Profile */}
           <div className="md:hidden grid grid-cols-4 gap-2 mb-4">
-            <Button 
-              variant={activeTab === "rm" ? "brand" : "outline"} 
+            <Button
+              variant={activeTab === "rm" ? "brand" : "outline"}
               size="sm"
               onClick={() => setActiveTab("rm")}
             >
               <UserCheck className="h-4 w-4 mr-1" />RM
             </Button>
-            <Button 
-              variant={activeTab === "support" ? "brand" : "outline"} 
+            <Button
+              variant={activeTab === "support" ? "brand" : "outline"}
               size="sm"
               onClick={() => setActiveTab("support")}
             >
               <Ticket className="h-4 w-4 mr-1" />Support
             </Button>
-            <Button 
-              variant={activeTab === "brand" ? "brand" : "outline"} 
+            <Button
+              variant={activeTab === "brand" ? "brand" : "outline"}
               size="sm"
               onClick={() => setActiveTab("brand")}
             >
               <ExternalLink className="h-4 w-4 mr-1" />Brand
             </Button>
-            <Button 
-              variant={activeTab === "profile" ? "brand" : "outline"} 
+            <Button
+              variant={activeTab === "profile" ? "brand" : "outline"}
               size="sm"
               onClick={() => setActiveTab("profile")}
             >
@@ -399,7 +407,7 @@ const BoutiqueDashboard = () => {
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input 
+                      <Input
                         placeholder="Search products..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -419,8 +427,8 @@ const BoutiqueDashboard = () => {
                           <SelectItem value="stock">Stock Available</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="icon"
                         onClick={() => setShowFilters(!showFilters)}
                       >
@@ -428,7 +436,7 @@ const BoutiqueDashboard = () => {
                       </Button>
                     </div>
                   </div>
-                  
+
                   {/* Filters */}
                   {showFilters && (
                     <div className="bg-muted/50 p-4 rounded-lg space-y-4">
@@ -528,18 +536,18 @@ const BoutiqueDashboard = () => {
                           <Badge variant="outline">Stock: {product.stock}</Badge>
                         </div>
                         <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="flex-1"
                             onClick={() => handleAddToCart(product)}
                             disabled={product.stock === 0}
                           >
                             <Plus className="h-4 w-4 mr-1" /> Add to Cart
                           </Button>
-                          <Button 
-                            variant="brand" 
-                            size="sm" 
+                          <Button
+                            variant="brand"
+                            size="sm"
                             className="flex-1"
                             onClick={() => handleSetPrice(product)}
                             disabled={product.stock === 0}
@@ -567,7 +575,7 @@ const BoutiqueDashboard = () => {
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input 
+                      <Input
                         placeholder="Search by order ID, product, or customer..."
                         value={orderSearchQuery}
                         onChange={(e) => setOrderSearchQuery(e.target.value)}
@@ -604,8 +612,8 @@ const BoutiqueDashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   {filteredOrders.map((order) => (
-                    <div 
-                      key={order.id} 
+                    <div
+                      key={order.id}
                       className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer"
                       onClick={() => navigate(`/boutique/order/${order.id}`)}
                     >
@@ -706,12 +714,12 @@ const BoutiqueDashboard = () => {
 
           {/* RM Tab */}
           <TabsContent value="rm">
-            <RMSupport/>
+            <RMSupport />
           </TabsContent>
 
           {/* Support Tab */}
           <TabsContent value="support">
-            <TicketSystem/>
+            <TicketSystem />
           </TabsContent>
 
           {/* Brand Page Tab */}
@@ -734,13 +742,13 @@ const BoutiqueDashboard = () => {
                 <div className="p-4 bg-muted rounded-lg">
                   <Label className="text-sm text-muted-foreground">Your Brand Link</Label>
                   <div className="flex items-center gap-2 mt-2">
-                    <Input 
-                      readOnly 
+                    <Input
+                      readOnly
                       value={`${window.location.origin}/shop/${user?.shopName?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`}
                       className="font-mono text-sm"
                     />
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="icon"
                       onClick={() => {
                         navigator.clipboard.writeText(`${window.location.origin}/shop/${user?.shopName?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`);
@@ -763,13 +771,13 @@ const BoutiqueDashboard = () => {
                         <p className="text-sm text-muted-foreground">8 products listed</p>
                       </div>
                     </div>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       onClick={() => {
-                        toast({ 
-                          title: "Downloading Catalogue...", 
-                          description: "Your product catalogue PDF is being generated." 
+                        toast({
+                          title: "Downloading Catalogue...",
+                          description: "Your product catalogue PDF is being generated."
                         });
                       }}
                     >
@@ -870,7 +878,7 @@ const BoutiqueDashboard = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Your Selling Price (₹)</Label>
-                  <Input 
+                  <Input
                     type="number"
                     placeholder="Enter selling price"
                     value={boutiquePrice}
@@ -885,16 +893,16 @@ const BoutiqueDashboard = () => {
                 <div className="space-y-2">
                   <Label>Quantity</Label>
                   <div className="flex items-center gap-3">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="icon"
                       onClick={() => setOrderQuantity(Math.max(1, orderQuantity - 1))}
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
                     <span className="text-lg font-semibold w-12 text-center">{orderQuantity}</span>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="icon"
                       onClick={() => setOrderQuantity(orderQuantity + 1)}
                     >
@@ -910,21 +918,21 @@ const BoutiqueDashboard = () => {
               <div className="space-y-3">
                 <Label className="text-base font-semibold">Customer Information</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Input 
+                  <Input
                     placeholder="Customer Name *"
                     value={customerInfo.name}
-                    onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                    onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
                   />
-                  <Input 
+                  <Input
                     placeholder="Phone *"
                     value={customerInfo.phone}
-                    onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                    onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
                   />
-                  <Input 
+                  <Input
                     type="email"
                     placeholder="Email"
                     value={customerInfo.email}
-                    onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                    onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })}
                     className="sm:col-span-2"
                   />
                 </div>
@@ -936,36 +944,36 @@ const BoutiqueDashboard = () => {
               <div className="space-y-3">
                 <Label className="text-base font-semibold">Shipping Address</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Input 
+                  <Input
                     placeholder="Recipient Name *"
                     value={shippingAddress.name}
-                    onChange={(e) => setShippingAddress({...shippingAddress, name: e.target.value})}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, name: e.target.value })}
                   />
-                  <Input 
+                  <Input
                     placeholder="Phone *"
                     value={shippingAddress.phone}
-                    onChange={(e) => setShippingAddress({...shippingAddress, phone: e.target.value})}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
                   />
-                  <Input 
+                  <Input
                     placeholder="Address *"
                     value={shippingAddress.address}
-                    onChange={(e) => setShippingAddress({...shippingAddress, address: e.target.value})}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, address: e.target.value })}
                     className="sm:col-span-2"
                   />
-                  <Input 
+                  <Input
                     placeholder="City *"
                     value={shippingAddress.city}
-                    onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
                   />
-                  <Input 
+                  <Input
                     placeholder="State *"
                     value={shippingAddress.state}
-                    onChange={(e) => setShippingAddress({...shippingAddress, state: e.target.value})}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
                   />
-                  <Input 
+                  <Input
                     placeholder="Pincode *"
                     value={shippingAddress.pincode}
-                    onChange={(e) => setShippingAddress({...shippingAddress, pincode: e.target.value})}
+                    onChange={(e) => setShippingAddress({ ...shippingAddress, pincode: e.target.value })}
                   />
                 </div>
               </div>
@@ -975,46 +983,46 @@ const BoutiqueDashboard = () => {
               {/* Billing Address */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Checkbox 
+                  <Checkbox
                     id="sameAsShippingSingle"
                     checked={sameAsShipping}
                     onCheckedChange={(checked) => setSameAsShipping(checked as boolean)}
                   />
                   <Label htmlFor="sameAsShippingSingle" className="text-sm">Billing same as shipping</Label>
                 </div>
-                
+
                 {!sameAsShipping && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Input 
+                    <Input
                       placeholder="Name *"
                       value={billingAddress.name}
-                      onChange={(e) => setBillingAddress({...billingAddress, name: e.target.value})}
+                      onChange={(e) => setBillingAddress({ ...billingAddress, name: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       placeholder="Phone *"
                       value={billingAddress.phone}
-                      onChange={(e) => setBillingAddress({...billingAddress, phone: e.target.value})}
+                      onChange={(e) => setBillingAddress({ ...billingAddress, phone: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       placeholder="Address *"
                       value={billingAddress.address}
-                      onChange={(e) => setBillingAddress({...billingAddress, address: e.target.value})}
+                      onChange={(e) => setBillingAddress({ ...billingAddress, address: e.target.value })}
                       className="sm:col-span-2"
                     />
-                    <Input 
+                    <Input
                       placeholder="City *"
                       value={billingAddress.city}
-                      onChange={(e) => setBillingAddress({...billingAddress, city: e.target.value})}
+                      onChange={(e) => setBillingAddress({ ...billingAddress, city: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       placeholder="State *"
                       value={billingAddress.state}
-                      onChange={(e) => setBillingAddress({...billingAddress, state: e.target.value})}
+                      onChange={(e) => setBillingAddress({ ...billingAddress, state: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       placeholder="Pincode *"
                       value={billingAddress.pincode}
-                      onChange={(e) => setBillingAddress({...billingAddress, pincode: e.target.value})}
+                      onChange={(e) => setBillingAddress({ ...billingAddress, pincode: e.target.value })}
                     />
                   </div>
                 )}

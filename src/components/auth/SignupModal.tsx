@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 // import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png";
 import { useAuthStore } from "@/store/authStore";
+import { logoImage } from "@/api/endpoints";
 
 interface SignupModalProps {
   isOpen: boolean;

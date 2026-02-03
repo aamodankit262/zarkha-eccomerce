@@ -8,7 +8,6 @@ import {
   User,
   X,
 } from "lucide-react";
-import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.webp";
 import { useNavigate } from "react-router-dom";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
 

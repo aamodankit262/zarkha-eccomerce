@@ -40,8 +40,8 @@ const boutiques = [
       facebook: 'https://facebook.com/eleganceboutique',
       website: 'https://eleganceboutique.com'
     },
-    coverImage: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png',
-    logo: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png',
+    coverImage: '/assets/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png',
+    logo: '/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png',
     highlights: ['Free Alterations', 'Same Day Delivery', 'Custom Designs', '100% Authentic'],
     specialties: ['Bridal Lehengas', 'Designer Sarees', 'Party Wear', 'Festive Collections'],
     workingHours: 'Mon-Sat: 10AM - 8PM, Sun: 11AM - 6PM'
@@ -49,12 +49,12 @@ const boutiques = [
 ];
 
 const catalogProducts = [
-  { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', price: 2499, mrp: 3500, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', discount: 29, rating: 4.5, reviews: 45, inStock: true },
-  { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', price: 1799, mrp: 2500, image: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png', discount: 28, rating: 4.3, reviews: 32, inStock: true },
-  { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', price: 6499, mrp: 9000, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', discount: 28, rating: 4.7, reviews: 67, inStock: true },
-  { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', price: 4500, mrp: 6000, image: '/lovable-uploads/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', discount: 25, rating: 4.6, reviews: 89, inStock: true },
-  { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', price: 2200, mrp: 3000, image: '/lovable-uploads/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', discount: 27, rating: 4.4, reviews: 23, inStock: false },
-  { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', price: 2800, mrp: 3800, image: '/lovable-uploads/15ff49d2-e060-4344-956a-c6030caf0a58.png', discount: 26, rating: 4.5, reviews: 56, inStock: true },
+  { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', price: 2499, mrp: 3500, image: '/assets/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', discount: 29, rating: 4.5, reviews: 45, inStock: true },
+  { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', price: 1799, mrp: 2500, image: '/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png', discount: 28, rating: 4.3, reviews: 32, inStock: true },
+  { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', price: 6499, mrp: 9000, image: '/assets/beea47d5-6ae4-460a-a065-76f4befc19cb.png', discount: 28, rating: 4.7, reviews: 67, inStock: true },
+  { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', price: 4500, mrp: 6000, image: '/assets/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', discount: 25, rating: 4.6, reviews: 89, inStock: true },
+  { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', price: 2200, mrp: 3000, image: '/assets/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', discount: 27, rating: 4.4, reviews: 23, inStock: false },
+  { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', price: 2800, mrp: 3800, image: '/assets/15ff49d2-e060-4344-956a-c6030caf0a58.png', discount: 26, rating: 4.5, reviews: 56, inStock: true },
 ];
 
 const BoutiqueBrandPage = () => {

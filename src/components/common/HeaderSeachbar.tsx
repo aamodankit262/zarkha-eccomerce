@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, Heart, Search, ShoppingCart, User, Menu, X } from "lucide-react";
-import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import SignupModal from "../auth/SignupModal";
 // import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useAuthStore } from "@/store/authStore";
+import { logoImage } from "@/api/endpoints";
 
 export default function HeaderSearchBar() {
   const [selectedCategory, setSelectedCategory] = useState("All");

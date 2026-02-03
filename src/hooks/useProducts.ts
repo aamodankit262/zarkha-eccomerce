@@ -11,7 +11,7 @@ export const useProducts = () => {
     const mockProducts: Product[] = [
       {
         id: 1,
-        image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
         title: "Traditional Ethnic Kurta Set",
         price: "₹2,999",
         originalPrice: "₹4,999",
@@ -23,7 +23,7 @@ export const useProducts = () => {
       },
       {
         id: 2,
-        image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
         title: "Designer Anarkali Dress",
         price: "₹3,499",
         originalPrice: "₹5,999",
@@ -35,7 +35,7 @@ export const useProducts = () => {
       },
       {
         id: 3,
-        image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
         title: "Embroidered Lehenga Set",
         price: "₹8,999",
         originalPrice: "₹15,999",
@@ -47,7 +47,7 @@ export const useProducts = () => {
       },
       {
         id: 4,
-        image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
         title: "Silk Saree Collection",
         price: "₹4,599",
         originalPrice: "₹7,999",

@@ -19,39 +19,39 @@ const CategorySection = ({ category, onCategorySelect, onSubcategorySelect }: Ca
 
   const subcategories = {
     "Lehengas": [
-      { name: "Wedding Lehengas", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Festive Lehengas", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Reception Lehengas", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Best Sellers", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Bridesmaid Lehengas", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
+      { name: "Wedding Lehengas", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Festive Lehengas", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Reception Lehengas", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Best Sellers", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Bridesmaid Lehengas", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
     ],
     "Sarees": [
-      { name: "Silk Sarees", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Cotton Sarees", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Designer Sarees", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Party Wear Sarees", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Wedding Sarees", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
+      { name: "Silk Sarees", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Cotton Sarees", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Designer Sarees", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Party Wear Sarees", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Wedding Sarees", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
     ],
     "Salwar Suits": [
-      { name: "Anarkali Suits", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Straight Suits", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Palazzo Suits", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Sharara Suits", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Punjabi Suits", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
+      { name: "Anarkali Suits", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Straight Suits", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Palazzo Suits", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Sharara Suits", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Punjabi Suits", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
     ],
     "Ethnic Gowns": [
-      { name: "Floor Length Gowns", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Jacket Style Gowns", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Cape Style Gowns", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Indo Western Gowns", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-      { name: "Party Gowns", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
+      { name: "Floor Length Gowns", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Jacket Style Gowns", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Cape Style Gowns", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Indo Western Gowns", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+      { name: "Party Gowns", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
     ]
   };
 
   const priceRanges = [
-    { range: "₹999 - ₹2000", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-    { range: "₹2000 - ₹4000", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
-    { range: "₹2000 - ₹4000", image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
+    { range: "₹999 - ₹2000", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+    { range: "₹2000 - ₹4000", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" },
+    { range: "₹2000 - ₹4000", image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png" }
   ];
 
   const currentSubcategories = subcategories[category as keyof typeof subcategories] || subcategories["Lehengas"];

@@ -17,16 +17,9 @@ import {
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
-import { Footer } from "@/components";
 import { footerData } from "@/data/constant";
 import PeacockSection from "@/components/sections/PeacockSection";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.webp";
+
 import HeaderSearchBar from "@/components/common/HeaderSeachbar";
 
 const teamMembers = [

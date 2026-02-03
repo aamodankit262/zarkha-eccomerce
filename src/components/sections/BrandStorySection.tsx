@@ -44,7 +44,7 @@ const BrandStorySection = () => {
           {/* Image */}
           <div className="relative">
             <img
-              src="/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png"
+              src="/assets/beea47d5-6ae4-460a-a065-76f4befc19cb.png"
               alt="Traditional craftsmanship"
               className="w-full h-96 object-cover rounded-lg shadow-lg"
             />
