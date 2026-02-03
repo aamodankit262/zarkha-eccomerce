@@ -19,6 +19,16 @@ import ContactUs from "./pages/ContactUs";
 import CheckoutPage from "./pages/checkout/CheckoutPage";
 import SearchProductsPage from "./components/SearchProductsPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import BoutiqueLanding from "./pages/boutique/BoutiqueLanding";
+import BoutiqueLogin from "./pages/boutique/BoutiqueLogin";
+import BoutiqueDashboard from "./pages/boutique/BoutiqueDashboard";
+import BoutiqueOrderDetail from "./pages/boutique/BoutiqueOrderDetail";
+import BoutiquePayment from "./pages/boutique/BoutiquePayment";
+import BoutiqueDirectory from "./pages/boutique/BoutiqueDirectory";
+import BoutiqueStorefront from "./pages/boutique/BoutiqueStorefront";
+import BoutiqueBrandPage from "./pages/boutique/BoutiqueBrandPage";
+import { BoutiqueProvider } from "./contexts/BoutiqueContext";
+import { BoutiqueCartProvider } from "./contexts/BoutiqueCartContext";
 
 const Index = lazy(() => import("./pages/Index"));
 const ProductListingPage = lazy(() => import("./components/ecommerce/ProductListing"));
@@ -40,7 +50,6 @@ const Returns = lazy(() => import("./pages/Returns"));
 const TaxInvoice = lazy(() => import("./pages/TaxInvoice"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
-
 
 const queryClient = new QueryClient();
 console.log("Query Client:", queryClient);
@@ -68,14 +77,22 @@ const AppContent = () => {
           <Route path="/returns" element={<Returns />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/size-guide" element={<SizeGuide />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/invoice" element={<TaxInvoice />} />
 
           {/* Affiliate Public */}
           <Route path="/affiliate" element={<AffiliateLanding />} />
           <Route path="/affiliate/login" element={<AffiliateLogin />} />
           <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
-
+          {/* boutique route */}
+          <Route path="/boutique" element={<BoutiqueLanding />} />
+          <Route path="/boutique/login" element={<BoutiqueLogin />} />
+          <Route path="/boutique/dashboard" element={<BoutiqueDashboard />} />
+          <Route path="/boutique/order/:orderId" element={<BoutiqueOrderDetail />} />
+          <Route path="/boutique/payment" element={<BoutiquePayment />} />
+          <Route path="/boutique/directory" element={<BoutiqueDirectory />} />
+          <Route path="/boutique/store/:boutiqueId" element={<BoutiqueStorefront />} />
+          <Route path="/shop/:boutiqueId" element={<BoutiqueBrandPage />} />
 
           {/* 🔐 Protected Routes */}
           <Route element={<ProtectedRoute />}>
@@ -97,15 +114,19 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     {/* <AuthProvider> */}
     <AffiliateProvider>
-      <CartProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </TooltipProvider>
-      </CartProvider>
+      <BoutiqueProvider>
+        <BoutiqueCartProvider>
+          <CartProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </TooltipProvider>
+          </CartProvider>
+        </BoutiqueCartProvider>
+      </BoutiqueProvider>
     </AffiliateProvider>
     {/* </AuthProvider> */}
   </QueryClientProvider>

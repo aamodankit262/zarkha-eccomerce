@@ -75,9 +75,9 @@ const ProductListingPage = () => {
       id: p._id,
       image: p.images[0]?.url || '/assets/no_image.jpg',
       title: p.name,
-      price: p.product_price,
-      originalPrice: p.mrp ? `MRP ₹${p.mrp}` : undefined,
-      discount: p.discount ? `Save ₹${p.discount}` : undefined,
+      price: p.product_price || p.msp,
+      originalPrice: p.mrp ? `MRP ₹${p.mrp}` : "N/A",
+      discount: p.discount ? `Save ₹${p.discount}` : "N/A",
       colors: p.color_codes ? [p.color_codes] : [], // FIXED
       isNew: p.isNew || false,
       isWish: p.isWishList || false,

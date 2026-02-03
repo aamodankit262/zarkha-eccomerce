@@ -65,6 +65,9 @@ const Footer = () => {
                 <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer" onClick={() => navigate('/affiliate')} >
                   Become a partner
                 </p>
+                <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer" onClick={() => navigate('/boutique')} >
+                  Boutique
+                </p>
                 <p className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer" onClick={() => navigate('/about')}>
                   About Us
                 </p>

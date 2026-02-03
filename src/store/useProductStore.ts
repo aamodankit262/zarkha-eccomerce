@@ -20,6 +20,7 @@ type Filters = {
   size: string[];
   color: string[];
   fabric: string[];
+  search: string;
 };
 
 type ProductStore = {
@@ -57,6 +58,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     size: [],
     color: [],
     fabric: [],
+    search: "",
+
   },
 
   setFilters: (newFilters) =>
@@ -82,6 +85,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         size: filters.size.join(","),
         color: filters.color.join(","),
         fabric_id: filters.fabric.join(","),
+        search: filters.search?.trim(),
         page,
         limit,
       };
