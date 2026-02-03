@@ -37,7 +37,6 @@ const ProductDetails = lazy(() => import("./pages/ProductDetails"));
 // const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const TrackOrder = lazy(() => import("./pages/TrackOrder"));
-const SearchPage = lazy(() => import("./pages/SearchPage"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 
 // const AboutUsPage = lazy(() => import("./pages/AboutUsPage"));

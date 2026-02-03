@@ -140,10 +140,10 @@ const BoutiqueDashboard = () => {
       toast({ title: "Error", description: "Please set your selling price", variant: "destructive" });
       return;
     }
-    if (!customerInfo.name || !customerInfo.phone) {
-      toast({ title: "Error", description: "Please fill customer information", variant: "destructive" });
-      return;
-    }
+    // if (!customerInfo.name || !customerInfo.phone) {
+    //   toast({ title: "Error", description: "Please fill customer information", variant: "destructive" });
+    //   return;
+    // }
     if (!shippingAddress.address || !shippingAddress.city || !shippingAddress.pincode) {
       toast({ title: "Error", description: "Please fill shipping address", variant: "destructive" });
       return;
@@ -533,7 +533,7 @@ const BoutiqueDashboard = () => {
                             <p className="text-lg font-bold text-brand-orange">₹{product.adminPrice}</p>
                             <p className="text-xs text-muted-foreground line-through">MRP: ₹{product.mrp}</p>
                           </div>
-                          <Badge variant="outline">Stock: {product.stock}</Badge>
+                          {/* <Badge variant="outline">Stock: {product.stock}</Badge> */}
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -552,7 +552,8 @@ const BoutiqueDashboard = () => {
                             onClick={() => handleSetPrice(product)}
                             disabled={product.stock === 0}
                           >
-                            Quick Order
+                            {/* Quick Order */}
+                            Update Price
                           </Button>
                         </div>
                       </CardContent>
@@ -915,7 +916,7 @@ const BoutiqueDashboard = () => {
               <Separator />
 
               {/* Customer Info */}
-              <div className="space-y-3">
+              {/* <div className="space-y-3">
                 <Label className="text-base font-semibold">Customer Information</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
@@ -936,7 +937,7 @@ const BoutiqueDashboard = () => {
                     className="sm:col-span-2"
                   />
                 </div>
-              </div>
+              </div> */}
 
               <Separator />
 

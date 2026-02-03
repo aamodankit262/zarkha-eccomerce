@@ -127,7 +127,7 @@ const ProductListingPage = () => {
 
 
   useEffect(() => {
-    fetchProducts();
+    fetchProducts(true);
   }, [debouncedFilters, page, fetchProducts]);
 
   const sortedProducts = useMemo(() => {
