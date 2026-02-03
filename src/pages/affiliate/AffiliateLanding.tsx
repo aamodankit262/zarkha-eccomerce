@@ -74,7 +74,6 @@ const AffiliateLanding = () => {
               src={logoImage}
               alt="Zarkha"
               className="h-8 w-auto cursor-pointer"
-            // onClick={() => navigate("/")}
             />
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">

@@ -1,10 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Search, ShoppingCart, Heart, Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+// import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import logoImage from "/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png";
 import { useAuthStore } from "@/store/authStore";
+import { logoImage } from "@/api/endpoints";
 
 const TrackOrder = () => {
   const navigate = useNavigate();
@@ -39,21 +39,21 @@ const TrackOrder = () => {
       {
         id: 1,
         name: "Black LIVA Straight Printed 2 Piece Set",
-        image: "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png",
+        image: "/assets/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png",
         amount: 1900,
         quantity: 2
       },
       {
         id: 2,
         name: "Black LIVA Straight Printed 2 Piece Set",
-        image: "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png",
+        image: "/assets/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png",
         amount: 1900,
         quantity: 2
       },
       {
         id: 3,
         name: "Black LIVA Straight Printed 2 Piece Set",
-        image: "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png",
+        image: "/assets/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png",
         amount: 1900,
         quantity: 2
       }

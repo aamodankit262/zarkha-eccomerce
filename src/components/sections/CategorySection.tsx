@@ -20,25 +20,25 @@ const CategorySection = () => {
     {
       id: "lehengas",
       name: "Lehengas",
-      image: "/lovable-uploads/15ff49d2-e060-4344-956a-c6030caf0a58.png",
+      image: "/assets/15ff49d2-e060-4344-956a-c6030caf0a58.png",
       productCount: 120
     },
     {
       id: "salwar-suits", 
       name: "Salwar Suits",
-      image: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+      image: "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
       productCount: 95
     },
     {
       id: "sarees",
       name: "Sarees", 
-      image: "/lovable-uploads/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png",
+      image: "/assets/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png",
       productCount: 80
     },
     {
       id: "ethnic-gowns",
       name: "Ethnic Gowns",
-      image: "/lovable-uploads/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png", 
+      image: "/assets/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png", 
       productCount: 65
     }
   ];

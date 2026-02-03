@@ -1,5 +1,3 @@
-import React from "react";
-import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png";
 
 // Sample data mirroring the invoice image
 const invoiceData = {

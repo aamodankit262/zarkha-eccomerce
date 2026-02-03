@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import SignupModal from "../auth/SignupModal";
 import MegaMenu from "./MegaMenu";
 import Navigation from "./Navigation";
-// import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png";
 import logoImage from "/assets/logo.png";
 import { useAuthStore } from "@/store/authStore";
 import TopBar from "./TopBar";

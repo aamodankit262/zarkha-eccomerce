@@ -26,8 +26,8 @@ export const RatingsPage = ({ onBack }: RatingsPageProps) => {
         "Loved It!! Very Stylish And Comfortable! Love The Look, Fabric Is Very Soft.",
       rating: 4,
       images: [
-        "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-        "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
       ],
     },
     {
@@ -38,8 +38,8 @@ export const RatingsPage = ({ onBack }: RatingsPageProps) => {
         "Loved It!! Very Stylish And Comfortable! Love The Look, Fabric Is Very Soft.",
       rating: 4,
       images: [
-        "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-        "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
       ],
     },
     {
@@ -50,8 +50,8 @@ export const RatingsPage = ({ onBack }: RatingsPageProps) => {
         "Loved It!! Very Stylish And Comfortable! Love The Look, Fabric Is Very Soft.",
       rating: 4,
       images: [
-        "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-        "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
+        "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
       ],
     },
   ];
@@ -85,7 +85,7 @@ export const RatingsPage = ({ onBack }: RatingsPageProps) => {
             {/* LEFT SIDE - Product Image */}
             <div>
               <img
-                src="/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png"
+                src="/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png"
                 alt="Product"
                 className="rounded-lg border border-gray-200"
               />

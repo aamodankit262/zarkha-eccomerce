@@ -1,11 +1,11 @@
 import { FC, useEffect, useState } from "react";
 import { ChevronDown, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import logoImage from "/lovable-uploads/f28c5d70-6a6a-45f1-b4ca-cb9652dec39b.png";
 
 import { useMegaMenuStores } from "@/store/megaMenuStore";
 import HeaderMenuSkeleton from "../HeaderMenuSkeleton";
 import MobileMenuSkeleton from "../MobileMenuSkeleton";
+import { logoImage } from "@/api/endpoints";
 
 interface NavigationProps {
   onCategoryHover: (industryId: string) => void;
