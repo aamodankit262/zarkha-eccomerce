@@ -26,8 +26,10 @@ type Filters = {
 type ProductStore = {
   productsList: Product[];
   loading: boolean;
+  loadingMore: boolean;
 
   // 🔹 pagination
+  hasMore: boolean,
   page: number;
   limit: number;
   totalPages: number;
@@ -36,16 +38,19 @@ type ProductStore = {
 
   setFilters: (filters: Partial<Filters>) => void;
   setPage: (page: number) => void;
-  fetchProducts: () => Promise<void>;
+  fetchProducts: (reset?: boolean) => Promise<void>;
+  // fetchNextPage: () => Promise<void>;
+  fetchNextPage: () => void;
 };
 
 export const useProductStore = create<ProductStore>((set, get) => ({
   productsList: [],
   loading: false,
-
+  loadingMore: false,
   page: 1,
-  limit: 30,
+  limit: 20,
   totalPages: 1,
+  hasMore: true,
   filterByName: null,
 
   filters: {
@@ -66,12 +71,15 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     set((state) => ({
       filters: { ...state.filters, ...newFilters },
       page: 1, // ✅ reset page when filters change
+      productsList: [],
+      hasMore: true
     })),
 
   setPage: (page) => set({ page }),
 
-  fetchProducts: async () => {
-    const { filters, page, limit } = get();
+  fetchProducts: async (reset = false) => {
+    const { filters, page, limit, productsList } = get();
+    // set({ loadingMore: true });
     set({ loading: true });
 
     try {
@@ -92,15 +100,55 @@ export const useProductStore = create<ProductStore>((set, get) => ({
 
       const res = await productService.getAll(payload);
       console.log("Fetched Products:", res);
+      const newProducts = res?.body || [];
+      const totalPages = res?.total_pages || 1;
       set({
-        productsList: res?.body,
-        totalPages: res.total_pages || 1,
+        productsList: reset ? newProducts : [...productsList, ...newProducts],
+        totalPages,
+        hasMore: newProducts.length > 0 && page < totalPages,
         filterByName: res.filtered_by,
         loading: false,
       });
     } catch (error) {
       console.error("Fetch products failed", error);
-      set({ loading: false });
+      set({ loading: false,});
     }
   },
+  // fetchNextPage: () => {
+  //   const { hasMore, loadingMore, page } = get();
+  //   if (!hasMore || loadingMore) return;
+  //   set({ loadingMore: true });
+  //   const nextPage = page + 1;
+  //   set({ page: nextPage });
+  //   get().fetchProducts(false);
+  // }
+  fetchNextPage: async () => {
+  const { hasMore, loadingMore, page, filters, limit, productsList } = get();
+  if (!hasMore || loadingMore) return;
+
+  set({ loadingMore: true });
+
+  const nextPage = page + 1;
+
+  const payload = {
+    search: filters.search.trim(),
+    page: nextPage,
+    limit,
+    sort_by: filters.sort,
+  };
+
+  const res = await productService.getAll(payload);
+
+  const newProducts = res?.body || [];
+  const totalPages = res?.total_pages || 1;
+
+  set({
+    page: nextPage,
+    productsList: [...productsList, ...newProducts],
+    totalPages,
+    hasMore: newProducts.length > 0 && nextPage < totalPages,
+    loadingMore: false,
+  });
+},
+
 }));

@@ -2,20 +2,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useApi } from "@/hooks/useApi";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
 import { ProductCard } from "@/components/common/ProductCard";
-import { productService } from "@/services/productService";
 import { useProductStore } from "@/store/useProductStore";
 import { productsData } from "@/data/product";
+import InfiniteScroll from 'react-infinite-scroll-component';
 import { NO_IMAGE } from "@/api/endpoints";
 
-// Assume you have a search API endpoint
-const searchProductsApi = async (query: string) => {
-  // Replace with your actual API endpoint
-  const { setFilters, fetchProducts } = useProductStore();
-
-};
 
 const SearchProductsPage = () => {
   const [query, setQuery] = useState("");
@@ -23,14 +16,17 @@ const SearchProductsPage = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
+
+  // const [page, setPage] = useState(1);
   // const { data, loading, error, request } = useApi(productService.getAll);
   const {
     productsList,
     loading,
+    hasMore,
     filters,
     setFilters,
     fetchProducts,
+    fetchNextPage
   } = useProductStore();
 
   useEffect(() => {
@@ -52,7 +48,7 @@ const SearchProductsPage = () => {
   // }, [debouncedQuery]);
   useEffect(() => {
     if (filters.search !== undefined) {
-      fetchProducts();
+      fetchProducts(true);
     }
   }, [filters.search]);
 
@@ -101,7 +97,6 @@ const SearchProductsPage = () => {
       <HeaderOtherPages />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Bar */}
         <div ref={searchRef} className="relative max-w-3xl mx-auto mb-10">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -125,7 +120,7 @@ const SearchProductsPage = () => {
           </div>
 
           {/* Search Suggestions Dropdown */}
-          {showSuggestions && (loading || products.length > 0 ) && (
+          {showSuggestions && (loading || products.length > 0) && (
             <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50">
               {loading && (
                 <div className="p-8 text-center">
@@ -133,12 +128,6 @@ const SearchProductsPage = () => {
                   <p className="mt-4 text-gray-600">Searching products...</p>
                 </div>
               )}
-
-              {/* {!loading && error && (
-                <div className="p-8 text-center text-gray-600">
-                  Something went wrong. Please try again.
-                </div>
-              )} */}
 
               {!loading && products.length === 0 && query && (
                 <div className="p-8 text-center text-gray-600">
@@ -150,23 +139,23 @@ const SearchProductsPage = () => {
               {!loading && products.length > 0 && (
                 <>
                   <div className="max-h-96 overflow-y-auto">
-                    {productsData(products).slice(0, 8).map((p: any) => (
-                       <ProductCard key={p.id} product={p} />
-                      // <button
-                      //   key={product.id}
-                      //   onClick={() => handleProductClick(product.id)}
-                      //   className="w-full text-left px-6 py-4 hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-0 flex items-center gap-4"
-                      // >
-                      //   <img
-                      //     src={product.image || NO_IMAGE}
-                      //     alt={product.title}
-                      //     className="w-12 h-12 object-cover rounded-lg"
-                      //   />
-                      //   <div className="flex-1">
-                      //     <p className="font-medium text-gray-900">{product.title}</p>
-                      //     <p className="text-sm text-orange-600 font-semibold">₹{product.price}</p>
-                      //   </div>
-                      // </button>
+                    {productsData(products).slice(0, 8).map((product: any) => (
+                      // <ProductCard key={p.id} product={p} />
+                      <button
+                        key={product.id}
+                        onClick={() => handleProductClick(product.id)}
+                        className="w-full text-left px-6 py-4 hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-0 flex items-center gap-4"
+                      >
+                        <img
+                          src={product.image || NO_IMAGE}
+                          alt={product.title}
+                          className="w-12 h-12 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{product.title}</p>
+                          <p className="text-sm text-orange-600 font-semibold">₹{product.price}</p>
+                        </div>
+                      </button>
                     ))}
                   </div>
                   {/* {data?.pagination?.totalPages > 1 && (
@@ -214,11 +203,28 @@ const SearchProductsPage = () => {
                 Search Results for "{filters.search}" ({products.length} items)
               </h2>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {productsData(products)?.map((product: any) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <InfiniteScroll
+                dataLength={products.length}
+                next={fetchNextPage}
+                hasMore={hasMore}
+                loader={
+                  <div className="text-center py-6">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent"></div>
+                  </div>
+                }
+                endMessage={
+                  <p className="text-center py-6 text-gray-500">
+                    <b>No more products</b>
+                  </p>
+                }
+              >
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {productsData(products).map((product: any) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              </InfiniteScroll>
+
             </>
           )}
 
@@ -234,7 +240,7 @@ const SearchProductsPage = () => {
             </div>
           )}
 
-          {!filters.search && (
+          {/* {!filters.search && (
             <div className="text-center py-20">
               <Search className="h-16 w-16 text-gray-300 mx-auto mb-6" />
               <h3 className="text-2xl font-semibold text-gray-800 mb-2">
@@ -244,7 +250,7 @@ const SearchProductsPage = () => {
                 Type in the search bar above to find dresses, kurtas, sarees, and more!
               </p>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
