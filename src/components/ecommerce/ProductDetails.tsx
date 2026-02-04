@@ -23,6 +23,7 @@ import { productsData } from "@/data/product";
 import { measurements } from "@/types";
 import ProductImages from "../product/ProductImages";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import GlobalLoader from "../GlobalLoader";
 
 interface ProductDetailsPageProps {
   onClose: () => void;
@@ -52,10 +53,12 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const [searchParams] = useSearchParams();
   const { openCart, addItem } = useCart();
   const id = useParams().id || "";
-  // const affiliate = searchParams.get("affiliate")
-  const { data, request, error } = useApi(productService.getById);
+  //  const {affiliate, isLoggedIn, logout } = useAffiliate();
+
+  const { data, request, error, loading } = useApi(productService.getById);
   const { data: ChartList, request: fetchChartList, error: chartError } = useApi(productService.getSizeChartList);
   const selectedVariantId = searchParams.get("variant");
+  const affiliateId = searchParams.get("affiliate");
 
   const product = data?.body;
 
@@ -63,21 +66,17 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     () => product?.variants ?? [],
     [product]
   );
-  // const activeVariant = productVariants.find(
-  //   (v) => v.item_code_id === selectedVariantId
-  // ) || productVariants[0];
-  const activeVariant = useMemo(
-    () =>
-      productVariants.find(v => v.item_code_id === selectedVariantId) ||
-      productVariants[0],
-    [productVariants, selectedVariantId]
-  );
+
+  const activeVariant = useMemo(() => {
+    if (!productVariants.length) return null;
+    return (
+      // productVariants.find(v => v.item_code_id === selectedVariantId) 
+      productVariants.find(v => v.item_code_id === selectedVariantId) ??
+      productVariants[0]
+    );
+  }, [productVariants, selectedVariantId]);
   const details = product?.product_details;
 
-  // const productImages =
-  //   activeVariant?.images?.length > 0
-  //     ? activeVariant.images
-  //     : product?.images || [];
   const productImages = useMemo(
     () =>
       activeVariant?.images?.length > 0
@@ -144,12 +143,24 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     { label: "Fabric", value: details?.fabric || "N/A" },
     { label: "Fit Type", value: details?.fit_type || "N/A" },
   ];
-
   useEffect(() => {
-    if (!id) return;
-    request(id);
-  }, [id]);
+    if (affiliateId) {
+      localStorage.setItem("affiliate_id", affiliateId);
+    }
+  }, [affiliateId]);
 
+  // useEffect(() => {
+  //   if (!id) return;
+  //   request(id);
+  // }, [id]);
+  useEffect(() => {
+    request({
+      productId: id!,
+      itemId: selectedVariantId ?? undefined,
+      affiliateId: affiliateId ?? undefined,
+    });
+  }, [id, selectedVariantId]);
+ 
   useEffect(() => {
     if (!showSizeChart || ChartList) return;
     fetchChartList({
@@ -167,18 +178,28 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     }
   }, [ChartList]);
 
-  useEffect(() => {
-    if (
-      !selectedVariantId &&
-      productVariants &&
-      productVariants.length > 0
-    ) {
-      navigate(
-        `/product/${id}?variant=${productVariants[0].item_code_id}`,
-        { replace: true }
-      );
-    }
-  }, [selectedVariantId, productVariants, id, navigate]);
+  // useEffect(() => {
+  //   if (!selectedVariantId && productVariants.length > 0) {
+  //     const params = new URLSearchParams(searchParams);
+  //     params.set("variant", productVariants[0].item_code_id);
+
+  //     navigate(`/product/${id}?${params.toString()}`, {
+  //       replace: true,
+  //     })
+  //   }
+  // }, [selectedVariantId, productVariants, id, navigate, searchParams])
+  // useEffect(() => {
+  //   if (
+  //     !selectedVariantId &&
+  //     productVariants &&
+  //     productVariants.length > 0
+  //   ) {
+  //     navigate(
+  //       `/product/${id}?variant=${productVariants[0].item_code_id}`,
+  //       { replace: true }
+  //     );
+  //   }
+  // }, [selectedVariantId, productVariants, id, navigate]);
 
   const formatTime = (time: number) => {
     if (!time) return "0:00";
@@ -248,6 +269,12 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   if (!data) {
     return null; // or fallback UI
   }
+  {loading && (
+  <div className="fixed inset-0 bg-white/60 z-50 flex items-center justify-center">
+    <p>Loading...</p>
+  </div>
+)}
+
   return (
     <Layout>
       <div className="min-h-screen bg-white">
@@ -272,9 +299,9 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
               images={productImages}
               activeIndex={activeImage}
               onChange={setActiveImage}
-              productId={product.id}
-              isWishList={product.isWishList}
-              isNew={product.isNew}
+              productId={product?.id || product?._id}
+              isWishList={product?.isWishList}
+              isNew={product?.isNew}
             />
 
             <div className="space-y-4 md:space-y-6">
@@ -313,18 +340,27 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
 
                       return (
                         <button
-                          key={variant.item_code_id}
-                          onClick={() =>
-                            navigate(`/product/${id}?variant=${variant.item_code_id}`, {
+                          key={variant?.item_code_id}
+                          // onClick={() =>
+                          //   navigate(`/product/${id}?variant=${variant.item_code_id}`, {
+                          //     replace: true,
+                          //   })
+                          // }
+                          onClick={() => {
+                            const params = new URLSearchParams(searchParams);
+                            params.set("variant", variant.item_code_id);
+
+                            navigate(`/product/${id}?${params.toString()}`, {
                               replace: true,
-                            })
-                          }
+                            });
+                          }}
                           className={`
                                w-8 h-8 rounded-full border-2 transition-all
                               ${isActive
-                              ? "border-orange-500 ring-2 ring-orange-400 ring-offset-2 scale-110"
+                              ? "border-orange-500  ring-orange-400 ring-offset-2 scale-110"
                               : "border-gray-300 hover:border-orange-400"}`}
                           style={{ backgroundColor: variant.color.color_code }}
+                           aria-label={variant.color.name}
                         />
                       );
                     })}
@@ -442,7 +478,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                               {detail.label}
                             </span>
                             <span className="text-gray-900">
-                              { detail.value.length > 50 ? detail?.value.slice(0, 50) + "..."  : detail?.value || "N/A"}
+                              {detail.value.length > 50 ? detail?.value.slice(0, 50) + "..." : detail?.value || "N/A"}
                               {/* {detail?.value || "N/A"} */}
                             </span>
                           </div>
