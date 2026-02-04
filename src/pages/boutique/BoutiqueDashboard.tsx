@@ -26,12 +26,7 @@ import RMSupport from "@/components/boutique/RMSupport";
 import TicketSystem from "@/components/boutique/TicketSystem";
 import BoutiqueCart from "@/components/boutique/BoutiqueCart";
 import { logoImage } from "@/api/endpoints";
-// import { useBoutique } from "@/contexts/BoutiqueContext";
-// import { useBoutiqueCart } from "@/contexts/BoutiqueCartContext";
-// import BoutiqueCart from "@/components/boutique/BoutiqueCart";
-// import RMSupport from "@/components/boutique/RMSupport";
-// import TicketSystem from "@/components/boutique/TicketSystem";
-// import SalesAnalytics from "@/components/boutique/SalesAnalytics";
+
 
 const BoutiqueDashboard = () => {
   const navigate = useNavigate();

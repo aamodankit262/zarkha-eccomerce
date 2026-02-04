@@ -37,7 +37,26 @@ export const productService = {
     return res as any;
   },
 
-  getById: async (id: string, itemId?: string): Promise<Product> => {
-    return await apiClient.post<Product>(API_ENDPOINTS.PRODUCTS.DETAIL, { product_id: id, item_id: itemId });
-  },
+  // getById: async (id: string, itemId?: string): Promise<Product> => {
+  //   return await apiClient.post<Product>(API_ENDPOINTS.PRODUCTS.DETAIL, { product_id: id, item_id: itemId });
+  // },
+  getById: async ({
+  productId,
+  itemId,
+  affiliateId,
+}: {
+  productId: string;
+  itemId?: string;
+  affiliateId?: string;
+}): Promise<Product> => {
+  return await apiClient.post<Product>(
+    API_ENDPOINTS.PRODUCTS.DETAIL,
+    {
+      product_id: productId,
+      item_id: itemId,
+     affiliate_id: affiliateId,
+    }
+  );
+},
+
 };

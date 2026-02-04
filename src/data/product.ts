@@ -7,7 +7,7 @@ export const productsData = (products: any[]) => products?.map((product: any) =>
       : 0;
 
   return {
-    id: product._id,
+    id: product._id || product.id,
     title: product.product_title || product?.name,
     price: product.product_price || product?.msp,
     originalPrice: product.mrp,
