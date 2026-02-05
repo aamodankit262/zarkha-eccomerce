@@ -13,7 +13,7 @@ const getUserToken = () => {
 const getAffiliateToken = () => {
   try {
     const auth = localStorage.getItem("affiliate-auth");
-    console.log(auth, "affiliate-auth")
+    // console.log(auth, "affiliate-auth")
     return auth ? JSON.parse(auth)?.token : null;
   } catch {
     return null;

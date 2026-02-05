@@ -71,4 +71,9 @@ export const affiliateService = {
       API_ENDPOINTS.AFFILIATE.PRODUCT_LIST, formData
     );
   },
+
+  affiliateCatgeoryList : async() => {
+    return apiClient.get(API_ENDPOINTS.AFFILIATE.CategoryList);
+  }
+
 };

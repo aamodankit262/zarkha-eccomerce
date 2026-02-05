@@ -10,7 +10,7 @@ export interface AffiliateSignupPayload {
   country?: string;
   state_id: string;
   city_id: string;
-  affiliate_category: string;
+  affiliate_category_id: string;
   aadhaar_card?: File | null;
 }
 
@@ -57,7 +57,7 @@ export const affiliateAuthService = {
     formData.append("phone_number", payload.phone_number);
     formData.append("state_id", payload.state_id);
     formData.append("city_id", payload.city_id);
-    formData.append("affiliate_category", payload.affiliate_category);
+    formData.append("affiliate_category_id", payload.affiliate_category_id);
 
     if (payload.aadhaar_card) {
       formData.append("aadhaar_card", payload.aadhaar_card);

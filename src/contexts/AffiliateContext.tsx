@@ -106,7 +106,7 @@ export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
         phone_number: data.phone,
         state_id: data.state,
         city_id: data.city,
-        affiliate_category: data.category,
+        affiliate_category_id: data.category,
         aadhaar_card: data.aadhaarFile,
       });
       console.log(res, 'affilaite signup')
