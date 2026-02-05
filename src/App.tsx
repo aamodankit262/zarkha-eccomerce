@@ -29,6 +29,8 @@ import BoutiqueStorefront from "./pages/boutique/BoutiqueStorefront";
 import BoutiqueBrandPage from "./pages/boutique/BoutiqueBrandPage";
 import { BoutiqueProvider } from "./contexts/BoutiqueContext";
 import { BoutiqueCartProvider } from "./contexts/BoutiqueCartContext";
+import PartnerLanding from "./pages/partner/PartnerLanding";
+import PartnerLogin from "./pages/partner/PartnerLogin";
 
 const Index = lazy(() => import("./pages/Index"));
 const ProductListingPage = lazy(() => import("./components/ecommerce/ProductListing"));
@@ -80,13 +82,22 @@ const AppContent = () => {
           <Route path="/invoice" element={<TaxInvoice />} />
 
           {/* Affiliate Public */}
-          <Route path="/affiliate" element={<AffiliateLanding />} />
-          <Route path="/affiliate/login" element={<AffiliateLogin />} />
+          {/* <Route path="/affiliate" element={<AffiliateLanding />} />
+          <Route path="/affiliate/login" element={<AffiliateLogin />} /> */}
           <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
           {/* boutique route */}
-          <Route path="/boutique" element={<BoutiqueLanding />} />
-          <Route path="/boutique/login" element={<BoutiqueLogin />} />
-          <Route path="/boutique/dashboard" element={<BoutiqueDashboard />} />
+          {/* <Route path="/boutique" element={<BoutiqueLanding />} />
+          <Route path="/boutique/login" element={<BoutiqueLogin />} /> */}
+         
+
+          {/* partner route */}
+          <Route path="/partner" element={<PartnerLanding />} />
+          <Route path="/partner/login" element={<PartnerLogin />} />
+          <Route path="/affiliate" element={<PartnerLanding />} />
+          <Route path="/affiliate/login" element={<PartnerLogin />} />
+          <Route path="/boutique" element={<PartnerLanding />} />
+          <Route path="/boutique/login" element={<PartnerLogin />} />
+           <Route path="/boutique/dashboard" element={<BoutiqueDashboard />} />
           <Route path="/boutique/order/:orderId" element={<BoutiqueOrderDetail />} />
           <Route path="/boutique/payment" element={<BoutiquePayment />} />
           <Route path="/boutique/directory" element={<BoutiqueDirectory />} />

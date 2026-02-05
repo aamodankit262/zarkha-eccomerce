@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { ShoppingBag, Eye, EyeOff, ArrowLeft, Upload, X } from "lucide-react";
 import { logoImage } from "@/api/endpoints";
 import { getCityList, getStateList } from "@/services/address.service";
+import { useApi } from "@/hooks/useApi";
+import { affiliateService } from "@/services/affiliateService";
 
 const AffiliateLogin = () => {
   const [searchParams] = useSearchParams();
@@ -20,6 +22,8 @@ const AffiliateLogin = () => {
   const [cities, setCities] = useState<any[]>([]);
   const navigate = useNavigate();
   const { login, signup, isLoggedIn } = useAffiliate();
+  // const [categories, setCategories] = useState();
+  const { request: fetchCategory, data, error, loading: cateLoading } = useApi(affiliateService.affiliateCatgeoryList)
 
   const [formData, setFormData] = useState({
     name: "",
@@ -49,16 +53,19 @@ const AffiliateLogin = () => {
     }
     getCityList(formData.state).then((res) => setCities(res?.data || []));
   }, [formData.state]);
-
-  const categories = [
-    "Fashion Influencer",
-    "Lifestyle Blogger",
-    "Social Media Creator",
-    "YouTube Reviewer",
-    "Website Owner",
-    "Email Marketer",
-    "Other"
-  ];
+  useEffect(() => {
+    fetchCategory();
+  }, [])
+  const categories = data?.body;
+  // const categories = [
+  //   "Fashion Influencer",
+  //   "Lifestyle Blogger",
+  //   "Social Media Creator",
+  //   "YouTube Reviewer",
+  //   "Website Owner",
+  //   "Email Marketer",
+  //   "Other"
+  // ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +73,15 @@ const AffiliateLogin = () => {
 
     try {
       if (isSignup) {
-        if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.category) {
+        if (
+          !formData.name
+          || !formData.email
+          || !formData.password
+          || !formData.phone
+          || !formData.state
+          || !formData.city
+          || !formData.category
+        ) {
           toast.error("Please fill all fields");
           setLoading(false);
           return;
@@ -189,9 +204,9 @@ const AffiliateLogin = () => {
                       type="tel"
                       placeholder="Enter your phone number"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        phone: e.target.value.replace(/\D/g, "").slice(0,10)
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        phone: e.target.value.replace(/\D/g, "").slice(0, 10)
                       })}
                     />
                   </div>
@@ -243,8 +258,8 @@ const AffiliateLogin = () => {
                         <SelectValue placeholder="Select your category" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        {categories?.map((cat:any) => (
+                          <SelectItem key={cat._id} value={cat._id}>{cat?.category_name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

@@ -4,6 +4,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/store/authStore";
 import { logoImage } from "@/api/endpoints";
+import { Link } from "react-router-dom";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
   const { toast } = useToast();
   const [showOTP, setShowOTP] = useState(false);
   const [countdown, setCountdown] = useState(35);
-  const [notifyMe, setNotifyMe] = useState(false);
+  // const [notifyMe, setNotifyMe] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -252,13 +253,13 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
                   </form>
                   <div className="mt-6 text-center text-xs text-gray-500">
                     I Accept That I Have Read & Understood Your{" "}
-                    <a href="#" className="text-orange-500 underline">
+                    <Link to={`/privacy-policy`} className="text-orange-500 underline">
                       Privacy Policy
-                    </a>{" "}
+                    </Link>{" "}
                     And{" "}
-                    <a href="#" className="text-orange-500 underline">
+                    <Link to="/terms" className="text-orange-500 underline">
                       T&Cs
-                    </a>
+                    </Link>
                     .
                   </div>
                 </div>
