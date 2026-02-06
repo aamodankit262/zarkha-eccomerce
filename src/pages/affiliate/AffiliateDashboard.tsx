@@ -79,19 +79,19 @@ const AffiliateDashboard = () => {
   const stats = [
     {
       title: "Total Earnings",
-      value: `₹${data?.total_earnings?.toLocaleString()}`,
+      value: `₹${data?.total_earnings || 0}`,
       icon: <DollarSign className="h-5 w-5" />,
       color: "text-green-600 bg-green-100"
     },
     {
       title: "Pending Payment",
-      value: `₹${data?.pending_commission?.toLocaleString()}`,
+      value: `₹${data?.pending_commission || 0}`,
       icon: <Wallet className="h-5 w-5" />,
       color: "text-orange-600 bg-orange-100"
     },
     {
       title: "Total Sales",
-      value: data?.total_sales?.toString(),
+      value: data?.total_sales || 0,
       icon: <TrendingUp className="h-5 w-5" />,
       color: "text-blue-600 bg-blue-100"
     },

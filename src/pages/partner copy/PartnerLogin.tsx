@@ -12,10 +12,6 @@ import { useBoutique } from "@/contexts/BoutiqueContext";
 import { toast } from "sonner";
 import { ShoppingBag, Eye, EyeOff, ArrowLeft, Upload, X, Store, Percent, Sparkles, CheckCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getCityList, getStateList } from "@/services/address.service";
-import { useApi } from "@/hooks/useApi";
-import { affiliateService } from "@/services/affiliateService";
-import { logoImage } from "@/api/endpoints";
 
 type PartnerType = 'affiliate' | 'boutique' | null;
 
@@ -30,14 +26,10 @@ const PartnerLogin = () => {
   const [isSignup, setIsSignup] = useState(isSignupParam);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [states, setStates] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
   const navigate = useNavigate();
-
+  
   const { login: affiliateLogin, signup: affiliateSignup, isLoggedIn: affiliateLoggedIn } = useAffiliate();
-
   const { login: boutiqueLogin, signup: boutiqueSignup, isLoggedIn: boutiqueLoggedIn } = useBoutique();
-  const { request: fetchCategory, data, error, loading: cateLoading } = useApi(affiliateService.affiliateCatgeoryList)
 
   // Affiliate form data
   const [affiliateData, setAffiliateData] = useState({
@@ -45,8 +37,6 @@ const PartnerLogin = () => {
     email: "",
     password: "",
     phone: "",
-    state: "",
-    city: "",
     category: "",
     aadhaarFile: null as File | null
   });
@@ -65,15 +55,15 @@ const PartnerLogin = () => {
 
   const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
 
-  // const affiliateCategories = [
-  //   "Fashion Influencer",
-  //   "Lifestyle Blogger",
-  //   "Social Media Creator",
-  //   "YouTube Reviewer",
-  //   "Website Owner",
-  //   "Email Marketer",
-  //   "Other"
-  // ];
+  const affiliateCategories = [
+    "Fashion Influencer",
+    "Lifestyle Blogger",
+    "Social Media Creator",
+    "YouTube Reviewer",
+    "Website Owner",
+    "Email Marketer",
+    "Other"
+  ];
 
   const boutiqueCategories = [
     "Women Ethnic Wear",
@@ -94,20 +84,6 @@ const PartnerLogin = () => {
     }
   }, [affiliateLoggedIn, boutiqueLoggedIn, partnerType, navigate]);
 
-  useEffect(() => {
-    getStateList().then((res) => setStates(res?.data || []));
-  }, []);
-  useEffect(() => {
-    if (!affiliateData.state) {
-      setCities([]);
-      return;
-    }
-    getCityList(affiliateData.state).then((res) => setCities(res?.data || []));
-  }, [affiliateData.state]);
-  useEffect(() => {
-    fetchCategory();
-  }, [])
-  const affiliateCategories = data?.body;
   const handleTypeSelect = (type: PartnerType) => {
     setPartnerType(type);
     setShowTypeSelector(false);
@@ -119,13 +95,7 @@ const PartnerLogin = () => {
 
     try {
       if (isSignup) {
-        if (!affiliateData.name
-          || !affiliateData.email
-          || !affiliateData.password
-          || !affiliateData.phone
-          || !affiliateData.state
-          || !affiliateData.city
-          || !affiliateData.category) {
+        if (!affiliateData.name || !affiliateData.email || !affiliateData.password || !affiliateData.phone || !affiliateData.category) {
           toast.error("Please fill all required fields");
           setLoading(false);
           return;
@@ -142,6 +112,8 @@ const PartnerLogin = () => {
         if (success) {
           toast.success("Welcome back!");
           navigate('/affiliate/dashboard');
+        } else {
+          toast.error("Invalid credentials");
         }
       }
     } catch (error) {
@@ -194,31 +166,26 @@ const PartnerLogin = () => {
     }
   };
 
-  // Type Selection Dialog
+  // Type Selection Dialog - prevent closing without selection
   const TypeSelectorDialog = () => (
-    <Dialog open={showTypeSelector} 
-    onOpenChange={(open) => {
+    <Dialog open={showTypeSelector} onOpenChange={(open) => {
       // Only allow closing if a partner type is already selected
       if (!open && partnerType) {
         setShowTypeSelector(false);
       }
-    }}
-    // onOpenChange={setShowTypeSelector} 
-    >
-      
-      <DialogContent className="max-w-md mx-4 sm:mx-auto">
+    }}>
+      <DialogContent className="max-w-md mx-4 sm:mx-auto" onPointerDownOutside={(e) => {
+        // Prevent closing on outside click if no type selected
+        if (!partnerType) e.preventDefault();
+      }} onEscapeKeyDown={(e) => {
+        // Prevent closing on escape if no type selected
+        if (!partnerType) e.preventDefault();
+      }}>
         <DialogHeader>
           <div className="flex justify-center mb-4">
-            {/* <div className="w-14 h-14 bg-gradient-to-br from-brand-orange to-warm-brown rounded-2xl flex items-center justify-center">
+            <div className="w-14 h-14 bg-gradient-to-br from-brand-orange to-warm-brown rounded-2xl flex items-center justify-center">
               <Sparkles className="h-7 w-7 text-white" />
-            </div> */}
-            <Link to="#">
-              <img
-                src={logoImage}
-                alt="Zarkha"
-                className="h-8 w-auto cursor-pointer"
-              />
-            </Link>
+            </div>
           </div>
           <DialogTitle className="text-center text-lg sm:text-xl">Choose Your Partner Type</DialogTitle>
           <p className="text-center text-sm text-muted-foreground mt-1">Select how you want to partner with us</p>
@@ -251,6 +218,7 @@ const PartnerLogin = () => {
             <CheckCircle className="h-5 w-5 text-brand-orange opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
           </button>
         </div>
+        <p className="text-center text-xs text-muted-foreground">Please select a partner type to continue</p>
       </DialogContent>
     </Dialog>
   );
@@ -271,15 +239,10 @@ const PartnerLogin = () => {
             <span className="text-sm sm:text-base">Back</span>
           </Link>
           <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
-            {/* <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-brand-orange to-warm-brown rounded-lg flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-brand-orange to-warm-brown rounded-lg flex items-center justify-center">
               <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
             </div>
-            <span className="font-bold text-warm-brown text-sm sm:text-base">Zarkhai</span> */}
-            <img
-              src={logoImage}
-              alt="Zarkha"
-              className="h-8 w-auto cursor-pointer"
-            />
+            <span className="font-bold text-warm-brown text-sm sm:text-base">Zarkhai</span>
           </Link>
         </div>
       </header>
@@ -297,7 +260,7 @@ const PartnerLogin = () => {
                 )}
               </div>
               <CardTitle className="text-xl sm:text-2xl">
-                {isSignup
+                {isSignup 
                   ? (partnerType === 'affiliate' ? 'Join Affiliate Program' : 'Register Your Boutique')
                   : (partnerType === 'affiliate' ? 'Affiliate Login' : 'Boutique Login')
                 }
@@ -335,55 +298,14 @@ const PartnerLogin = () => {
                           type="tel"
                           placeholder="Enter your phone number"
                           value={affiliateData.phone}
-                          // onChange={(e) => setAffiliateData({ ...affiliateData, phone: e.target.value })}
-                          onChange={(e) => setAffiliateData({
-                            ...affiliateData,
-                            phone: e.target.value.replace(/\D/g, "").slice(0, 10)
-                          })}
+                          onChange={(e) => setAffiliateData({ ...affiliateData, phone: e.target.value })}
                           className="h-10 sm:h-11"
                         />
                       </div>
-                      <div
-                        // className="grid md:grid-cols-2 gap-4"
-                        className="space-y-1.5"
-                      >
-                        <Label htmlFor="state">State</Label>
-                        <Select value={affiliateData.state} onValueChange={(v) => setAffiliateData({ ...affiliateData, state: v })}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select State *" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {states.map((state) => (
-                              <SelectItem key={state._id} value={state._id}>
-                                {state.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="city">City</Label>
-                        <Select
-                          value={affiliateData.city}
-                          onValueChange={(v) => setAffiliateData({ ...affiliateData, city: v })}
-                          disabled={!affiliateData.state}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select City *" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {cities.map((city) => (
-                              <SelectItem key={city._id} value={city._id}>
-                                {city.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                       <div className="space-y-1.5">
                         <Label htmlFor="category" className="text-sm">Category *</Label>
-                        <Select
-                          value={affiliateData.category}
+                        <Select 
+                          value={affiliateData.category} 
                           onValueChange={(value) => setAffiliateData({ ...affiliateData, category: value })}
                         >
                           <SelectTrigger>
@@ -391,7 +313,7 @@ const PartnerLogin = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {affiliateCategories.map((cat) => (
-                              <SelectItem key={cat} value={cat._id}>{cat?.category_name}</SelectItem>
+                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -441,7 +363,7 @@ const PartnerLogin = () => {
                             <span className="text-sm text-muted-foreground truncate flex-1">
                               {affiliateData.aadhaarFile.name}
                             </span>
-                            <button
+                            <button 
                               type="button"
                               onClick={() => setAffiliateData({ ...affiliateData, aadhaarFile: null })}
                               className="text-destructive hover:text-destructive/80 ml-2"
@@ -484,33 +406,33 @@ const PartnerLogin = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="space-y-1.5">
                           <Label htmlFor="shopName" className="text-sm">Shop Name *</Label>
-                          <Input
+                          <Input 
                             id="shopName"
                             value={boutiqueData.shopName}
-                            onChange={(e) => setBoutiqueData({ ...boutiqueData, shopName: e.target.value })}
+                            onChange={(e) => setBoutiqueData({...boutiqueData, shopName: e.target.value})}
                             placeholder="Your boutique name"
                             className="h-10 sm:h-11"
                           />
                         </div>
                         <div className="space-y-1.5">
                           <Label htmlFor="ownerName" className="text-sm">Owner Name *</Label>
-                          <Input
+                          <Input 
                             id="ownerName"
                             value={boutiqueData.ownerName}
-                            onChange={(e) => setBoutiqueData({ ...boutiqueData, ownerName: e.target.value })}
+                            onChange={(e) => setBoutiqueData({...boutiqueData, ownerName: e.target.value})}
                             placeholder="Full name"
                             className="h-10 sm:h-11"
                           />
                         </div>
                       </div>
-
+                      
                       <div className="space-y-1.5">
                         <Label htmlFor="phone" className="text-sm">Phone Number *</Label>
-                        <Input
+                        <Input 
                           id="phone"
                           type="tel"
                           value={boutiqueData.phone}
-                          onChange={(e) => setBoutiqueData({ ...boutiqueData, phone: e.target.value })}
+                          onChange={(e) => setBoutiqueData({...boutiqueData, phone: e.target.value})}
                           placeholder="+91 XXXXXXXXXX"
                           className="h-10 sm:h-11"
                         />
@@ -518,9 +440,9 @@ const PartnerLogin = () => {
 
                       <div className="space-y-1.5">
                         <Label htmlFor="category" className="text-sm">Boutique Category *</Label>
-                        <Select
-                          value={boutiqueData.category}
-                          onValueChange={(value) => setBoutiqueData({ ...boutiqueData, category: value })}
+                        <Select 
+                          value={boutiqueData.category} 
+                          onValueChange={(value) => setBoutiqueData({...boutiqueData, category: value})}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select your category" />
@@ -535,10 +457,10 @@ const PartnerLogin = () => {
 
                       <div className="space-y-1.5">
                         <Label htmlFor="address" className="text-sm">Shop Address *</Label>
-                        <Textarea
+                        <Textarea 
                           id="address"
                           value={boutiqueData.address}
-                          onChange={(e) => setBoutiqueData({ ...boutiqueData, address: e.target.value })}
+                          onChange={(e) => setBoutiqueData({...boutiqueData, address: e.target.value})}
                           placeholder="Complete shop address"
                           rows={2}
                         />
@@ -546,10 +468,10 @@ const PartnerLogin = () => {
 
                       <div className="space-y-1.5">
                         <Label htmlFor="gst" className="text-sm">GST Number (Optional)</Label>
-                        <Input
+                        <Input 
                           id="gst"
                           value={boutiqueData.gstNumber}
-                          onChange={(e) => setBoutiqueData({ ...boutiqueData, gstNumber: e.target.value })}
+                          onChange={(e) => setBoutiqueData({...boutiqueData, gstNumber: e.target.value})}
                           placeholder="GSTIN (if applicable)"
                           className="h-10 sm:h-11"
                         />
@@ -582,11 +504,11 @@ const PartnerLogin = () => {
 
                   <div className="space-y-1.5">
                     <Label htmlFor="email" className="text-sm">Email Address *</Label>
-                    <Input
+                    <Input 
                       id="email"
                       type="email"
                       value={boutiqueData.email}
-                      onChange={(e) => setBoutiqueData({ ...boutiqueData, email: e.target.value })}
+                      onChange={(e) => setBoutiqueData({...boutiqueData, email: e.target.value})}
                       placeholder="you@example.com"
                       className="h-10 sm:h-11"
                     />
@@ -595,11 +517,11 @@ const PartnerLogin = () => {
                   <div className="space-y-1.5">
                     <Label htmlFor="password" className="text-sm">Password *</Label>
                     <div className="relative">
-                      <Input
+                      <Input 
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={boutiqueData.password}
-                        onChange={(e) => setBoutiqueData({ ...boutiqueData, password: e.target.value })}
+                        onChange={(e) => setBoutiqueData({...boutiqueData, password: e.target.value})}
                         placeholder="••••••••"
                         className="h-10 sm:h-11 pr-10"
                       />

@@ -99,8 +99,16 @@ export const useBoutique = () => {
 };
 
 export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<BoutiqueUser | null>(null);
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // const [user, setUser] = useState<BoutiqueUser | null>(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    const stored = localStorage.getItem('boutique_logged_in');
+    return stored === 'true';
+  });
+  const [user, setUser] = useState<BoutiqueUser | null>(() => {
+    const stored = localStorage.getItem('boutique_user');
+    return stored ? JSON.parse(stored) : null;
+  });
   
   const [orders, setOrders] = useState<BoutiqueOrder[]>([
     {

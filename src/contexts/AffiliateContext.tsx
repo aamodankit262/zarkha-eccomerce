@@ -1,6 +1,5 @@
 import { affiliateAuthService } from "@/services/affiliateAuthService";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-// import { affiliateAuthService } from "@/api/services/affiliateAuthService";
 import { toast } from "sonner";
 
 /* ---------------- Types ---------------- */
@@ -10,15 +9,11 @@ interface AffiliateUser {
   full_name: string;
   email: string;
   phone_number: string;
+  referralCode?: string;
   affiliate_category: string;
   aadhaar_card?: File;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
-  referralCode?: string;
-  joinDate?: string;
-  totalEarnings?: number;
-  pendingPayment?: number;
-  totalSales?: number;
 }
 
 interface SignupData {
@@ -26,7 +21,6 @@ interface SignupData {
   email: string;
   password: string;
   phone: string;
-  country?: string;
   state: string;
   city: string;
   category: string;
@@ -40,6 +34,8 @@ interface AffiliateContextType {
   signup: (data: SignupData) => Promise<boolean>;
   logout: () => void;
 }
+
+const STORAGE_KEY = "affiliate-auth";
 
 const AffiliateContext = createContext<AffiliateContextType | undefined>(undefined);
 
@@ -56,39 +52,55 @@ export const useAffiliate = () => {
 /* ---------------- Provider ---------------- */
 
 export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
-  const [affiliate, setAffiliate] = useState<AffiliateUser | null>(null);
+  // const [affiliate, setAffiliate] = useState<AffiliateUser | null>(null);
+   const [affiliate, setAffiliate] = useState<AffiliateUser | null>(() => {
+    // Restore from localStorage on mount
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  });
+
   const [token, setToken] = useState<string | null>(null);
 
   /* -------- Restore session -------- */
   useEffect(() => {
-    const stored = localStorage.getItem("affiliate-auth");
-    if (stored) {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
+
+    try {
       const parsed = JSON.parse(stored);
-      setAffiliate(parsed.affiliate);
-      setToken(parsed.token);
+      setAffiliate(parsed.affiliate ?? null);
+      setToken(parsed.token ?? null);
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
     }
   }, []);
+
+  /* -------- Save session -------- */
+  const saveSession = (user: AffiliateUser | null, authToken: string | null) => {
+    setAffiliate(user);
+    setToken(authToken);
+
+    if (user && authToken) {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ affiliate: user, token: authToken })
+      );
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
 
   /* ---------------- Login ---------------- */
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const res = await affiliateAuthService.login({ email, password });
-      console.log(res, 'affilaite login')
+
       if (!res.success) {
-        toast.error(res?.message); // 👈 pending approval message
+        toast.error(res.message);
         return false;
       }
 
-      const authData = {
-        token: res?.token,
-        affiliate: res.body,
-      };
-
-      localStorage.setItem("affiliate-auth", JSON.stringify(authData));
-      // const local = localStorage.setItem("affiliate-auth", JSON.stringify(authData));
-      setAffiliate(authData?.affiliate);
-      setToken(authData.token);
-
+      saveSession(res.body, res.token);
       return true;
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Login failed");
@@ -109,10 +121,9 @@ export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
         affiliate_category_id: data.category,
         aadhaar_card: data.aadhaarFile,
       });
-      console.log(res, 'affilaite signup')
-     
+
       if (res.success) {
-        toast.success(res.message); // 👈 pending approval message
+        toast.success(res.message);
         return true;
       }
 
@@ -126,16 +137,14 @@ export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
 
   /* ---------------- Logout ---------------- */
   const logout = () => {
-    localStorage.removeItem("affiliate-auth");
-    setAffiliate(null);
-    setToken(null);
+    saveSession(null, null);
   };
 
   return (
     <AffiliateContext.Provider
       value={{
         affiliate,
-        isLoggedIn: !!token,
+        isLoggedIn: !!affiliate,
         login,
         signup,
         logout,
