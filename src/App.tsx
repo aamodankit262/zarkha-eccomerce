@@ -88,7 +88,7 @@ const AppContent = () => {
           {/* boutique route */}
           {/* <Route path="/boutique" element={<BoutiqueLanding />} />
           <Route path="/boutique/login" element={<BoutiqueLogin />} /> */}
-         
+
 
           {/* partner route */}
           <Route path="/partner" element={<PartnerLanding />} />
@@ -97,7 +97,7 @@ const AppContent = () => {
           <Route path="/affiliate/login" element={<PartnerLogin />} />
           <Route path="/boutique" element={<PartnerLanding />} />
           <Route path="/boutique/login" element={<PartnerLogin />} />
-           <Route path="/boutique/dashboard" element={<BoutiqueDashboard />} />
+          <Route path="/boutique/dashboard" element={<BoutiqueDashboard />} />
           <Route path="/boutique/order/:orderId" element={<BoutiqueOrderDetail />} />
           <Route path="/boutique/payment" element={<BoutiquePayment />} />
           <Route path="/boutique/directory" element={<BoutiqueDirectory />} />
