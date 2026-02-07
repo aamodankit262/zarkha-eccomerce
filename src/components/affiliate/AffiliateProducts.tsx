@@ -116,7 +116,8 @@ const AffiliateProducts = () => {
 
   const filteredProducts = products;
 
-  const copyProductLink = (link: string) => {
+  const copyProductLink = (productId: string) => {
+    const link = `${window.location.origin}/product/${productId}`;
     // const link = `${window.location.origin}/product/${productId}?ref=${affiliate?.referralCode}`;
     navigator.clipboard.writeText(link);
     toast.success("Product link copied!");
@@ -207,15 +208,15 @@ const AffiliateProducts = () => {
                   variant="outline"
                   size="sm"
                   className="flex-1 text-xs sm:text-sm"
-                  onClick={() => copyProductLink(product?.share_link)}
+                  onClick={() => copyProductLink(product._id)}
                 >
                   <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   Copy Link
                 </Button>
                 <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90 text-xs sm:text-sm" asChild>
                   <Link
-                    // to={product?.share_link}
-                  to={`/product/${product._id}?affiliate=${affiliate?._id}`}
+                    // to={product?.product._id}
+                  to={`/product/${product._id}`}
                   >
                     <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     View Product
