@@ -18,6 +18,6 @@ export const productsData = (products: any[]) => products?.map((product: any) =>
     isWish: product?.isWishList ||  product?.isWishlist,
     colors: product.color_codes ? [product.color_codes] : [], // FIXED
     size: product.size,
-    variantId: product.item_code_ids?.[0]
+    variantId: product.item_code_ids?.[0],
   };
 });

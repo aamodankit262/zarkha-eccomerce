@@ -95,12 +95,12 @@ const AffiliateDashboard = () => {
       icon: <TrendingUp className="h-5 w-5" />,
       color: "text-blue-600 bg-blue-100"
     },
-    {
-      title: "Active Coupons",
-      value: data?.active_coupon?.toString() || "N/A",
-      icon: <Gift className="h-5 w-5" />,
-      color: "text-purple-600 bg-purple-100"
-    }
+    // {
+    //   title: "Active Coupons",
+    //   value: data?.active_coupon?.toString() || "N/A",
+    //   icon: <Gift className="h-5 w-5" />,
+    //   color: "text-purple-600 bg-purple-100"
+    // }
   ];
 
   const menuItems = [
@@ -137,13 +137,13 @@ const AffiliateDashboard = () => {
             <Badge variant="secondary" className="hidden sm:flex">Affiliate Partner</Badge>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-lg">
+            {/* <div className="hidden md:flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-lg">
               <span className="text-sm text-muted-foreground">Code:</span>
               <span className="font-mono font-bold text-primary">{affiliate.referralCode}</span>
               <button onClick={copyReferralCode} className="text-muted-foreground hover:text-primary">
                 <Copy className="h-4 w-4" />
               </button>
-            </div>
+            </div> */}
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Logout</span>
@@ -214,7 +214,7 @@ const AffiliateDashboard = () => {
           {activeTab === "overview" && (
             <div className="space-y-6">
               {/* Stats */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 {stats.map((stat, index) => (
                   <Card key={index}>
                     <CardContent className="p-4">
@@ -233,7 +233,7 @@ const AffiliateDashboard = () => {
               </div>
 
               {/* Referral Section */}
-              <Card>
+              {/* <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Your Referral Links</CardTitle>
                 </CardHeader>
@@ -259,7 +259,7 @@ const AffiliateDashboard = () => {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
 
               {/* Quick Actions */}
               <div className="grid sm:grid-cols-3 gap-4">

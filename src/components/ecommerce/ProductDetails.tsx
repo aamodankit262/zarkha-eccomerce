@@ -91,9 +91,12 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
 
   const ratingsCount = product?.ratings_and_reviews;
   const similarProductsRaw = product?.similar_products ?? [];
+  // const audioSrc =
+  //   product?.audio?.trim()
+      
   const audioSrc =
-    product?.audio_information?.trim()
-      ? product.audio_information
+    product?.audio?.trim()
+      ? product.audio
       : "/assets/file_example.mp3";
 
   const {
@@ -139,8 +142,8 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
 
   const productDetails = [
     { label: "Color", value: details?.color?.map((color, i) => color.color_name).join(",") || "-" },
-    { label: "Work", value: details?.Work || "N/A" },
-    { label: "Fabric", value: details?.fabric || "N/A" },
+    { label: "Work", value: details?.work || "N/A" },
+    { label: "Fabric", value: details?.fabric.join(",") || "N/A" },
     { label: "Fit Type", value: details?.fit_type || "N/A" },
   ];
   useEffect(() => {

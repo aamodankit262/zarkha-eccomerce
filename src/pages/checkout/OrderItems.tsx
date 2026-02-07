@@ -1,12 +1,14 @@
 import { Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface OrderItem {
-  _id: string;
-  product_title: string;
-  product_image: string;
-  quantity: number;
-  discount_price: number;
+  _id?: string;
+  product_id?: string;
+  product_title?: string;
+  product_image?: string;
+  quantity?: number;
+  discount_price?: number;
   size?: string;
   color?: {
     name: string;
@@ -14,7 +16,7 @@ interface OrderItem {
 }
 
 interface OrderItemsProps {
-  items: any[];
+  items: OrderItem[];
   subtotal: number;
   onEditCart?: () => void;
 }
@@ -24,6 +26,11 @@ const OrderItems = ({
   subtotal,
   onEditCart,
 }: OrderItemsProps) => {
+  const navigate = useNavigate();
+  // console.log(items, 'items')
+  const goToDetails = (productId: string) => {
+    navigate(`/product/${productId}`);
+  };
   if (items.length === 0) {
     return (
       <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6">
@@ -64,7 +71,10 @@ const OrderItems = ({
             className="flex gap-4 pb-4 border-b last:border-b-0 last:pb-0"
           >
             {/* Image */}
-            <div className="w-20 h-24 bg-muted rounded-lg overflow-hidden shrink-0">
+            <div className="w-20 h-24 bg-muted rounded-lg overflow-hidden shrink-0"
+              onClick={() => goToDetails(item.product_id)}
+
+            >
               <img
                 src={item.product_image}
                 alt={item.product_title}

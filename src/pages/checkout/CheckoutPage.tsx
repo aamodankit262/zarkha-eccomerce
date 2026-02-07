@@ -41,7 +41,7 @@ export interface Coupon {
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
-    const { items, getTotalPrice } = useCart();
+    // const { items, getTotalPrice } = useCart();
     const { sendOtp, verifyOtp, otpSent, isLoading, error, isLogin, userDetails, token } = useAuthStore()
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [showOTP, setShowOTP] = useState(false);
@@ -93,9 +93,20 @@ const CheckoutPage = () => {
     const { request: applyCouponRequest, loading: applyCouponLoading } = useApi(applyCoupon);
     const { request: removeCouponApi } = useApi(removeCoupon);
     // const { request: createOrder, loading: createOrderLoading } = useApi(orderService.createOrder);
-    const { cartId, fetchCart } = useCart()
+    
     const { Razorpay } = useRazorpay();
-
+    const { cartId, fetchCart, items, getTotalPrice } = useCart()
+    console.log(items, 'items')
+//    useEffect(() => {
+//     if(items.length === 0){
+//         navigate(-1);
+//     }
+//    },[items.length, navigate])
+// useEffect(() => {
+//   if (!items || items.length === 0) {
+//     navigate("/", { replace: true });
+//   }
+// }, [items, navigate]);
     useEffect(() => {
         if (isLogin) {
             setFormData((prev) => ({
@@ -370,34 +381,6 @@ const CheckoutPage = () => {
     };
 
     /* ---------------- PAYMENT ---------------- */
-    // const handlePayment = async () => {
-    //     if (!isLogin) {
-    //         toast.error("please varify mobile number first");
-    //         return;
-    //     }
-    //     if (!items.length) {
-    //         toast.error("Please add items to cart before placing order");
-    //         return;
-    //     }
-    //     if (!selectedAddressId) {
-    //         toast.error("Please select delivery address");
-    //         return;
-    //     }
-    //     try {
-    //         const res: any = await createOrder({
-    //             address_id: selectedAddressId,
-    //             payment_method: "cod", // or online
-    //             cart_id: cartId,
-    //             customer_notes: "Please deliver between 10 AM - 6 PM",
-    //         });
-    //         toast.success("Order placed successfully");
-    //         setOrderId(res.body.order_id);
-    //         setShowSuccessModal(true);
-    //         await fetchCart(cartId);
-    //     } catch (err) {
-    //         console.error(err);
-    //     }
-    // };
     const handlePayment = async () => {
         if (!isOtpVerified) {
             toast.error("Please varify your mobile number");

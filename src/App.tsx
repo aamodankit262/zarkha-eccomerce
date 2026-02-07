@@ -80,24 +80,16 @@ const AppContent = () => {
           <Route path="/size-guide" element={<SizeGuide />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/invoice" element={<TaxInvoice />} />
-
-          {/* Affiliate Public */}
-          {/* <Route path="/affiliate" element={<AffiliateLanding />} />
-          <Route path="/affiliate/login" element={<AffiliateLogin />} /> */}
-          <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
-          {/* boutique route */}
-          {/* <Route path="/boutique" element={<BoutiqueLanding />} />
-          <Route path="/boutique/login" element={<BoutiqueLogin />} /> */}
-         
-
+          
           {/* partner route */}
           <Route path="/partner" element={<PartnerLanding />} />
           <Route path="/partner/login" element={<PartnerLogin />} />
           <Route path="/affiliate" element={<PartnerLanding />} />
           <Route path="/affiliate/login" element={<PartnerLogin />} />
+          <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
           <Route path="/boutique" element={<PartnerLanding />} />
           <Route path="/boutique/login" element={<PartnerLogin />} />
-           <Route path="/boutique/dashboard" element={<BoutiqueDashboard />} />
+          <Route path="/boutique/dashboard" element={<BoutiqueDashboard />} />
           <Route path="/boutique/order/:orderId" element={<BoutiqueOrderDetail />} />
           <Route path="/boutique/payment" element={<BoutiquePayment />} />
           <Route path="/boutique/directory" element={<BoutiqueDirectory />} />
