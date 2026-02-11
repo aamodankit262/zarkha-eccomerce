@@ -1,7 +1,6 @@
 import { apiClient } from "@/api/client";
 import { API_ENDPOINTS } from "@/api/endpoints";
 
-/* ------------------ Service ------------------ */
 /* -------- Dashboard Stats -------- */
 export interface AffiliateDashboardStatsResponse {
   success: boolean;
@@ -74,6 +73,9 @@ export const affiliateService = {
 
   affiliateCatgeoryList : async() => {
     return apiClient.get(API_ENDPOINTS.AFFILIATE.CategoryList);
+  },
+  getProfile : async() => {
+    return apiClient.get<any>(API_ENDPOINTS.AFFILIATE.PROFILE);
   }
 
 };

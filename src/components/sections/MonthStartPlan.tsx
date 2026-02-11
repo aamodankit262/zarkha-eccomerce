@@ -42,6 +42,7 @@ const CategoryCard = ({ title, subtitle, image, link}) => {
 export default function MonthStartSpecial({banner}) {
   if (!banner?.length) return null;
   console.log(banner, 'banner')
+  const navigate = useNavigate();
   const categoryData = [
   {
     id: 1,
@@ -76,7 +77,8 @@ export default function MonthStartSpecial({banner}) {
               Ever Since The 1500s.
             </p>
 
-            <button className="inline-flex items-center px-5 py-2.5 border border-gray-900 rounded-lg text-sm font-medium text-gray-900 hover:bg-gray-900 hover:text-white transition-all duration-300">
+            <button onClick={() => navigate("/products")}
+            className="inline-flex items-center px-5 py-2.5 border border-gray-900 rounded-lg text-sm font-medium text-gray-900 hover:bg-gray-900 hover:text-white transition-all duration-300">
               Shop Now
             </button>
           </div>

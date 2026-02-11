@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,16 +8,40 @@ import { Badge } from "@/components/ui/badge";
 import { User, Mail, Phone, Tag, Calendar, Edit2, Save, X, CreditCard, Building2 } from "lucide-react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { toast } from "sonner";
+import { affiliateService } from "@/services/affiliateService";
+import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
+import GlobalLoader from "../GlobalLoader";
 
 const AffiliateProfile = () => {
-  const { affiliate } = useAffiliate();
+  // const { affiliate } = useAffiliate();
   const [isEditing, setIsEditing] = useState(false);
+  const { isPending, error, data: profileData } = useQuery({
+    queryKey: ['affiliate-profile'],
+    queryFn: affiliateService.getProfile
+  })
+  const affiliate = profileData?.body;
+  const personalInfo = affiliate?.personal_information;
+  const accountDetails = affiliate?.account_details;
+  const paymentDetails = affiliate?.payment_details;
+
   const [formData, setFormData] = useState({
-    name: affiliate?.full_name || "",
-    email: affiliate?.email || "",
-    phone: affiliate?.phone_number || "",
-    category: affiliate?.affiliate_category || "",
+    name: "",
+    email: "",
+    phone: "",
+    category: "",
   });
+  useEffect(() => {
+    if (personalInfo) {
+      setFormData({
+        name: personalInfo.full_name || "",
+        email: personalInfo.email || "",
+        phone: personalInfo.phone_number || "",
+        category: personalInfo.affiliate_category || "",
+      });
+    }
+  }, [personalInfo]);
+
 
   const categories = [
     "Fashion Influencer",
@@ -35,13 +59,15 @@ const AffiliateProfile = () => {
   };
 
   const bankDetails = {
-    accountName: affiliate?.full_name || "",
-    bankName: "HDFC Bank",
-    accountNumber: "•••• •••• •••• 4521",
-    ifscCode: "HDFC0001234",
-    upiId: "affiliate@upi"
+    accountName: personalInfo?.full_name || "",
+    bankName: paymentDetails?.bank_name || "Not added",
+    accountNumber: paymentDetails?.account_number || "Not added",
+    ifscCode: paymentDetails?.ifsc_code || "Not added",
+    upiId: paymentDetails?.upi_id || "Not added",
   };
-
+  // if (isPending) return <GlobalLoader />;
+  if (isPending) return <p>Loading profile...</p>;
+  if (error) return <p>Error loading profile: {error.message}</p>;
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -93,7 +119,7 @@ const AffiliateProfile = () => {
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
                   ) : (
-                    <span className="font-medium">{affiliate?.full_name}</span>
+                    <span className="font-medium">{personalInfo?.full_name}</span>
                   )}
                 </div>
               </div>
@@ -110,7 +136,7 @@ const AffiliateProfile = () => {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
                   ) : (
-                    <span className="font-medium">{affiliate?.email}</span>
+                    <span className="font-medium">{personalInfo?.email}</span>
                   )}
                 </div>
               </div>
@@ -126,7 +152,7 @@ const AffiliateProfile = () => {
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
                   ) : (
-                    <span className="font-medium">{affiliate?.phone_number}</span>
+                    <span className="font-medium">{personalInfo?.phone_number}</span>
                   )}
                 </div>
               </div>
@@ -150,7 +176,7 @@ const AffiliateProfile = () => {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <Badge variant="secondary">{affiliate?.affiliate_category}</Badge>
+                    <Badge variant="secondary">{personalInfo?.affiliate_category}</Badge>
                   )}
                 </div>
               </div>
@@ -160,19 +186,19 @@ const AffiliateProfile = () => {
           {/* Account Info */}
           <div className="border-t border-border pt-6">
             <h3 className="font-semibold text-foreground mb-4">Account Details</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg">
+            <div className="grid sm:grid-cols-1 gap-4">
+              {/* <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg">
                 <Tag className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Referral Code</p>
-                  <p className="font-mono font-bold text-primary">{affiliate?.referralCode}</p>
+                  <p className="font-mono font-bold text-primary">{personalInfo?.referralCode}</p>
                 </div>
-              </div>
+              </div> */}
               <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg">
                 <Calendar className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Member Since</p>
-                  <p className="font-medium">{affiliate?.joinDate}</p>
+                  <p className="font-medium">{dayjs(personalInfo?.created_at).format("DD/MM/YYYY")}</p>
                 </div>
               </div>
             </div>

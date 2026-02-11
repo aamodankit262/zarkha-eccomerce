@@ -81,6 +81,7 @@ export const API_ENDPOINTS = {
   AFFILIATE: {
     SIGNUP: "/web/affiliate/signup",
     LOGIN: "/web/affiliate/login",
+    PROFILE: "/web/affiliate/profile",
     CategoryList: "/web/affiliate/category-list",
     DASHBOARD_STATS: "/web/affiliate/dashboard-stats",
     PRODUCT_CATEGORY_LIST: "/web/affiliate/product-category-list",
