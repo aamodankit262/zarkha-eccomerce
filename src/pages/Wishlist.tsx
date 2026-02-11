@@ -14,9 +14,8 @@ const Wishlist = () => {
   const { isLogin } = useAuthStore();
   // const fetchWishlist = useWishlistStore((s) => s.fetchWishlist);
   const wishlistItems = useWishlistStore((s) => s.items);
-  console.log(wishlistItems, 'wishlist items')
+  // console.log(wishlistItems, 'wishlist items')
   const {
-    items,
     loading,
     page,
     totalPages,

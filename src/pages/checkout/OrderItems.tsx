@@ -1,6 +1,7 @@
 import { Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { NO_IMAGE } from "@/api/endpoints";
 
 interface OrderItem {
   _id?: string;
@@ -76,7 +77,7 @@ const OrderItems = ({
 
             >
               <img
-                src={item.product_image}
+                src={item?.product_image || NO_IMAGE}
                 alt={item.product_title}
                 className="w-full h-full object-cover"
               />
