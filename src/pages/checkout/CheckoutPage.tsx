@@ -75,7 +75,7 @@ const CheckoutPage = () => {
         mobileNumber: "",
         addressType: "Home" as "Home" | "Office" | "Other",
         otp: "",
-        paymentMethod: "cod",
+        paymentMethod: "online",
         isDefault: false
 
     });
@@ -402,105 +402,191 @@ const CheckoutPage = () => {
             toast.error(err?.message || "Failed to remove coupon");
         }
     };
-    // const handleManualCouponApply = () => {
-    //     const coupon = couponList.find(
-    //         (c) => c.code === couponCode
-    //     );
-    //     if (!coupon) {
-    //         toast.error("Invalid coupon code");
-    //         return;
-    //     }
-    //     if (subtotal < coupon.minOrder) {
-    //         toast.error(`Add ₹${coupon.minOrder - subtotal} more`);
-    //         return;
-    //     }
-    //     setAppliedCoupon(coupon);
-    // };
-
+    
     /* ---------------- PAYMENT ---------------- */
     const handlePayment = async () => {
-        if (!isOtpVerified) {
-            toast.error("Please varify your mobile number");
-            return;
-        }
-        if (!selectedAddressId) {
-            toast.error("Please select delivery address");
-            return;
-        }
-        if (!items.length) {
-            toast.error("Please add product in you cart ");
-            return;
-        }
+  if (!isOtpVerified) {
+    toast.error("Please verify your mobile number");
+    return;
+  }
 
+  if (!selectedAddressId) {
+    toast.error("Please select delivery address");
+    return;
+  }
+
+  if (!items.length) {
+    toast.error("Your cart is empty");
+    return;
+  }
+
+  try {
+    const res:any = await paymentService.createPaymentOrder({
+      amount: totalAmount,
+      cart_id: cartId,
+    });
+
+    // ❌ Amount mismatch handled here
+    if (!res.success) {
+      if (res?.cart_total) {
+        toast.error(
+          `Cart total updated. Please review amount ₹${res.cart_total} and try again.`
+        );
+
+        // 🔄 refresh cart from backend
+        await fetchCart(cartId);
+        return;
+      }
+
+      toast.error(res.message || "Unable to create payment order");
+      return;
+    }
+
+    // ✅ Success flow
+    const { order_id, key_id, amount } = res.body;
+
+    const options: RazorpayOrderOptions = {
+      key: key_id,
+      amount,
+      currency: "INR",
+      name: "Zarkha",
+      description: "Order Payment",
+      order_id,
+
+      handler: async (response) => {
         try {
-            const res = await paymentService.createPaymentOrder({
-                amount: totalAmount,
-                cart_id: cartId,
-            });
-            console.log(res, 'payment create')
-            const {
-                order_id,
-                key_id,
-                amount
-            } = res.body;
-            // setOrderId(order_id);
-            const options: RazorpayOrderOptions = {
-                key: key_id,
-                amount, // in paise
-                currency: "INR",
-                name: "Zarkha",
-                description: "Order Payment",
-                order_id: order_id,
+          const verifyRes = await paymentService.verifyPayment({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            address_id: selectedAddressId,
+            cart_id: cartId,
+            customer_notes: "Please deliver between 10 AM - 6 PM",
+          });
 
-                handler: async (response) => {
-                    console.log("Payment handler", response);
+          if (verifyRes?.success) {
+            const { order } = verifyRes.body;
 
-                    // 3️⃣ Verify payment API (backend)
-                    const res = await paymentService.verifyPayment({
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_signature: response.razorpay_signature,
-                        address_id: selectedAddressId,
-                        cart_id: cartId,
-                        customer_notes: "Please deliver between 10 AM - 6 PM",
-                    });
-                    // setOrderDetail()
-                    const { verified, order } = res?.body
-                    if (res?.success) {
-                        setOrderDetail(order)
-                        setOrderId(order?.order_id)
-                        toast.success(res.message || "Payment successful");
-                        setShowSuccessModal(true);
-                        await fetchCart(cartId);
-                    }
+            setOrderDetail(order);
+            setOrderId(order?.order_id);
 
-                },
+            toast.success(verifyRes.message || "Payment successful");
+            setShowSuccessModal(true);
 
-                prefill: {
-                    name: userDetails?.name || "",
-                    contact: userDetails?.phone || "",
-                },
-
-                theme: {
-                    color: "#ed8936",
-                },
-
-                modal: {
-                    ondismiss: () => {
-                        toast.info("Payment cancelled");
-                    },
-                },
-            };
-
-            // 4️⃣ Open Razorpay
-            const razorpay = new Razorpay(options);
-            razorpay.open();
-
-        } catch (error) {
-            console.error(error);
-            toast.error("Payment failed");
+            await fetchCart(cartId); // clear cart
+          } else {
+            toast.error(verifyRes.message || "Payment verification failed");
+          }
+        } catch (err) {
+          toast.error("Payment verification error");
         }
+      },
+
+      prefill: {
+        name: userDetails?.name || "",
+        contact: userDetails?.phone || "",
+      },
+
+      theme: { color: "#ed8936" },
+
+      modal: {
+        ondismiss: () => toast.info("Payment cancelled"),
+      },
     };
+
+    const razorpay = new Razorpay(options);
+    razorpay.open();
+  } catch (error: any) {
+    console.error(error);
+    toast.error(
+      error?.response?.data?.message || "Payment failed. Please try again."
+    );
+  }
+};
+
+    // const handlePayment = async () => {
+    //     if (!isOtpVerified) {
+    //         toast.error("Please varify your mobile number");
+    //         return;
+    //     }
+    //     if (!selectedAddressId) {
+    //         toast.error("Please select delivery address");
+    //         return;
+    //     }
+    //     if (!items.length) {
+    //         toast.error("Please add product in you cart ");
+    //         return;
+    //     }
+
+    //     try {
+    //         const res = await paymentService.createPaymentOrder({
+    //             amount: totalAmount,
+    //             cart_id: cartId,
+    //         });
+    //         console.log(res, 'payment create')
+    //         const {
+    //             order_id,
+    //             key_id,
+    //             amount
+    //         } = res.body;
+    //         // setOrderId(order_id);
+    //         const options: RazorpayOrderOptions = {
+    //             key: key_id,
+    //             amount, // in paise
+    //             currency: "INR",
+    //             name: "Zarkha",
+    //             description: "Order Payment",
+    //             order_id: order_id,
+
+    //             handler: async (response) => {
+    //                 console.log("Payment handler", response);
+
+    //                 // 3️⃣ Verify payment API (backend)
+    //                 const res = await paymentService.verifyPayment({
+    //                     razorpay_order_id: response.razorpay_order_id,
+    //                     razorpay_payment_id: response.razorpay_payment_id,
+    //                     razorpay_signature: response.razorpay_signature,
+    //                     address_id: selectedAddressId,
+    //                     cart_id: cartId,
+    //                     customer_notes: "Please deliver between 10 AM - 6 PM",
+    //                 });
+    //                 // setOrderDetail()
+    //                 const { verified, order } = res?.body
+    //                 if (res?.success) {
+    //                     setOrderDetail(order)
+    //                     setOrderId(order?.order_id)
+    //                     toast.success(res.message || "Payment successful");
+    //                     setShowSuccessModal(true);
+    //                     await fetchCart(cartId);
+    //                 }
+
+    //             },
+
+    //             prefill: {
+    //                 name: userDetails?.name || "",
+    //                 contact: userDetails?.phone || "",
+    //             },
+
+    //             theme: {
+    //                 color: "#ed8936",
+    //             },
+
+    //             modal: {
+    //                 ondismiss: () => {
+    //                     toast.info("Payment cancelled");
+    //                 },
+    //             },
+    //         };
+
+    //         // 4️⃣ Open Razorpay
+    //         const razorpay = new Razorpay(options);
+    //         razorpay.open();
+
+    //     } catch (error) {
+    //         console.error(error);
+    //         toast.error("Payment failed");
+    //     }
+    // };
 
 
     return (
