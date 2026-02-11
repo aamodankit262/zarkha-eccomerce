@@ -82,7 +82,7 @@ const CheckoutPage = () => {
 
     /* ---------------- COUPON STATE ---------------- */
     const [couponCode, setCouponCode] = useState("");
-    const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+    const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
 
     /* ---------------- UI STATE ---------------- */
     const [acceptTerms, setAcceptTerms] = useState(false);
@@ -93,20 +93,20 @@ const CheckoutPage = () => {
     const { request: applyCouponRequest, loading: applyCouponLoading } = useApi(applyCoupon);
     const { request: removeCouponApi } = useApi(removeCoupon);
     // const { request: createOrder, loading: createOrderLoading } = useApi(orderService.createOrder);
-    
+
     const { Razorpay } = useRazorpay();
     const { cartId, fetchCart, items, getTotalPrice } = useCart()
     console.log(items, 'items')
-//    useEffect(() => {
-//     if(items.length === 0){
-//         navigate(-1);
-//     }
-//    },[items.length, navigate])
-// useEffect(() => {
-//   if (!items || items.length === 0) {
-//     navigate("/", { replace: true });
-//   }
-// }, [items, navigate]);
+    //    useEffect(() => {
+    //     if(items.length === 0){
+    //         navigate(-1);
+    //     }
+    //    },[items.length, navigate])
+    // useEffect(() => {
+    //   if (!items || items.length === 0) {
+    //     navigate("/", { replace: true });
+    //   }
+    // }, [items, navigate]);
     useEffect(() => {
         if (isLogin) {
             setFormData((prev) => ({
@@ -195,17 +195,19 @@ const CheckoutPage = () => {
     /* ---------------- PRICE CALC ---------------- */
     const subtotal = getTotalPrice();
     const deliveryCharges = 0;
+    console.log(appliedCoupon, 'applied coupon..')
+    const couponDiscount = appliedCoupon?.coupon_discount;
+    // const couponDiscount = appliedCoupon
+    //     ? appliedCoupon.discount_type === "percentage"
+    //         ? Math.min(
+    //             (subtotal * appliedCoupon.discount_value) / 100,
+    //             appliedCoupon.max_discount_amount ?? Infinity
+    //         )
+    //         : appliedCoupon.discount_value
+    //     : 0;
 
-    const couponDiscount = appliedCoupon
-        ? appliedCoupon.discount_type === "percentage"
-            ? Math.min(
-                (subtotal * appliedCoupon.discount_value) / 100,
-                appliedCoupon.max_discount_amount ?? Infinity
-            )
-            : appliedCoupon.discount_value
-        : 0;
-
-    const totalAmount = subtotal - couponDiscount + deliveryCharges;
+    const totalAmount = appliedCoupon?.payable_amount + deliveryCharges || subtotal + deliveryCharges;
+    // const totalAmount = subtotal - couponDiscount + deliveryCharges;
 
     /* ---------------- ADDRESS HANDLERS ---------------- */
     const handleInputChange = (key: string, value: any) => {
@@ -316,69 +318,104 @@ const CheckoutPage = () => {
 
 
     /* ---------------- COUPON HANDLERS ---------------- */
-    const handleApplyCoupon = async (coupon: Coupon) => {
-        if (subtotal < coupon.min_cart_value) {
-
-            toast.success(`Add items worth ₹${coupon.min_cart_value - subtotal} more to use this coupon.`)
-            return;
-        }
+    const getApplyCoupon = async (code: string) => {
         try {
             const payload = {
-                coupon_code: coupon.code,
+                coupon_code: code,
                 amount: subtotal,
-                cart_id: cartId,              // from cart context
-                // user_id: userDetails?.id
-            }
-            const res = await applyCouponRequest(payload)
-            console.log(res, 'apply cou...')
+                cart_id: cartId,
+            };
+
+            const res:any = await applyCouponRequest(payload);
+
             if (res?.success) {
-                setAppliedCoupon(coupon);
-                setCouponCode(coupon.code);
+                setAppliedCoupon(res.cart_summary); // use API response coupon
+                setCouponCode(code);
                 setShowCouponModal(false);
 
                 toast.success(res.message || "Coupon applied successfully");
-                toast.success(`${coupon.code} - ${coupon.description}`)
-
             } else {
                 toast.error(res?.message || "Failed to apply coupon");
             }
-        } catch (error) {
+        } catch (error: any) {
             toast.error(
                 error?.response?.data?.message || "Invalid or expired coupon"
             );
         }
-        // setAppliedCoupon(coupon);
-        // setCouponCode(coupon.code);
-        // setShowCouponModal(false);
-
-        // toast.success(`${coupon.code} - ${coupon.description}`)
     };
+    const handleApplyCoupon = async (coupon: Coupon) => {
+        await getApplyCoupon(coupon.code);
+    };
+    const handleManualCouponApply = async () => {
+        if (!couponCode) return;
+
+        await getApplyCoupon(couponCode);
+    };
+
+
+    // const handleApplyCoupon = async (coupon: Coupon) => {
+    //     // if (subtotal < coupon.min_cart_value) {
+
+    //     //     toast.success(`Add items worth ₹${coupon.min_cart_value - subtotal} more to use this coupon.`)
+    //     //     return;
+    //     // }
+    //     try {
+    //         const payload = {
+    //             coupon_code: coupon.code,
+    //             amount: subtotal,
+    //             cart_id: cartId,              // from cart context
+    //             // user_id: userDetails?.id
+    //         }
+    //         const res = await applyCouponRequest(payload)
+    //         console.log(res, 'apply cou...')
+    //         if (res?.success) {
+    //             setAppliedCoupon(coupon);
+    //             setCouponCode(coupon.code);
+    //             setShowCouponModal(false);
+
+    //             toast.success(res.message || "Coupon applied successfully");
+    //             toast.success(`${coupon.code} - ${coupon.description}`)
+
+    //         } else {
+    //             toast.error(res?.message || "Failed to apply coupon");
+    //         }
+    //     } catch (error) {
+    //         toast.error(
+    //             error?.response?.data?.message || "Invalid or expired coupon"
+    //         );
+    //     }
+    //     // setAppliedCoupon(coupon);
+    //     // setCouponCode(coupon.code);
+    //     // setShowCouponModal(false);
+
+    //     // toast.success(`${coupon.code} - ${coupon.description}`)
+    // };
     const handleRemoveCoupon = async () => {
         try {
-            await removeCouponApi(cartId, userDetails?.id);
+            const res: any = await removeCouponApi(cartId, userDetails?.id);
 
             setAppliedCoupon(null);
             setCouponCode("");
 
-            toast.success("Coupon has been removed from your order.");
+            toast.success(res?.message || "Coupon has been removed from your order.");
         } catch (err: any) {
             toast.error(err?.message || "Failed to remove coupon");
         }
     };
-    const handleManualCouponApply = () => {
-        const coupon = couponList.find(
-            (c) => c.code === couponCode
-        );
-        if (!coupon) {
-            toast.error("Invalid coupon code");
-            return;
-        }
-        if (subtotal < coupon.minOrder) {
-            toast.error(`Add ₹${coupon.minOrder - subtotal} more`);
-            return;
-        }
-        setAppliedCoupon(coupon);
-    };
+    // const handleManualCouponApply = () => {
+    //     const coupon = couponList.find(
+    //         (c) => c.code === couponCode
+    //     );
+    //     if (!coupon) {
+    //         toast.error("Invalid coupon code");
+    //         return;
+    //     }
+    //     if (subtotal < coupon.minOrder) {
+    //         toast.error(`Add ₹${coupon.minOrder - subtotal} more`);
+    //         return;
+    //     }
+    //     setAppliedCoupon(coupon);
+    // };
 
     /* ---------------- PAYMENT ---------------- */
     const handlePayment = async () => {
@@ -596,7 +633,7 @@ const CheckoutPage = () => {
                             {appliedCoupon && (
                                 <div className="flex justify-between text-sm sm:text-base">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-muted-foreground">Coupon Discount ({appliedCoupon.code})</span>
+                                        <span className="text-muted-foreground">Coupon Discount ({appliedCoupon?.coupon_code})</span>
                                         <button
                                             onClick={handleRemoveCoupon}
                                             className="text-red-500 text-xs hover:underline"
@@ -638,8 +675,8 @@ const CheckoutPage = () => {
                                         <div className="flex items-center gap-2">
                                             <Check className="w-4 h-4 text-green-600" />
                                             <div>
-                                                <span className="font-semibold text-green-700">{appliedCoupon.code}</span>
-                                                <p className="text-xs text-green-600">{appliedCoupon.description}</p>
+                                                <span className="font-semibold text-green-700">{appliedCoupon.coupon_code}</span>
+                                                {/* <p className="text-xs text-green-600">{appliedCoupon.description}</p> */}
                                             </div>
                                         </div>
                                         <button
