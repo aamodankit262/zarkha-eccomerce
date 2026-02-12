@@ -295,7 +295,9 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
                         <input
                           key={index}
                           id={`otp-${index}`}
-                          type="text"
+                          type="tel"
+                          inputMode="numeric"
+                          pattern="\d*"
                           value={digit}
                           onChange={(e) =>
                             handleOTPChange(index, e.target.value)
