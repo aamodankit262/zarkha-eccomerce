@@ -46,6 +46,78 @@ export interface AffiliateProductListParams {
   page?: number;
   limit?: number;
 }
+export interface SalesListParams {
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+export interface EarningsListParams {
+  search?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+export interface updateProfilePayload {
+  full_name: string;
+  phone_number: string;
+  affiliate_category_id: string;
+  affiliate_category: string;
+  bank_name: string;
+  ifsc_code: string;
+  account_number: string;
+  account_holder: string;
+  upi_id?: string;
+}
+export interface profileResponse {
+  success: boolean;
+  message: string;
+  _id: string;
+  status: string;
+  body: {
+    personal_information: {
+      full_name: string;
+      phone_number: string;
+      email: string;
+      affiliate_category_id: string;
+      affiliate_category: string;
+    },
+    account_details: {
+      referral_code: string;
+      member_since: string;
+    },
+    payment_details: {
+      bank_name: string;
+      ifsc_code: string;
+      account_number: string;
+      account_holder: string;
+      upi_id?: string;
+    }
+  }
+}
+export interface earningListResponse {
+  success: boolean;
+  message?: string;
+  data: [
+    {
+      _id: string,
+      affiliate_id: string,
+      full_name: string,
+      email: string,
+      status: string,
+      total_earnings: number,
+      withdrawn_amount: number,
+      pending_balance: number,
+      orders_count: number,
+      total_commission_from_orders: number
+    }
+  ]
+  pagination: {
+    totalItems: number;
+    currentPage: number;
+    itemsPerPage: number;
+    totalPages: number;
+  }
+}
 export const affiliateService = {
   /* ---------- Dashboard Stats ---------- */
   dashboardStats: async () => {
@@ -71,11 +143,25 @@ export const affiliateService = {
     );
   },
 
-  affiliateCatgeoryList : async() => {
+  affiliateCatgeoryList: async () => {
     return apiClient.get(API_ENDPOINTS.AFFILIATE.CategoryList);
   },
-  getProfile : async() => {
-    return apiClient.get<any>(API_ENDPOINTS.AFFILIATE.PROFILE);
+
+  getProfile: async () => {
+    return apiClient.get<profileResponse>(API_ENDPOINTS.AFFILIATE.PROFILE);
+  },
+
+  updateProfile: async (data: updateProfilePayload) => {
+    return apiClient.put(API_ENDPOINTS.AFFILIATE.UPDATE_PROFILE, data)
+  },
+  getSalesList: async (params?: SalesListParams) => {
+    return apiClient.post(API_ENDPOINTS.AFFILIATE.SALES_LIST, params)
+  },
+  getEarningsList: async (params?: EarningsListParams) => {
+    return apiClient.post<earningListResponse>(API_ENDPOINTS.AFFILIATE.EARNINGS_LIST, params)
+  },
+  getCouponList: async () => {
+    return apiClient.get(API_ENDPOINTS.AFFILIATE.COUPON_LIST)
   }
 
 };

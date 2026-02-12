@@ -1,79 +1,86 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingUp, ShoppingCart, DollarSign, Calendar, Package } from "lucide-react";
+import { useApi } from "@/hooks/useApi";
+import { affiliateService } from "@/services/affiliateService";
 
 const AffiliateSales = () => {
   const [period, setPeriod] = useState("this-month");
+  const { data: salesListData, request: getSalesList } = useApi(affiliateService.getSalesList);
+  useEffect(() => {
+    getSalesList();
+  }, [])
+  console.log("Sales List Data:", salesListData);
+  const salesData = salesListData?.body || [];
+  // const salesData = [
+  //   {
+  //     id: "ORD001",
+  //     date: "2024-12-23",
+  //     product: "Banarasi Silk Saree",
+  //     customer: "Priya S.",
+  //     amount: 4999,
+  //     commission: 750,
+  //     status: "completed",
+  //     couponUsed: "JOH8K2M10"
+  //   },
+  //   {
+  //     id: "ORD002",
+  //     date: "2024-12-22",
+  //     product: "Designer Lehenga Choli",
+  //     customer: "Meera K.",
+  //     amount: 8999,
+  //     commission: 1620,
+  //     status: "completed",
+  //     couponUsed: "JOH8K2M15"
+  //   },
+  //   {
+  //     id: "ORD003",
+  //     date: "2024-12-21",
+  //     product: "Embroidered Anarkali Kurti",
+  //     customer: "Anita R.",
+  //     amount: 2499,
+  //     commission: 300,
+  //     status: "pending",
+  //     couponUsed: "JOH8K2M10"
+  //   },
+  //   {
+  //     id: "ORD004",
+  //     date: "2024-12-20",
+  //     product: "Chanderi Cotton Suit",
+  //     customer: "Deepa M.",
+  //     amount: 3499,
+  //     commission: 490,
+  //     status: "completed",
+  //     couponUsed: "JOH8K2M15"
+  //   },
+  //   {
+  //     id: "ORD005",
+  //     date: "2024-12-19",
+  //     product: "Kundan Jewelry Set",
+  //     customer: "Rekha B.",
+  //     amount: 1999,
+  //     commission: 200,
+  //     status: "completed",
+  //     couponUsed: "JOH8K2M10"
+  //   },
+  //   {
+  //     id: "ORD006",
+  //     date: "2024-12-18",
+  //     product: "Patola Silk Saree",
+  //     customer: "Sunita P.",
+  //     amount: 6999,
+  //     commission: 1120,
+  //     status: "refunded",
+  //     couponUsed: "JOH8K2M500"
+  //   }
+  // ];
 
-  const salesData = [
-    {
-      id: "ORD001",
-      date: "2024-12-23",
-      product: "Banarasi Silk Saree",
-      customer: "Priya S.",
-      amount: 4999,
-      commission: 750,
-      status: "completed",
-      couponUsed: "JOH8K2M10"
-    },
-    {
-      id: "ORD002",
-      date: "2024-12-22",
-      product: "Designer Lehenga Choli",
-      customer: "Meera K.",
-      amount: 8999,
-      commission: 1620,
-      status: "completed",
-      couponUsed: "JOH8K2M15"
-    },
-    {
-      id: "ORD003",
-      date: "2024-12-21",
-      product: "Embroidered Anarkali Kurti",
-      customer: "Anita R.",
-      amount: 2499,
-      commission: 300,
-      status: "pending",
-      couponUsed: "JOH8K2M10"
-    },
-    {
-      id: "ORD004",
-      date: "2024-12-20",
-      product: "Chanderi Cotton Suit",
-      customer: "Deepa M.",
-      amount: 3499,
-      commission: 490,
-      status: "completed",
-      couponUsed: "JOH8K2M15"
-    },
-    {
-      id: "ORD005",
-      date: "2024-12-19",
-      product: "Kundan Jewelry Set",
-      customer: "Rekha B.",
-      amount: 1999,
-      commission: 200,
-      status: "completed",
-      couponUsed: "JOH8K2M10"
-    },
-    {
-      id: "ORD006",
-      date: "2024-12-18",
-      product: "Patola Silk Saree",
-      customer: "Sunita P.",
-      amount: 6999,
-      commission: 1120,
-      status: "refunded",
-      couponUsed: "JOH8K2M500"
-    }
-  ];
-
-  const totalSales = salesData.reduce((sum, s) => s.status !== "refunded" ? sum + s.amount : sum, 0);
-  const totalCommission = salesData.reduce((sum, s) => s.status !== "refunded" ? sum + s.commission : sum, 0);
-  const completedOrders = salesData.filter(s => s.status === "completed").length;
-  const pendingOrders = salesData.filter(s => s.status === "pending").length;
+  // const totalSales = salesData.reduce((sum, s) => s.status !== "refunded" ? sum + s.amount : sum, 0);
+  // const totalCommission = salesData.reduce((sum, s) => s.status !== "refunded" ? sum + s.commission : sum, 0);
+  // const completedOrders = salesData.filter(s => s.status === "completed").length;
+  // const pendingOrders = salesData.filter(s => s.status === "pending").length;
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -128,7 +135,7 @@ const AffiliateSales = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Sales</p>
-                <p className="text-xl font-bold text-foreground">₹{totalSales.toLocaleString()}</p>
+                {/* <p className="text-xl font-bold text-foreground">₹{totalSales.toLocaleString()}</p> */}
               </div>
             </div>
           </CardContent>
@@ -141,7 +148,8 @@ const AffiliateSales = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Commission</p>
-                <p className="text-xl font-bold text-green-600">₹{totalCommission.toLocaleString()}</p>
+                <p className="text-xl font-bold text-green-600">₹0</p>
+                {/* <p className="text-xl font-bold text-green-600">₹{totalCommission.toLocaleString()}</p> */}
               </div>
             </div>
           </CardContent>
@@ -154,7 +162,8 @@ const AffiliateSales = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-xl font-bold text-foreground">{pendingOrders}</p>
+                <p className="text-xl font-bold text-foreground">0</p>
+                {/* <p className="text-xl font-bold text-foreground">{pendingOrders}</p> */}
               </div>
             </div>
           </CardContent>
@@ -182,15 +191,15 @@ const AffiliateSales = () => {
                 </tr>
               </thead>
               <tbody>
-                {salesData.map((sale) => (
+                {salesData?.map((sale:any) => (
                   <tr key={sale.id} className="border-b border-border last:border-0">
-                    <td className="py-3 px-2 font-mono text-sm">{sale.id}</td>
+                    <td className="py-3 px-2 font-mono text-sm">{sale.order_id}</td>
                     <td className="py-3 px-2 text-sm text-muted-foreground">{sale.date}</td>
-                    <td className="py-3 px-2 text-sm font-medium">{sale.product}</td>
+                    <td className="py-3 px-2 text-sm font-medium">{sale.product.slice(0, 20)}{sale.product.length > 20 ? '...' : ''}</td>
                     <td className="py-3 px-2 text-sm">{sale.customer}</td>
                     <td className="py-3 px-2">
                       <Badge variant="outline" className="font-mono text-xs">
-                        {sale.couponUsed}
+                        {sale.coupon || "N/A"}
                       </Badge>
                     </td>
                     <td className="py-3 px-2 text-sm text-right font-medium">₹{sale.amount.toLocaleString()}</td>

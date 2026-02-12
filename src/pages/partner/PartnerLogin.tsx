@@ -131,16 +131,20 @@ const PartnerLogin = () => {
           return;
         }
         const success = await affiliateSignup(affiliateData);
+        // console.log(success, 'signup');
         if (success) {
-          toast.success("Account created successfully!");
-          navigate('/affiliate/dashboard');
+          // navigate('/affiliate/login');
+          setIsSignup(false)
+        
         } else {
-          toast.error("Signup failed. Please try again.");
+          // toast.error("Signup failed. Please try again.");
+          // toast.error(error?.response?.data?.message || error.message || "Signup failed");
+
         }
       } else {
         const success = await affiliateLogin(affiliateData.email, affiliateData.password);
         if (success) {
-          toast.success("Welcome back!");
+          // toast.success("Welcome back!");
           navigate('/affiliate/dashboard');
         }
       }
@@ -196,16 +200,16 @@ const PartnerLogin = () => {
 
   // Type Selection Dialog
   const TypeSelectorDialog = () => (
-    <Dialog open={showTypeSelector} 
-    onOpenChange={(open) => {
-      // Only allow closing if a partner type is already selected
-      if (!open && partnerType) {
-        setShowTypeSelector(false);
-      }
-    }}
+    <Dialog open={showTypeSelector}
+      onOpenChange={(open) => {
+        // Only allow closing if a partner type is already selected
+        if (!open && partnerType) {
+          setShowTypeSelector(false);
+        }
+      }}
     // onOpenChange={setShowTypeSelector} 
     >
-      
+
       <DialogContent className="max-w-md mx-4 sm:mx-auto">
         <DialogHeader>
           <div className="flex justify-center mb-4">
