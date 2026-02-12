@@ -3,186 +3,216 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, Tag, Calendar, Edit2, Save, X, CreditCard, Building2 } from "lucide-react";
-import { useAffiliate } from "@/contexts/AffiliateContext";
+import {
+  User,
+  Mail,
+  Phone,
+  Tag,
+  Edit2,
+  Save,
+  X,
+  Calendar,
+} from "lucide-react";
 import { toast } from "sonner";
 import { affiliateService } from "@/services/affiliateService";
-import { useQuery } from "@tanstack/react-query";
-import dayjs from "dayjs";
 import GlobalLoader from "../GlobalLoader";
+import { useApi } from "@/hooks/useApi";
+import dayjs from "dayjs";
 
 const AffiliateProfile = () => {
-  // const { affiliate } = useAffiliate();
   const [isEditing, setIsEditing] = useState(false);
-  const { isPending, error, data: profileData } = useQuery({
-    queryKey: ['affiliate-profile'],
-    queryFn: affiliateService.getProfile
-  })
-  const affiliate = profileData?.body;
-  const personalInfo = affiliate?.personal_information;
-  const accountDetails = affiliate?.account_details;
-  const paymentDetails = affiliate?.payment_details;
 
+  /** ---------------- API hooks ---------------- */
+  const { data, request: fetchProfile, loading } = useApi(
+    affiliateService.getProfile
+  );
+
+  const {
+    request: updateProfile,
+    loading: updating,
+  } = useApi(affiliateService.updateProfile);
+
+  const {
+    request: fetchCategory,
+    data: categoryData,
+  } = useApi(affiliateService.affiliateCatgeoryList);
+
+  /** ---------------- Derived data ---------------- */
+  const affiliate = data?.body;
+  const accountDetails = affiliate?.account_details;
+  const personalInfo = affiliate?.personal_information;
+  const paymentDetails = affiliate?.payment_details;
+  const affiliateCategories = categoryData?.body;
+
+  /** ---------------- Fetch on mount ---------------- */
+  useEffect(() => {
+    fetchProfile();
+    fetchCategory();
+  }, []);
+
+  /** ---------------- Form state ---------------- */
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     category: "",
+    bankName: "",
+    ifsc_code: "",
+    account_number: "",
+    account_holder: "",
+    upi_id: "",
   });
+
+  /** ---------------- Populate form ---------------- */
   useEffect(() => {
-    if (personalInfo) {
-      setFormData({
-        name: personalInfo.full_name || "",
-        email: personalInfo.email || "",
-        phone: personalInfo.phone_number || "",
-        category: personalInfo.affiliate_category || "",
-      });
+    if (!personalInfo) return;
+
+    setFormData({
+      name: personalInfo.full_name || "",
+      email: personalInfo.email || "",
+      phone: personalInfo.phone_number || "",
+      category: personalInfo.affiliate_category_id || "",
+      bankName: paymentDetails?.bank_name || "",
+      ifsc_code: paymentDetails?.ifsc_code || "",
+      account_number: paymentDetails?.account_number || "",
+      account_holder:
+        paymentDetails?.account_holder || personalInfo.full_name || "",
+      upi_id: paymentDetails?.upi_id || "",
+    });
+  }, [personalInfo, paymentDetails]);
+
+  /** ---------------- Save handler ---------------- */
+  const handleSave = async () => {
+    try {
+      const payload = {
+        full_name: formData.name,
+        phone_number: formData.phone,
+        affiliate_category_id: formData.category,
+        affiliate_category:
+          affiliateCategories?.find((c: any) => c._id === formData.category)
+            ?.category_name || "",
+        bank_name: formData.bankName,
+        ifsc_code: formData.ifsc_code,
+        account_number: formData.account_number,
+        account_holder: formData.account_holder || formData.name,
+        upi_id: formData.upi_id,
+      };
+
+      await updateProfile(payload);
+
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+      fetchProfile(); // refresh
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to update profile"
+      );
     }
-  }, [personalInfo]);
-
-
-  const categories = [
-    "Fashion Influencer",
-    "Lifestyle Blogger",
-    "Social Media Creator",
-    "YouTube Reviewer",
-    "Website Owner",
-    "Email Marketer",
-    "Other"
-  ];
-
-  const handleSave = () => {
-    toast.success("Profile updated successfully!");
-    setIsEditing(false);
   };
 
+  /** ---------------- Loading ---------------- */
+  if (loading) return <GlobalLoader />;
+
+  /** ---------------- Bank display ---------------- */
   const bankDetails = {
-    accountName: personalInfo?.full_name || "",
     bankName: paymentDetails?.bank_name || "Not added",
     accountNumber: paymentDetails?.account_number || "Not added",
     ifscCode: paymentDetails?.ifsc_code || "Not added",
     upiId: paymentDetails?.upi_id || "Not added",
   };
-  // if (isPending) return <GlobalLoader />;
-  if (isPending) return <p>Loading profile...</p>;
-  if (error) return <p>Error loading profile: {error.message}</p>;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Your Profile</h2>
-          <p className="text-muted-foreground">Manage your affiliate account settings</p>
-        </div>
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold">Your Profile</h2>
+        <p className="text-muted-foreground">
+          Manage your affiliate account settings
+        </p>
       </div>
 
-      {/* Profile Card */}
+      {/* Personal Info */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Personal Information</CardTitle>
-            {!isEditing ? (
-              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                <Edit2 className="h-4 w-4 mr-2" />
-                Edit
+        <CardHeader className="flex flex-row justify-between items-center">
+          <CardTitle>Personal Information</CardTitle>
+
+          {!isEditing ? (
+            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+              <Edit2 className="h-4 w-4 mr-2" /> Edit
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
+                <X className="h-4 w-4 mr-2" /> Cancel
               </Button>
+
+              <Button size="sm" onClick={handleSave} disabled={updating}>
+                <Save className="h-4 w-4 mr-2" />
+                {updating ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          )}
+        </CardHeader>
+
+        <CardContent className="grid sm:grid-cols-2 gap-4">
+          <Field
+            label="Full Name"
+            icon={<User className="h-4 w-4" />}
+            editing={isEditing}
+            value={formData.name}
+            display={personalInfo?.full_name}
+            onChange={(v) => setFormData({ ...formData, name: v })}
+          />
+
+          <Field
+            label="Email"
+            icon={<Mail className="h-4 w-4" />}
+            editing={isEditing}
+            value={formData.email}
+            display={personalInfo?.email}
+            onChange={(v) => setFormData({ ...formData, email: v })}
+          />
+
+          <Field
+            label="Phone"
+            icon={<Phone className="h-4 w-4" />}
+            editing={isEditing}
+            value={formData.phone}
+            display={personalInfo?.phone_number}
+            onChange={(v) => setFormData({ ...formData, phone: v })}
+          />
+
+          {/* Category */}
+          <div className="space-y-2">
+            <Label>Affiliate Category</Label>
+            {isEditing ? (
+              <Select
+                value={formData.category}
+                onValueChange={(v) => setFormData({ ...formData, category: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {affiliateCategories?.map((cat: any) => (
+                    <SelectItem key={cat._id} value={cat._id}>
+                      {cat.category_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : (
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleSave} className="bg-primary hover:bg-primary/90">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save
-                </Button>
-              </div>
+              <Badge>{personalInfo?.affiliate_category}</Badge>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Avatar & Basic Info */}
-          <div className="flex flex-col sm:flex-row items-start gap-6">
-            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-              <User className="h-12 w-12 text-primary" />
-            </div>
-            <div className="flex-1 grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  {isEditing ? (
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    />
-                  ) : (
-                    <span className="font-medium">{personalInfo?.full_name}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  {isEditing ? (
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                  ) : (
-                    <span className="font-medium">{personalInfo?.email}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  {isEditing ? (
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                  ) : (
-                    <span className="font-medium">{personalInfo?.phone_number}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category">Affiliate Category</Label>
-                <div className="flex items-center gap-2">
-                  <Tag className="h-4 w-4 text-muted-foreground" />
-                  {isEditing ? (
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value) => setFormData({ ...formData, category: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Badge variant="secondary">{personalInfo?.affiliate_category}</Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Account Info */}
           <div className="border-t border-border pt-6">
             <h3 className="font-semibold text-foreground mb-4">Account Details</h3>
@@ -198,7 +228,7 @@ const AffiliateProfile = () => {
                 <Calendar className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Member Since</p>
-                  <p className="font-medium">{dayjs(personalInfo?.created_at).format("DD/MM/YYYY")}</p>
+                  <p className="font-medium">{dayjs(accountDetails?.member_since).format("DD/MM/YYYY")}</p>
                 </div>
               </div>
             </div>
@@ -209,52 +239,43 @@ const AffiliateProfile = () => {
       {/* Bank Details */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Payment Details
-            </CardTitle>
-            <Button variant="outline" size="sm">
-              <Edit2 className="h-4 w-4 mr-2" />
-              Update
-            </Button>
-          </div>
+          <CardTitle>Payment Details</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-4 border border-border rounded-lg">
-              <Building2 className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Bank Name</p>
-                <p className="font-medium">{bankDetails.bankName}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 border border-border rounded-lg">
-              <CreditCard className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Account Number</p>
-                <p className="font-medium font-mono">{bankDetails.accountNumber}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 border border-border rounded-lg">
-              <span className="text-muted-foreground font-mono text-sm">IFSC</span>
-              <div>
-                <p className="text-sm text-muted-foreground">IFSC Code</p>
-                <p className="font-medium font-mono">{bankDetails.ifscCode}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 border border-border rounded-lg">
-              <span className="text-muted-foreground">@</span>
-              <div>
-                <p className="text-sm text-muted-foreground">UPI ID</p>
-                <p className="font-medium">{bankDetails.upiId}</p>
-              </div>
-            </div>
-          </div>
+
+        <CardContent className="grid sm:grid-cols-2 gap-4">
+          <BankField
+            label="Bank Name"
+            editing={isEditing}
+            value={formData.bankName}
+            display={bankDetails.bankName}
+            onChange={(v) => setFormData({ ...formData, bankName: v })}
+          />
+
+          <BankField
+            label="Account Number"
+            editing={isEditing}
+            value={formData.account_number}
+            display={bankDetails.accountNumber}
+            onChange={(v) => setFormData({ ...formData, account_number: v })}
+          />
+
+          <BankField
+            label="IFSC Code"
+            editing={isEditing}
+            value={formData.ifsc_code}
+            display={bankDetails.ifscCode}
+            onChange={(v) => setFormData({ ...formData, ifsc_code: v })}
+          />
+
+          <BankField
+            label="UPI ID"
+            editing={isEditing}
+            value={formData.upi_id}
+            display={bankDetails.upiId}
+            onChange={(v) => setFormData({ ...formData, upi_id: v })}
+          />
         </CardContent>
       </Card>
-
-      {/* Danger Zone */}
       <Card className="border-destructive/50">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
@@ -278,3 +299,30 @@ const AffiliateProfile = () => {
 };
 
 export default AffiliateProfile;
+
+/** ---------- Reusable Components ---------- */
+
+const Field = ({ label, icon, editing, value, display, onChange }: any) => (
+  <div className="space-y-2">
+    <Label>{label}</Label>
+    {editing ? (
+      <Input value={value} onChange={(e) => onChange(e.target.value)} />
+    ) : (
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="font-medium">{display}</span>
+      </div>
+    )}
+  </div>
+);
+
+const BankField = ({ label, editing, value, display, onChange }: any) => (
+  <div className="space-y-2">
+    <Label>{label}</Label>
+    {editing ? (
+      <Input value={value} onChange={(e) => onChange(e.target.value)} />
+    ) : (
+      <p className="font-medium">{display}</p>
+    )}
+  </div>
+);

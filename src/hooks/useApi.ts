@@ -8,7 +8,7 @@ export const useApi = <T,>(
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  const { setLoading: setGlobalLoading } = useApiStore();
+  const { setLoading: setGlobalLoading, setError: setGlobalError } = useApiStore();
 
   const request = async (...args: any[]) => {
     try {
@@ -25,6 +25,7 @@ export const useApi = <T,>(
         err?.response?.data?.message || err?.message || "Something went wrong";
 
       setLocalError(message);
+      setGlobalError(message);
       throw err;
     } finally {
       setLocalLoading(false);

@@ -90,7 +90,7 @@ const AffiliateLogin = () => {
         console.log(success, 'signup');
         if (success) {
           // toast.success("Account created successfully!");
-          navigate('/affiliate/dashboard');
+          navigate('/affiliate/login');
         } else {
           // toast.error("Signup failed. Please try again.");
         }

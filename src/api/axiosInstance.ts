@@ -36,7 +36,7 @@ axiosInstance.interceptors.request.use(
     const url = config.url || "";
 
     // 👇 Affiliate APIs
-    
+
     if (url.includes("/affiliate")) {
       const affiliateToken = getAffiliateToken();
       if (affiliateToken && config.headers) {
@@ -69,11 +69,13 @@ axiosInstance.interceptors.response.use(
       status,
       message: error.response?.data?.message || error.message,
     });
-
+    const nothoundmessage = error.response?.data?.message || error.message || "An error occurred. Please try again.";
     //  Handle Unauthorized
-    if (status === 401) {
+    if (nothoundmessage.toLowerCase().includes("unauthorized") || nothoundmessage.toLowerCase().includes("unauthorised") || status === 401) {
       // Avoid infinite redirect loop
-      // localStorage.removeItem("zarkha-auth");
+
+      localStorage.removeItem("zarkha-auth");
+      localStorage.removeItem("affiliate-auth");
 
       toast.error(
         error.response?.data?.message || error.message || "Session expired. Please login again."

@@ -1,25 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Tag, Plus, Percent, Calendar, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { useAffiliate } from "@/contexts/AffiliateContext";
+import { useApi } from "@/hooks/useApi";
+import { affiliateService } from "@/services/affiliateService";
 
 const AffiliateCoupons = () => {
   const { affiliate } = useAffiliate();
-
+  const { data: couponListData, request: getCouponList } = useApi(affiliateService.getCouponList);
+  useEffect(() => {
+    getCouponList();
+  }, [])
+  // const coupons = couponListData?.body || [];
+  // console.log("Affiliate Coupons Data:", coupons);
   const coupons = [
     {
-      id: 1,
-      code: `${affiliate?.referralCode}10`,
-      discount: 10,
-      type: "percentage",
-      uses: 45,
-      maxUses: 100,
-      expiresAt: "2025-01-31",
-      status: "active",
-      earnings: 4500
+        id: 1,
+        code: `${affiliate?.referralCode}10`,
+        discount: 10,
+        type: "percentage",
+        uses: 45,
+        maxUses: 100,
+        expiresAt: "2025-01-31",
+        status: "active",
+        earnings: 4500
     },
     {
       id: 2,
@@ -116,8 +123,8 @@ const AffiliateCoupons = () => {
 
       {/* Coupons List */}
       <div className="grid gap-4">
-        {coupons.map((coupon) => (
-          <Card key={coupon.id} className={coupon.status === "expired" ? "opacity-60" : ""}>
+        {coupons?.map((coupon:any) => (
+          <Card key={coupon._id} className={coupon.status === "expired" ? "opacity-60" : ""}>
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -143,7 +150,7 @@ const AffiliateCoupons = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-wrap items-center gap-4">
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">Uses</p>
@@ -158,7 +165,7 @@ const AffiliateCoupons = () => {
                   </Badge>
                 </div>
               </div>
-              
+
               {/* Usage Progress */}
               <div className="mt-4">
                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
@@ -166,7 +173,7 @@ const AffiliateCoupons = () => {
                   <span>{Math.round((coupon.uses / coupon.maxUses) * 100)}%</span>
                 </div>
                 <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-primary rounded-full transition-all"
                     style={{ width: `${(coupon.uses / coupon.maxUses) * 100}%` }}
                   />

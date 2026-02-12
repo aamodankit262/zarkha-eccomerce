@@ -53,7 +53,7 @@ export const useAffiliate = () => {
 
 export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
   // const [affiliate, setAffiliate] = useState<AffiliateUser | null>(null);
-   const [affiliate, setAffiliate] = useState<AffiliateUser | null>(() => {
+  const [affiliate, setAffiliate] = useState<AffiliateUser | null>(() => {
     // Restore from localStorage on mount
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : null;
@@ -99,8 +99,9 @@ export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
         toast.error(res.message);
         return false;
       }
-
+       
       saveSession(res.body, res.token);
+        toast.success(res.message);
       return true;
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Login failed");
@@ -125,12 +126,17 @@ export const AffiliateProvider = ({ children }: { children: ReactNode }) => {
       if (res.success) {
         toast.success(res.message);
         return true;
+      } else (error: any) => {
+        // toast.error(error?.response?.data?.message || "Signup failed");
+        toast.error(error?.response?.data?.message || error.message || "Signup failed");
+
+        return false;
       }
 
-      toast.error(res.message);
+      // toast.error(res.message);
       return false;
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Signup failed");
+      toast.error(error?.response?.data?.message || error.message || "Signup failed");
       return false;
     }
   };

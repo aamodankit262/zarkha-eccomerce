@@ -3,10 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, TrendingUp, Clock, CheckCircle, Download, CreditCard, Calendar, ArrowUpRight } from "lucide-react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
+import { useApi } from "@/hooks/useApi";
+import { affiliateService } from "@/services/affiliateService";
+import { useEffect } from "react";
 
 const AffiliateEarnings = () => {
   const { affiliate } = useAffiliate();
-
+  const { data: earningsListData, request: getEarningsList } = useApi(affiliateService.getEarningsList);
+   console.log(affiliate, 'Affiliate Data');
+  // useEffect(() => {
+  //   getEarningsList();
+  // }, [])
+  const earningsData = earningsListData?.data || [];
+  console.log("Earnings List Data:", earningsData);
   const paymentHistory = [
     {
       id: "PAY001",
@@ -73,7 +82,7 @@ const AffiliateEarnings = () => {
               </div>
               <div>
                 <p className="text-sm text-green-700">Total Earned</p>
-                <p className="text-2xl font-bold text-green-800">₹{affiliate?.totalEarnings?.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-800">₹ 0</p>
               </div>
             </div>
           </CardContent>

@@ -2,90 +2,93 @@ export const NO_IMAGE = "/assets/no_image.jpg"
 export const logoImage = "/assets/logo.png"
 export const API_ENDPOINTS = {
   BASE_URL: import.meta.env.VITE_API_BASE_URL,
-  HOME: "/web/home",
+  HOME: "/api/web/home",
   AUTH: {
-    SEND_OTP: "/web/auth/send-otp",
-    VERIFY_OTP: "/web/auth/verify-otp",
+    SEND_OTP: "/api/web/auth/send-otp",
+    VERIFY_OTP: "/api/web/auth/verify-otp",
   },
   INDUSTRY: {
-    LIST: "/web/list/industry",
+    LIST: "/api/web/list/industry",
     CATEGORY: {
-      LIST: "/web/list/category",
-      CategorySubCategory: "/web/list/categories-with-subcategories",
+      LIST: "/api/web/list/category",
+      CategorySubCategory: "/api/web/list/categories-with-subcategories",
       SUBCATEGORY: {
-        LIST: "/web/list/subcategory",
+        LIST: "/api/web/list/subcategory",
       }
     }
     // LIST: 
-    // DETAIL: (id: string | number) => `/web/industry/${id}`,
+    // DETAIL: (id: string | number) => `/api/web/industry/${id}`,
   },
   PRODUCTS: {
-    LIST: "/web/products",
-    RARTING: "/web/products/ratings",
-    DETAIL: "/web/products/details",
+    LIST: "/api/web/products",
+    RARTING: "/api/web/products/ratings",
+    DETAIL: "/api/web/products/details",
   },
   SIZE: {
-    LIST: "/web/size-chart/list",
-    PRODUCT: "/web/size-chart/product",
-    CATEGORY: "/web/size-chart/category",
+    LIST: "/api/web/size-chart/list",
+    PRODUCT: "/api/web/size-chart/product",
+    CATEGORY: "/api/web/size-chart/category",
   },
   WISHLIST: {
-    ADD: "/web/wishlist/add",
-    REMOVE: "/web/wishlist/remove",
-    LIST: "/web/wishlist/list",
+    ADD: "/api/web/wishlist/add",
+    REMOVE: "/api/web/wishlist/remove",
+    LIST: "/api/web/wishlist/list",
   },
   CART: {
-    GET: "/web/products/cart",
-    ADD: "/web/products/cart/add",
-    UPDATE: "/web/products/cart/update",
-    REMOVE: "/web/products/cart/remove",
+    GET: "/api/web/products/cart",
+    ADD: "/api/web/products/cart/add",
+    UPDATE: "/api/web/products/cart/update",
+    REMOVE: "/api/web/products/cart/remove",
   },
   USER: {
     PROFILE: "/user/profile",
   },
   ADDRESS: {
-    CREATE: "/web/address/create",
-    EDIT: "/web/address/update",
-    VIEW: "/web/address/view",
-    LIST: "/web/address/list",
-    DELETE: "/web/address/delete",
+    CREATE: "/api/web/address/create",
+    EDIT: "/api/web/address/update",
+    VIEW: "/api/web/address/view",
+    LIST: "/api/web/address/list",
+    DELETE: "/api/web/address/delete",
   },
   FAQ: {
-    LIST: "/web/faq/list",
+    LIST: "/api/web/faq/list",
   },
   LIST: {
-    STATES: "/web/list/states",
-    CITY: "/web/list/cities",
+    STATES: "/api/web/list/states",
+    CITY: "/api/web/list/cities",
   },
   COUPON: {
-    LIST: "/web/coupon/list",
-    APPLY: "/web/coupon/add",
-    REMOVE: "/web/coupon/remove",
+    LIST: "/api/web/coupon/list",
+    APPLY: "/api/web/coupon/add",
+    REMOVE: "/api/web/coupon/remove",
   },
   ORDERS: {
-    CREATE: "/web/order/create",
-    LIST: "/web/order/list",
-    VIEW: "/web/order/view",
-    UPDATE: "/web/order/update",
-    CANCEL: "/web/order/cancel",
+    CREATE: "/api/web/order/create",
+    LIST: "/api/web/order/list",
+    VIEW: "/api/web/order/view",
+    UPDATE: "/api/web/order/update",
+    CANCEL: "/api/web/order/cancel",
   },
   // API_ENDPOINTS.ts
   PAYMENT: {
-    CREATE_ORDER: "/web/payment/create-order",
-    VERIFY: "/web/payment/verify",
+    CREATE_ORDER: "/api/web/payment/create-order",
+    VERIFY: "/api/web/payment/verify",
   },
-  CMS: "/web/user/cms/get",
-  CONTACT_US: "/web/contact-us",
+  CMS: "/api/web/user/cms/get",
+  CONTACT_US: "/api/web/contact-us",
 
   // API_ENDPOINTS.ts
   AFFILIATE: {
-    SIGNUP: "/web/affiliate/signup",
-    LOGIN: "/web/affiliate/login",
-    PROFILE: "/web/affiliate/profile",
-    CategoryList: "/web/affiliate/category-list",
-    DASHBOARD_STATS: "/web/affiliate/dashboard-stats",
-    PRODUCT_CATEGORY_LIST: "/web/affiliate/product-category-list",
-    PRODUCT_LIST: "/web/affiliate/product-list",
-
+    SIGNUP: "/api/web/affiliate/signup",
+    LOGIN: "/api/web/affiliate/login",
+    PROFILE: "/api/web/affiliate/profile",
+    UPDATE_PROFILE: "/api/web/affiliate/profile",
+    CategoryList: "/api/web/affiliate/category-list",
+    DASHBOARD_STATS: "/api/web/affiliate/dashboard-stats",
+    PRODUCT_CATEGORY_LIST: "/api/web/affiliate/product-category-list",
+    PRODUCT_LIST: "/api/web/affiliate/product-list",
+    SALES_LIST: "/api/web/affiliate/sales-list",
+    COUPON_LIST: "/api/web/coupon/affiliate/list" ,
+    EARNINGS_LIST: "/affiliate/api/earnings-list" ,
   }
 };
