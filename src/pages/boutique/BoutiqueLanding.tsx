@@ -1,8 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Store, TrendingUp, Package, CreditCard, ShoppingBag, Users, Star, ArrowRight } from "lucide-react";
-import { logoImage } from "@/api/endpoints";
 
 const BoutiqueLanding = () => {
   const navigate = useNavigate();
@@ -38,7 +37,7 @@ const BoutiqueLanding = () => {
   ];
 
   const categories = [
-    "Kurta Sets", "Sarees", "Lehengas", "Anarkalis",
+    "Kurta Sets", "Sarees", "Lehengas", "Anarkalis", 
     "Palazzo Sets", "Salwar Suits", "Indo-Western", "Bridal Wear"
   ];
 
@@ -55,17 +54,10 @@ const BoutiqueLanding = () => {
       {/* Header */}
       <header className="border-b border-border bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          {/* <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Store className="h-8 w-8 text-brand-orange" />
             <span className="text-xl font-bold text-warm-brown">Zarkhai Boutique Partner</span>
-          </div> */}
-          <Link to="/" className="flex items-center gap-2">
-            <img
-              src={logoImage}
-              alt="Zarkha"
-              className="h-8 w-auto cursor-pointer"
-            />
-          </Link>
+          </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => navigate('/boutique/login')}>
               Login
@@ -86,7 +78,7 @@ const BoutiqueLanding = () => {
                 Grow Your Boutique with India's Finest Ethnic Wear
               </h1>
               <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
-                Partner with Zarkhai to access premium quality products, set your own margins,
+                Partner with Zarkhai to access premium quality products, set your own margins, 
                 and grow your business with our trusted platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -99,9 +91,9 @@ const BoutiqueLanding = () => {
               </div>
             </div>
             <div className="relative hidden md:block">
-              <img
-                src="/assets/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png"
-                alt="Boutique Partner"
+              <img 
+                src="/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png" 
+                alt="Boutique Partner" 
                 className="rounded-2xl shadow-2xl"
               />
             </div>
@@ -173,7 +165,7 @@ const BoutiqueLanding = () => {
           </h2>
           <div className="flex flex-wrap justify-center gap-3 md:gap-4">
             {categories.map((category, index) => (
-              <span
+              <span 
                 key={index}
                 className="px-4 md:px-6 py-2 md:py-3 bg-warm-brown/5 rounded-full text-warm-brown font-medium text-sm md:text-base hover:bg-brand-orange hover:text-white transition-colors cursor-pointer"
               >
@@ -222,8 +214,8 @@ const BoutiqueLanding = () => {
           <p className="text-white/80 mb-6 md:mb-8 text-sm md:text-base">
             Join hundreds of successful boutique partners and start earning more today.
           </p>
-          <Button
-            size="lg"
+          <Button 
+            size="lg" 
             className="bg-white text-warm-brown hover:bg-white/90"
             onClick={() => navigate('/boutique/login?signup=true')}
           >

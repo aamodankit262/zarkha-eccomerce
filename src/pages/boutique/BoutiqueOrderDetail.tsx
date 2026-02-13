@@ -288,13 +288,47 @@ const BoutiqueOrderDetail = () => {
           </CardContent>
         </Card>
 
+        {/* Inventory & Stock Details */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Package className="h-4 w-4" /> Inventory Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 pt-0">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-3 bg-muted rounded-lg text-center">
+                <p className="text-xs text-muted-foreground">Ordered Qty</p>
+                <p className="text-lg font-bold">{order.quantity} pcs</p>
+              </div>
+              <div className="p-3 bg-muted rounded-lg text-center">
+                <p className="text-xs text-muted-foreground">Unit Cost</p>
+                <p className="text-lg font-bold">₹{order.buyingPrice}</p>
+              </div>
+              <div className="p-3 bg-muted rounded-lg text-center">
+                <p className="text-xs text-muted-foreground">Total Investment</p>
+                <p className="text-lg font-bold text-brand-orange">₹{totalCost.toLocaleString()}</p>
+              </div>
+              <div className="p-3 bg-muted rounded-lg text-center">
+                <p className="text-xs text-muted-foreground">Stock Status</p>
+                <p className={`text-lg font-bold ${order.status === 'delivered' ? 'text-green-600' : 'text-yellow-600'}`}>
+                  {order.status === 'delivered' ? 'In Stock' : 'In Transit'}
+                </p>
+              </div>
+            </div>
+            {order.isBulkOrder && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700 font-medium">Bulk Order</p>
+                <p className="text-xs text-blue-600">This is a bulk stock purchase of {order.quantity} units for inventory.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Actions */}
         <div className="flex gap-3">
           <Button variant="outline" className="flex-1" onClick={() => navigate('/boutique/dashboard')}>
             Back to Orders
-          </Button>
-          <Button variant="brand" className="flex-1" onClick={() => navigate('/boutique/payment')}>
-            View Payment Status
           </Button>
         </div>
       </div>

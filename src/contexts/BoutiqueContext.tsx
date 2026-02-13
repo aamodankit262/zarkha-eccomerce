@@ -27,6 +27,13 @@ interface CustomerInfo {
   email: string;
 }
 
+export interface ProductPrice {
+  productId: string;
+  sellingPrice: number;
+  lastUpdated: string;
+  displayOnBrandPage: boolean;
+}
+
 export interface BoutiqueOrder {
   id: string;
   productId: string;
@@ -81,11 +88,15 @@ interface BoutiqueContextType {
   orders: BoutiqueOrder[];
   sales: BoutiqueSale[];
   payments: BoutiquePayment[];
+  productPrices: ProductPrice[];
   login: (email: string, password: string) => Promise<boolean>;
   signup: (userData: Partial<BoutiqueUser> & { password: string }) => Promise<boolean>;
   logout: () => void;
   placeOrder: (order: OrderInput) => void;
   placeBulkOrder: (orders: OrderInput[]) => void;
+  updateProductPrice: (productId: string, sellingPrice: number, displayOnBrandPage?: boolean) => void;
+  toggleProductDisplay: (productId: string) => void;
+  getProductPrice: (productId: string) => ProductPrice | undefined;
 }
 
 const BoutiqueContext = createContext<BoutiqueContextType | undefined>(undefined);
@@ -99,9 +110,7 @@ export const useBoutique = () => {
 };
 
 export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // const [user, setUser] = useState<BoutiqueUser | null>(null);
-    const [isLoggedIn, setIsLoggedIn] = useState(() => {
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const stored = localStorage.getItem('boutique_logged_in');
     return stored === 'true';
   });
@@ -110,12 +119,33 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
     return stored ? JSON.parse(stored) : null;
   });
   
+  const [productPrices, setProductPrices] = useState<ProductPrice[]>(() => {
+    const stored = localStorage.getItem('boutique_product_prices');
+    return stored ? JSON.parse(stored) : [
+      { productId: '1', sellingPrice: 2499, lastUpdated: '2024-01-15', displayOnBrandPage: true },
+      { productId: '2', sellingPrice: 1799, lastUpdated: '2024-01-18', displayOnBrandPage: true },
+      { productId: '3', sellingPrice: 6499, lastUpdated: '2024-01-20', displayOnBrandPage: true },
+    ];
+  });
+
+  // Update user and persist to localStorage
+  const updateUser = (newUser: BoutiqueUser | null, loggedIn: boolean) => {
+    setUser(newUser);
+    setIsLoggedIn(loggedIn);
+    if (newUser) {
+      localStorage.setItem('boutique_user', JSON.stringify(newUser));
+      localStorage.setItem('boutique_logged_in', 'true');
+    } else {
+      localStorage.removeItem('boutique_user');
+      localStorage.setItem('boutique_logged_in', 'false');
+    }
+  };
   const [orders, setOrders] = useState<BoutiqueOrder[]>([
     {
       id: 'ORD001',
       productId: '1',
       productName: 'Embroidered Silk Kurta Set',
-      productImage: '/assets/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png',
+      productImage: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png',
       quantity: 5,
       buyingPrice: 1800,
       sellingPrice: 2499,
@@ -147,7 +177,7 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
       id: 'ORD002',
       productId: '2',
       productName: 'Printed Cotton Anarkali',
-      productImage: '/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png',
+      productImage: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png',
       quantity: 3,
       buyingPrice: 1200,
       sellingPrice: 1799,
@@ -171,7 +201,7 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
       id: 'ORD003',
       productId: '3',
       productName: 'Designer Lehenga Choli',
-      productImage: '/assets/beea47d5-6ae4-460a-a065-76f4befc19cb.png',
+      productImage: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png',
       quantity: 10,
       buyingPrice: 4500,
       sellingPrice: 6499,
@@ -242,7 +272,7 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     if (email && password) {
-      setUser({
+      updateUser({
         id: '1',
         name: 'Fashion Boutique',
         email,
@@ -250,8 +280,7 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
         category: 'Women Ethnic Wear',
         shopName: 'Elegance Boutique',
         address: '123 Fashion Street, Mumbai'
-      });
-      setIsLoggedIn(true);
+      }, true);
       return true;
     }
     return false;
@@ -260,7 +289,7 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (userData: Partial<BoutiqueUser> & { password: string }): Promise<boolean> => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     if (userData.email && userData.password) {
-      setUser({
+      updateUser({
         id: '1',
         name: userData.name || '',
         email: userData.email,
@@ -268,16 +297,14 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
         category: userData.category || '',
         shopName: userData.shopName || '',
         address: userData.address || ''
-      });
-      setIsLoggedIn(true);
+      }, true);
       return true;
     }
     return false;
   };
 
   const logout = () => {
-    setUser(null);
-    setIsLoggedIn(false);
+    updateUser(null, false);
   };
 
   const placeOrder = (order: OrderInput) => {
@@ -301,6 +328,38 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
     setOrders([...orders, ...newOrders]);
   };
 
+  const updateProductPrice = (productId: string, sellingPrice: number, displayOnBrandPage: boolean = true) => {
+    const today = new Date().toISOString().split('T')[0];
+    setProductPrices(prev => {
+      const existing = prev.find(p => p.productId === productId);
+      const updated = existing
+        ? prev.map(p => 
+            p.productId === productId 
+              ? { ...p, sellingPrice, lastUpdated: today, displayOnBrandPage }
+              : p
+          )
+        : [...prev, { productId, sellingPrice, lastUpdated: today, displayOnBrandPage }];
+      localStorage.setItem('boutique_product_prices', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const toggleProductDisplay = (productId: string) => {
+    setProductPrices(prev => {
+      const updated = prev.map(p => 
+        p.productId === productId 
+          ? { ...p, displayOnBrandPage: !p.displayOnBrandPage }
+          : p
+      );
+      localStorage.setItem('boutique_product_prices', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const getProductPrice = (productId: string) => {
+    return productPrices.find(p => p.productId === productId);
+  };
+
   return (
     <BoutiqueContext.Provider value={{
       isLoggedIn,
@@ -308,11 +367,15 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
       orders,
       sales,
       payments,
+      productPrices,
       login,
       signup,
       logout,
       placeOrder,
-      placeBulkOrder
+      placeBulkOrder,
+      updateProductPrice,
+      toggleProductDisplay,
+      getProductPrice
     }}>
       {children}
     </BoutiqueContext.Provider>
