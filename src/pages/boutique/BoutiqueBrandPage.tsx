@@ -16,6 +16,7 @@ import {
   Clock, Award, Users, Sparkles
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useBoutique } from "@/contexts/BoutiqueContext";
 
 // Mock boutique data - in real app this would come from API
 const boutiques = [
@@ -40,8 +41,8 @@ const boutiques = [
       facebook: 'https://facebook.com/eleganceboutique',
       website: 'https://eleganceboutique.com'
     },
-    coverImage: '/assets/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png',
-    logo: '/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png',
+    coverImage: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png',
+    logo: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png',
     highlights: ['Free Alterations', 'Same Day Delivery', 'Custom Designs', '100% Authentic'],
     specialties: ['Bridal Lehengas', 'Designer Sarees', 'Party Wear', 'Festive Collections'],
     workingHours: 'Mon-Sat: 10AM - 8PM, Sun: 11AM - 6PM'
@@ -49,18 +50,19 @@ const boutiques = [
 ];
 
 const catalogProducts = [
-  { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', price: 2499, mrp: 3500, image: '/assets/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', discount: 29, rating: 4.5, reviews: 45, inStock: true },
-  { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', price: 1799, mrp: 2500, image: '/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png', discount: 28, rating: 4.3, reviews: 32, inStock: true },
-  { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', price: 6499, mrp: 9000, image: '/assets/beea47d5-6ae4-460a-a065-76f4befc19cb.png', discount: 28, rating: 4.7, reviews: 67, inStock: true },
-  { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', price: 4500, mrp: 6000, image: '/assets/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', discount: 25, rating: 4.6, reviews: 89, inStock: true },
-  { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', price: 2200, mrp: 3000, image: '/assets/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', discount: 27, rating: 4.4, reviews: 23, inStock: false },
-  { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', price: 2800, mrp: 3800, image: '/assets/15ff49d2-e060-4344-956a-c6030caf0a58.png', discount: 26, rating: 4.5, reviews: 56, inStock: true },
+  { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', adminPrice: 1800, sellingPrice: 2499, mrp: 3500, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', discount: 29, rating: 4.5, reviews: 45, inStock: true, priceUpdated: '2024-01-15' },
+  { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', adminPrice: 1200, sellingPrice: 1799, mrp: 2500, image: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png', discount: 28, rating: 4.3, reviews: 32, inStock: true, priceUpdated: '2024-01-18' },
+  { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', adminPrice: 4500, sellingPrice: 6499, mrp: 9000, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', discount: 28, rating: 4.7, reviews: 67, inStock: true, priceUpdated: '2024-01-20' },
+  { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', adminPrice: 3200, sellingPrice: 4500, mrp: 6000, image: '/lovable-uploads/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', discount: 25, rating: 4.6, reviews: 89, inStock: true, priceUpdated: '2024-01-22' },
+  { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', adminPrice: 1500, sellingPrice: 2200, mrp: 3000, image: '/lovable-uploads/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', discount: 27, rating: 4.4, reviews: 23, inStock: false, priceUpdated: '2024-01-10' },
+  { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', adminPrice: 2000, sellingPrice: 2800, mrp: 3800, image: '/lovable-uploads/15ff49d2-e060-4344-956a-c6030caf0a58.png', discount: 26, rating: 4.5, reviews: 56, inStock: true, priceUpdated: '2024-01-25' },
 ];
 
 const BoutiqueBrandPage = () => {
   const { boutiqueId } = useParams();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("catalogue");
+  const { productPrices } = useBoutique();
+  const [activeTab, setActiveTab] = useState("about");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [priceRange, setPriceRange] = useState([0, 10000]);
@@ -75,11 +77,26 @@ const BoutiqueBrandPage = () => {
   
   const categories = [...new Set(catalogProducts.map(p => p.category))];
 
-  const filteredProducts = catalogProducts.filter(p => {
+  // Get visible products (only those with displayOnBrandPage = true)
+  const visibleProducts = catalogProducts.filter(p => {
+    const priceInfo = productPrices.find(pp => pp.productId === p.id);
+    // If no price set, don't show on brand page
+    // If price is set, check displayOnBrandPage flag
+    return priceInfo && priceInfo.displayOnBrandPage !== false;
+  }).map(p => {
+    const priceInfo = productPrices.find(pp => pp.productId === p.id);
+    return {
+      ...p,
+      sellingPrice: priceInfo?.sellingPrice || p.sellingPrice,
+      priceUpdated: priceInfo?.lastUpdated || p.priceUpdated
+    };
+  });
+
+  const filteredProducts = visibleProducts.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           p.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
-    const matchesPrice = p.price >= priceRange[0] && p.price <= priceRange[1];
+    const matchesPrice = p.sellingPrice >= priceRange[0] && p.sellingPrice <= priceRange[1];
     const matchesDiscount = discountFilter === "all" || 
                             (discountFilter === "10" && p.discount >= 10) ||
                             (discountFilter === "20" && p.discount >= 20) ||
@@ -92,8 +109,8 @@ const BoutiqueBrandPage = () => {
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch(sortBy) {
-      case "price-low": return a.price - b.price;
-      case "price-high": return b.price - a.price;
+      case "price-low": return a.sellingPrice - b.sellingPrice;
+      case "price-high": return b.sellingPrice - a.sellingPrice;
       case "discount": return b.discount - a.discount;
       case "rating": return b.rating - a.rating;
       default: return b.reviews - a.reviews;
@@ -269,7 +286,7 @@ const BoutiqueBrandPage = () => {
                 <Package className="h-5 w-5 text-brand-orange" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{catalogProducts.length}</p>
+                <p className="text-2xl font-bold">{visibleProducts.length}</p>
                 <p className="text-xs text-muted-foreground">Products</p>
               </div>
             </CardContent>
@@ -311,12 +328,9 @@ const BoutiqueBrandPage = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="w-full grid grid-cols-3 mb-6">
+          <TabsList className="w-full grid grid-cols-2 mb-6">
             <TabsTrigger value="about" className="gap-2">
               <Store className="h-4 w-4 hidden sm:block" />About
-            </TabsTrigger>
-            <TabsTrigger value="catalogue" className="gap-2">
-              <ShoppingBag className="h-4 w-4 hidden sm:block" />Catalogue
             </TabsTrigger>
             <TabsTrigger value="specialties" className="gap-2">
               <Sparkles className="h-4 w-4 hidden sm:block" />Specialties
@@ -368,163 +382,6 @@ const BoutiqueBrandPage = () => {
                   </Button>
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
-
-          {/* Catalogue Tab */}
-          <TabsContent value="catalogue">
-            <Card className="mb-6">
-              <CardContent className="p-4">
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        placeholder="Search products..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="w-[160px]">
-                          <SelectValue placeholder="Sort by" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="popular">Most Popular</SelectItem>
-                          <SelectItem value="price-low">Price: Low to High</SelectItem>
-                          <SelectItem value="price-high">Price: High to Low</SelectItem>
-                          <SelectItem value="discount">Highest Discount</SelectItem>
-                          <SelectItem value="rating">Highest Rated</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button 
-                        variant={showFilters ? "secondary" : "outline"}
-                        size="icon"
-                        onClick={() => setShowFilters(!showFilters)}
-                      >
-                        <Filter className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Filters */}
-                  {showFilters && (
-                    <div className="bg-muted/50 p-4 rounded-lg space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Filters</span>
-                        <Button variant="ghost" size="sm" onClick={clearFilters}>
-                          <X className="h-4 w-4 mr-1" /> Clear All
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                          <Label>Category</Label>
-                          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="All Categories" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Categories</SelectItem>
-                              {categories.map(cat => (
-                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}</Label>
-                          <Slider
-                            value={priceRange}
-                            onValueChange={setPriceRange}
-                            min={0}
-                            max={10000}
-                            step={100}
-                            className="mt-2"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Discount</Label>
-                          <Select value={discountFilter} onValueChange={setDiscountFilter}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Any Discount" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">Any Discount</SelectItem>
-                              <SelectItem value="10">10% and above</SelectItem>
-                              <SelectItem value="20">20% and above</SelectItem>
-                              <SelectItem value="30">30% and above</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Availability</Label>
-                          <Select value={stockFilter} onValueChange={setStockFilter}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="All" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Products</SelectItem>
-                              <SelectItem value="in_stock">In Stock</SelectItem>
-                              <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-muted-foreground">{sortedProducts.length} products found</p>
-              <Button variant="outline" size="sm" onClick={handleDownloadCatalogue}>
-                <Download className="h-4 w-4 mr-2" /> Download PDF
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {sortedProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                  <div className="aspect-square relative overflow-hidden">
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                    />
-                    <Badge className="absolute top-2 left-2 bg-green-600">
-                      <Percent className="h-3 w-3 mr-1" />{product.discount}% off
-                    </Badge>
-                    {!product.inStock && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <Badge variant="destructive">Out of Stock</Badge>
-                      </div>
-                    )}
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                    >
-                      <Heart className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <CardContent className="p-3">
-                    <p className="text-xs text-muted-foreground mb-1">{product.category}</p>
-                    <h3 className="font-medium text-sm line-clamp-2 mb-2">{product.name}</h3>
-                    <div className="flex items-center gap-1 mb-2">
-                      <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                      <span className="text-xs font-medium">{product.rating}</span>
-                      <span className="text-xs text-muted-foreground">({product.reviews})</span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-brand-orange">₹{product.price.toLocaleString()}</span>
-                      <span className="text-xs text-muted-foreground line-through">₹{product.mrp.toLocaleString()}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           </TabsContent>
 
