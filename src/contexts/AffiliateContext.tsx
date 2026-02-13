@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 interface AffiliateUser {
   _id: string;
+  affiliate_id: string;
   full_name: string;
   email: string;
   phone_number: string;

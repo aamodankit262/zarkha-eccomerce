@@ -56,6 +56,7 @@ export interface EarningsListParams {
   status?: string;
   page?: number;
   limit?: number;
+  affiliate_id?: string;
 }
 export interface updateProfilePayload {
   full_name: string;
@@ -118,6 +119,18 @@ export interface earningListResponse {
     totalPages: number;
   }
 }
+export interface CouponListParams {
+  affiliate_id?: string;
+}
+
+const buildQuery = (params: Record<string, any>) =>
+  new URLSearchParams(
+    Object.entries(params).reduce((acc, [k, v]) => {
+      if (v !== undefined && v !== null) acc[k] = String(v);
+      return acc;
+    }, {} as Record<string, string>)
+  ).toString();
+
 export const affiliateService = {
   /* ---------- Dashboard Stats ---------- */
   dashboardStats: async () => {
@@ -158,10 +171,24 @@ export const affiliateService = {
     return apiClient.post(API_ENDPOINTS.AFFILIATE.SALES_LIST, params)
   },
   getEarningsList: async (params?: EarningsListParams) => {
-    return apiClient.post<earningListResponse>(API_ENDPOINTS.AFFILIATE.EARNINGS_LIST, params)
-  },
-  getCouponList: async () => {
-    return apiClient.get(API_ENDPOINTS.AFFILIATE.COUPON_LIST)
-  }
+    const query = buildQuery({
+      status: params?.status ?? "active",
+      affiliate_id: params?.affiliate_id,
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 20,
+    });
 
+    return apiClient.get(`${API_ENDPOINTS.AFFILIATE.EARNINGS_LIST}?${query}`);
+  },
+
+  getCouponList: async (id?: string) => {
+    return apiClient.get(`${API_ENDPOINTS.AFFILIATE.COUPON_LIST}?affiliate_id=${id}`);
+  },
+  // getCouponList: async (params?: CouponListParams) => {
+  //   return apiClient.get(API_ENDPOINTS.AFFILIATE.COUPON_LIST, {
+  //     params: {
+  //       affiliate_id: params?.affiliate_id,
+  //     },
+  //   });
+  // },
 };

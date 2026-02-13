@@ -57,6 +57,14 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
       });
       return;
     }
+    if (formData.phone.length !== 10 || !/^\d+$/.test(formData.phone)) {
+      toast({
+        title: "sorry",
+        description: "Enter valid 10 digit mobile number",
+        variant: "destructive",
+      });
+      return;
+    }
 
     await sendOtp(formData.name, formData.phone);
     setShowOTP(true);
@@ -157,6 +165,7 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
                           }
                           className="flex-1 border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
                           required
+                          min={10}
                           maxLength={10}
                         />
                       </div>

@@ -107,14 +107,14 @@ const SharedSidebar = ({
         </div>
 
         <div className="p-5 border-b">
-          <p className="text-sm text-gray-600">Hello, {userDetails.name || "Dear"}</p>
-          <p className="text-sm font-medium text-gray-900">+91 {userDetails.phone}</p>
+          <p className="text-sm text-gray-600">Hello, {userDetails?.name || "Dear"}</p>
+          <p className="text-sm font-medium text-gray-900">+91 {userDetails?.phone}</p>
         </div>
 
         <div>
-          {sidebarItems.map((item) => (
+          {sidebarItems?.map((item) => (
             <button
-              key={item.id}
+              key={item?.id}
               onClick={() => {
                 setActiveTab(item.id);
                 onClose();
