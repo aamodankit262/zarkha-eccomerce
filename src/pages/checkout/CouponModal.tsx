@@ -60,7 +60,7 @@ const CouponModal = ({
                         </span>
                       ) : (
                         <span className="text-sm font-semibold text-foreground">
-                          ₹{coupon.max_discount_amount} OFF
+                          ₹{coupon.discount_value} OFF
                         </span>
                       )}
                     </div>

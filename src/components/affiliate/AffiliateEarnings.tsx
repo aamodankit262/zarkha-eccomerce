@@ -10,10 +10,11 @@ import { useEffect } from "react";
 const AffiliateEarnings = () => {
   const { affiliate } = useAffiliate();
   const { data: earningsListData, request: getEarningsList } = useApi(affiliateService.getEarningsList);
-   console.log(affiliate, 'Affiliate Data');
-  // useEffect(() => {
-  //   getEarningsList();
-  // }, [])
+  console.log(affiliate, 'Affiliate Data');
+  useEffect(() => {
+    getEarningsList({ affiliate_id: affiliate?.affiliate_id });
+  }, [affiliate?.affiliate_id]);
+  
   const earningsData = earningsListData?.data || [];
   console.log("Earnings List Data:", earningsData);
   const paymentHistory = [
