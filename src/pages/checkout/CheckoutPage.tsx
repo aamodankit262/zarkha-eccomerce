@@ -424,7 +424,7 @@ const CheckoutPage = () => {
   try {
     const res:any = await paymentService.createPaymentOrder({
       amount: totalAmount,
-      cart_id: cartId,
+    //   cart_id: cartId,
     });
 
     // ❌ Amount mismatch handled here
