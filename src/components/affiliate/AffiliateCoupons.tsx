@@ -17,6 +17,8 @@ const AffiliateCoupons = () => {
     getCouponList(affiliate?.affiliate_id);
   }, [])
   const coupons = couponListData?.body || [];
+  const summary = couponListData?.summary ?? {};
+
   console.log("Affiliate Coupons Data:", coupons);
   // const coupons = [
   //   {
@@ -92,10 +94,10 @@ const AffiliateCoupons = () => {
           <h2 className="text-2xl font-bold text-foreground">Your Coupons</h2>
           <p className="text-muted-foreground">Manage your referral discount codes</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90">
+        {/* <Button className="bg-primary hover:bg-primary/90">
           <Plus className="h-4 w-4 mr-2" />
           Request New Coupon
-        </Button>
+        </Button> */}
       </div>
 
       {/* Stats */}
@@ -103,21 +105,21 @@ const AffiliateCoupons = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <Tag className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="text-2xl font-bold text-foreground">{coupons?.activeCoupons?? 0}</p>
+            <p className="text-2xl font-bold text-foreground">{summary?.activeCoupons?? 0}</p>
             <p className="text-sm text-muted-foreground">Active Coupons</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <ShoppingCart className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="text-2xl font-bold text-foreground">{coupons?.totalUses?? 0}</p>
+            <p className="text-2xl font-bold text-foreground">{summary?.totalUses?? 0}</p>
             <p className="text-sm text-muted-foreground">Total Uses</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Percent className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="text-2xl font-bold text-green-600">₹{coupons?.totalEarnings?? 0}</p>
+            <p className="text-2xl font-bold text-green-600">₹{summary?.totalEarnings?? 0}</p>
             <p className="text-sm text-muted-foreground">Total Earnings</p>
           </CardContent>
         </Card>
@@ -142,12 +144,12 @@ const AffiliateCoupons = () => {
                     </div>
                     <div className="flex items-center gap-3 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <Percent className="h-3 w-3" />
-                        {coupon?.discount_type === "percentage" ? `${coupon?.discount_value}% off` : `₹${coupon?.discount_value} off`}
+                        {/* <Percent className="h-3 w-3" /> */}
+                        {coupon?.type === "percentage" ? `${coupon?.discount}% off` : `₹${coupon?.discount} off`}
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        Expires: {dayjs(coupon?.end_date).format("DD MMM YYYY")}
+                        Expires: {dayjs(coupon?.expiresAt).format("DD MMM YYYY")}
                       </span>
                     </div>
                   </div>

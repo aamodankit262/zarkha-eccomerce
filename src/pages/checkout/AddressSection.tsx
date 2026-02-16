@@ -21,6 +21,7 @@ import { SavedAddress } from "@/types";
 interface AddressFormData {
   firstName: string;
   lastName: string;
+  email: string;
   address: string;
   pinCode: string;
   country: string;
@@ -103,7 +104,7 @@ const AddressSection = ({
               }
             />
           </div>
-
+           <div className="grid md:grid-cols-2 gap-4">
           <Input
             placeholder="Full Address *"
             value={formData.address}
@@ -111,7 +112,14 @@ const AddressSection = ({
               handleInputChange("address", e.target.value)
             }
           />
-
+          <Input
+            placeholder="Email *"
+            value={formData.email}
+            onChange={(e) =>
+              handleInputChange("email", e.target.value)
+            }
+          />
+         </div>
           <div className="grid md:grid-cols-2 gap-4">
             <Input
               placeholder="Pin Code *"

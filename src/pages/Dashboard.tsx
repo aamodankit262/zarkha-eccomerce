@@ -57,6 +57,7 @@ interface AddressForm {
   lastName: string;
   address: string;
   pinCode: string;
+  email: string;
   country: string;
   state: string; // stateId
   city: string; // cityId
@@ -193,13 +194,19 @@ const AddAddressPage = ({
                 onChange={(e) => handleInputChange("lastName", e.target.value)}
               />
             </div>
-
-            <Input
-              placeholder="Full Address *"
-              value={addressForm.address}
-              onChange={(e) => handleInputChange("address", e.target.value)}
-            />
-
+            <div className="grid md:grid-cols-2 gap-4">
+              <Input
+                placeholder="Full Address *"
+                value={addressForm.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+              />
+              <Input
+                type="email"
+                placeholder="Email *"
+                value={addressForm.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+              />
+            </div>
             <div className="grid md:grid-cols-2 gap-4">
               <Input
                 type="text"
@@ -326,6 +333,7 @@ const Dashboard = () => {
     lastName: "",
     address: "",
     pinCode: "",
+    email: "",
     country: "India",
     state: "",
     city: "",
@@ -421,6 +429,7 @@ const Dashboard = () => {
       lastName: "",
       address: "",
       pinCode: "",
+      email: "",
       country: "India",
       state: "",
       city: "",
@@ -439,6 +448,7 @@ const Dashboard = () => {
       lastName: address.last_name,
       address: address.address,
       pinCode: address.pin_code,
+      email: address.email,
       country: address.country ?? "India",
       state: address.stateId._id || "",
       city: address.cityId._id || "",
@@ -449,9 +459,9 @@ const Dashboard = () => {
   };
 
   const handleSaveAddress = async () => {
-    const { firstName, lastName, address, pinCode, state, city } = addressForm;
+    const { firstName, lastName, address, pinCode, state, city, email } = addressForm;
 
-    if (!firstName || !lastName || !address || !pinCode || !state || !city) {
+    if (!firstName || !lastName || !address || !pinCode || !state || !city || !email) {
       toast.info("Please fill in all required fields.");
       return;
     }
@@ -463,6 +473,7 @@ const Dashboard = () => {
         last_name: lastName,
         address,
         pin_code: pinCode,
+        email: email,
         country: addressForm.country,
         stateId: state,
         cityId: city,
@@ -542,7 +553,7 @@ const Dashboard = () => {
                     <span className="bg-[#F5F5F5] px-6 py-2 rounded-md font-semibold">
                       Order ID: {order.order_id}
                     </span>
-                    <span className="text-sm">Placed on {dayjs(order.ordered_at).format("DD/MM/YYYY")  }</span>
+                    <span className="text-sm">Placed on {dayjs(order.ordered_at).format("DD/MM/YYYY")}</span>
                     {/* <span className="text-sm">Placed on {new Date(order.ordered_at).toLocaleDateString()}</span> */}
                   </div>
 
@@ -581,12 +592,12 @@ const Dashboard = () => {
                         <p className="text-gray-600">Tracking No.</p>
                         <p className="font-medium">{order?.trackingNo || "N/A"}</p>
                         {/* {idx !== 1 && ( */}
-                          <button
-                            onClick={() => handleTrackOrder(order?.order_id)}
-                            className="text-green-600 font-medium mt-2 block hover:underline"
-                          >
-                            Track Order →
-                          </button>
+                        <button
+                          onClick={() => handleTrackOrder(order?.order_id)}
+                          className="text-green-600 font-medium mt-2 block hover:underline"
+                        >
+                          Track Order →
+                        </button>
                         {/* )} */}
                       </div>
 

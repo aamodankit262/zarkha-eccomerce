@@ -28,14 +28,7 @@ import GlobalLoader from "../GlobalLoader";
 interface ProductDetailsPageProps {
   onClose: () => void;
 }
-// const sizeChartData = [
-//   { size: "XS", bust: "32-34", waist: "26-28", hip: "36-38" },
-//   { size: "S", bust: "34-36", waist: "28-30", hip: "38-40" },
-//   { size: "M", bust: "36-38", waist: "30-32", hip: "40-42" },
-//   { size: "L", bust: "38-40", waist: "32-34", hip: "42-44" },
-//   { size: "XL", bust: "40-42", waist: "34-36", hip: "44-46" },
-//   { size: "XXL", bust: "42-44", waist: "36-38", hip: "46-48" },
-// ];
+
 const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const navigate = useNavigate();
   // const [selectedImage, setSelectedImage] = useState(0);

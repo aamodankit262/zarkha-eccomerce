@@ -11,61 +11,63 @@ import { useAffiliate } from "@/contexts/AffiliateContext";
 import { useApi } from "@/hooks/useApi";
 import { AffiliateProduct, affiliateService } from "@/services/affiliateService";
 import { useDebounce } from "@/hooks/useDebounce";
+import Pagination from "../ecommerce/Pagination";
+import { NO_IMAGE } from "@/api/endpoints";
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }
 
-const Pagination: React.FC<PaginationProps> = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-}) => {
-  return (
-    <div className="flex items-center justify-center gap-2 mt-6">
-      {/* Prev */}
-      <button
-        disabled={currentPage === 1}
-        onClick={() => onPageChange(currentPage - 1)}
-        className="px-3 py-1 text-sm border rounded
-          disabled:opacity-50 disabled:cursor-not-allowed
-          hover:bg-gray-100"
-      >
-        Prev
-      </button>
+// const Pagination: React.FC<PaginationProps> = ({
+//   currentPage,
+//   totalPages,
+//   onPageChange,
+// }) => {
+//   return (
+//     <div className="flex items-center justify-center gap-2 mt-6">
+//       {/* Prev */}
+//       <button
+//         disabled={currentPage === 1}
+//         onClick={() => onPageChange(currentPage - 1)}
+//         className="px-3 py-1 text-sm border rounded
+//           disabled:opacity-50 disabled:cursor-not-allowed
+//           hover:bg-gray-100"
+//       >
+//         Prev
+//       </button>
 
-      {/* Page Numbers */}
-      {Array.from({ length: totalPages }, (_, i) => {
-        const page = i + 1;
-        return (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-3 py-1 text-sm border rounded
-              ${page === currentPage
-                ? "bg-primary text-white"
-                : "hover:bg-gray-100"
-              }`}
-          >
-            {page}
-          </button>
-        );
-      })}
+//       {/* Page Numbers */}
+//       {Array.from({ length: totalPages }, (_, i) => {
+//         const page = i + 1;
+//         return (
+//           <button
+//             key={page}
+//             onClick={() => onPageChange(page)}
+//             className={`px-3 py-1 text-sm border rounded
+//               ${page === currentPage
+//                 ? "bg-primary text-white"
+//                 : "hover:bg-gray-100"
+//               }`}
+//           >
+//             {page}
+//           </button>
+//         );
+//       })}
 
-      {/* Next */}
-      <button
-        disabled={currentPage === totalPages}
-        onClick={() => onPageChange(currentPage + 1)}
-        className="px-3 py-1 text-sm border rounded
-          disabled:opacity-50 disabled:cursor-not-allowed
-          hover:bg-gray-100"
-      >
-        Next
-      </button>
-    </div>
-  );
-};
+//       {/* Next */}
+//       <button
+//         disabled={currentPage === totalPages}
+//         onClick={() => onPageChange(currentPage + 1)}
+//         className="px-3 py-1 text-sm border rounded
+//           disabled:opacity-50 disabled:cursor-not-allowed
+//           hover:bg-gray-100"
+//       >
+//         Next
+//       </button>
+//     </div>
+//   );
+// };
 
 
 const AffiliateProducts = () => {
@@ -74,8 +76,8 @@ const AffiliateProducts = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 500)
   const [page, setPage] = useState(1);
-  const limit = 10;
-  const [products, setProducts] = useState<AffiliateProduct[]>([]);
+  const limit = 30;
+  // const [products, setProducts] = useState<AffiliateProduct[]>([]);
   const { data, request, loading } = useApi(
     affiliateService.productCategoryList
   );
@@ -97,12 +99,13 @@ const AffiliateProducts = () => {
     });
   }, [debouncedSearch, selectedCategory, page]);
 
-  useEffect(() => {
-    if (productRes?.body) {
-      setProducts(productRes.body || []);
-    }
-  }, [productRes]);
+  // useEffect(() => {
+  //   if (productRes?.body) {
+  //     setProducts(productRes.body || []);
+  //   }
+  // }, [productRes]);
 
+  const products = productRes?.body || [];
   // const categories = data?.body
   // categories.unshift({ id: "all", name: "All Products" })
   const categories = useMemo(() => {
@@ -122,12 +125,13 @@ const AffiliateProducts = () => {
     navigator.clipboard.writeText(link);
     toast.success("Product link copied!");
   };
-  // const copyProductLink = (productId: number) => {
-  //   const link = `${window.location.origin}/product/${productId}?ref=${affiliate?.referralCode}`;
-  //   navigator.clipboard.writeText(link);
-  //   toast.success("Product link copied!");
-  // };
-
+  if (productLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Loading products...</p>
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -161,7 +165,7 @@ const AffiliateProducts = () => {
       </div>
 
       {/* Category Pills */}
-      <div className="flex flex-wrap gap-2">
+      {/* <div className="flex flex-wrap gap-2">
         {categories?.map((cat) => (
           <button
             key={cat._id}
@@ -174,21 +178,21 @@ const AffiliateProducts = () => {
             {cat?.name}
           </button>
         ))}
-      </div>
+      </div> */}
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredProducts?.map((product) => (
+        {products?.map((product) => (
           <Card key={product._id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="aspect-square relative bg-secondary">
               <img
-                src={product.image}
-                alt={product.name}
+                src={product.images?.[0]?.url || NO_IMAGE}
+                alt={product.images?.[0]?.alt || product.name}
                 className="w-full h-full object-cover"
               />
-              <Badge className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-green-600 text-xs sm:text-sm">
+              {/* <Badge className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-green-600 text-xs sm:text-sm">
                 {product.commission_percentage}% Commission
-              </Badge>
+              </Badge> */}
             </div>
             <CardContent className="p-3 sm:p-4">
               <h3 className="font-semibold text-foreground mb-1 text-sm sm:text-base line-clamp-1">{product.name}</h3>
@@ -196,13 +200,12 @@ const AffiliateProducts = () => {
                 <span className="text-base sm:text-lg font-bold text-primary">₹{product.msp}</span>
                 {/* <span className="text-xs sm:text-sm text-muted-foreground">⭐ {product.rating}</span> */}
               </div>
-              <div className="bg-secondary/50 rounded-lg p-2 mb-2 sm:mb-3">
+              {/* <div className="bg-secondary/50 rounded-lg p-2 mb-2 sm:mb-3">
                 <p className="text-xs text-muted-foreground">Your Earning</p>
                 <p className="font-bold text-green-600 text-sm sm:text-base">
                   ₹{product.earning_per_sale} per sale
-                  {/* ₹{Math.round(product.msp * product.commission / 100).toLocaleString()} per sale */}
                 </p>
-              </div>
+              </div> */}
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   variant="outline"
@@ -216,7 +219,7 @@ const AffiliateProducts = () => {
                 <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90 text-xs sm:text-sm" asChild>
                   <Link
                     // to={product?.product._id}
-                  to={`/product/${product._id}`}
+                    to={`/product/${product._id}`}
                   >
                     <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     View Product
@@ -229,17 +232,18 @@ const AffiliateProducts = () => {
 
       </div>
 
-      {filteredProducts.length === 0 && (
+      {products.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No products found matching your criteria</p>
         </div>
       )}
       {productRes?.pagination.totalPages > 1 && (
-      <Pagination
-        currentPage={productRes?.pagination.currentPage}
-        totalPages={productRes?.pagination.totalPages}
-        onPageChange={(page) => setPage(page)}
-      />
+        <Pagination
+          currentPage={productRes?.pagination.currentPage}
+          totalPages={productRes?.pagination.totalPages}
+          onPageChange={setPage}
+        // onPageChange={(page) => setPage(page)}
+        />
       )}
     </div>
   );

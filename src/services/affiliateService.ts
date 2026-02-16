@@ -23,7 +23,7 @@ export interface AffiliateProduct {
   product_id: string;
   share_link: string;
   name: string;
-  image?: string;
+  images?: any[];
   mrp?: number;
   msp?: number;
   rating?: number;
@@ -47,7 +47,8 @@ export interface AffiliateProductListParams {
   limit?: number;
 }
 export interface SalesListParams {
-  status?: string;
+  status?: "completed" | "pending";
+  period?: string;
   page?: number;
   limit?: number;
 }
@@ -168,17 +169,16 @@ export const affiliateService = {
     return apiClient.put(API_ENDPOINTS.AFFILIATE.UPDATE_PROFILE, data)
   },
   getSalesList: async (params?: SalesListParams) => {
-    return apiClient.post(API_ENDPOINTS.AFFILIATE.SALES_LIST, params)
-  },
-  getEarningsList: async (params?: EarningsListParams) => {
     const query = buildQuery({
-      status: params?.status ?? "active",
-      affiliate_id: params?.affiliate_id,
+      status: params?.status ?? "completed",
+      period: params?.period ?? "this_month",
       page: params?.page ?? 1,
       limit: params?.limit ?? 20,
-    });
-
-    return apiClient.get(`${API_ENDPOINTS.AFFILIATE.EARNINGS_LIST}?${query}`);
+    })
+    return apiClient.get(`${API_ENDPOINTS.AFFILIATE.SALES_LIST}?${query}`)
+  },
+  getEarningsList: async () => {
+    return apiClient.get(`${API_ENDPOINTS.AFFILIATE.EARNINGS_LIST}`);
   },
 
   getCouponList: async (id?: string) => {

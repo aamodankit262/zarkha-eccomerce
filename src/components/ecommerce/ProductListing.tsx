@@ -40,7 +40,7 @@ const ProductListingPage = () => {
   const industryId = searchParams.get("industry");
   const subCategoryId = searchParams.get("sub");
   const { categories, subCategories, fetchCategories, fetchSubCategories, loadingCategories } = useMegaMenuStores();
-  const sortBy = (searchParams.get("sort") as SortOption) || "all";
+  const sortBy = (searchParams.get("sort") as SortOption) || "";
   const handleSortChange = (value: SortOption) => {
     const params = new URLSearchParams(searchParams);
     params.set("sort", value);
@@ -48,16 +48,10 @@ const ProductListingPage = () => {
     navigate(`/products?${params.toString()}`, { replace: true });
   };
   const {
-    filters,
-    setFilters,
-    page,
-    setPage,
-    fetchProducts,
-    totalPages,
-    productsList,
-    filterByName,
+    filters,setFilters,page,setPage,fetchProducts,totalPages,productsList,filterByName,
     loading,
   } = useProductStore();
+  console.log('filters:', filters.sort, sortBy); 
   const pageTitle = useMemo(() => {
     if (loading) return "";
 
@@ -68,30 +62,29 @@ const ProductListingPage = () => {
     return "Products";
   }, [loading, subCategoryId, categoryId, industryId, filterByName]);
 
-  // const products = productsData(productsList)
+  const products = productsData(productsList)
 
-  const products = productsList?.map((p: any) => {
-    return {
-      id: p._id,
-      image: p.images[0]?.url || '/assets/no_image.jpg',
-      title: p.name,
-      price: p.product_price || p.msp,
-      originalPrice: p.mrp ? `MRP ₹${p.mrp}` : "N/A",
-      discount: p.discount ? `Save ₹${p.discount}` : "N/A",
-      colors: p.color_codes ? [p.color_codes] : [], // FIXED
-      isNew: p.isNew || false,
-      isWish: p.isWishList || false,
-      isBestSeller: p.isBestSeller || false,
-      hasWishlist: false,
-      rating: p.rating,
-      reviews: p.reviews,
-      selectedSize: p.size && p.size.length > 0 ? p.size[0] : "M",
-      // color: p.color && p.color.length > 0 ? p.color[0] : "Default",
-      quantity: 1,
-      createdAt: p.create_at,
-      variantId: p.item_code_ids?.[0]
-    };
-  });
+  // const products = productsList?.map((p: any) => {
+  //   return {
+  //     id: p._id,
+  //     image: p.images[0]?.url || '/assets/no_image.jpg',
+  //     title: p.name,
+  //     price: p.product_price || p.msp,
+  //     originalPrice: p.mrp ? `MRP ₹${p.mrp}` : "N/A",
+  //     discount: p.discount ? `Save ₹${p.discount}` : "N/A",
+  //     colors: p.color_codes ? [p.color_codes] : [], // FIXED
+  //     isNew: p.isNew || false,
+  //     isWish: p.isWishList || false,
+  //     isBestSeller: p.isBestSeller || false,
+  //     hasWishlist: false,
+  //     rating: p.rating,
+  //     reviews: p.reviews,
+  //     selectedSize: p.size && p.size.length > 0 ? p.size[0] : "M",
+  //     quantity: 1,
+  //     createdAt: p.create_at,
+  //     variantId: p.item_code_ids?.[0]
+  //   };
+  // });
 
 
   useEffect(() => {
@@ -120,47 +113,49 @@ const ProductListingPage = () => {
       industry: industryId ? [industryId] : [],
       category: categoryId ? [categoryId] : [],
       subCategory: subCategoryId ? [subCategoryId] : [],
+      // sort: (sortBy === "all" || sortBy === "") ? "popular" : sortBy,
+      sort:   sortBy === "" ? "popular" : sortBy,
     });
 
     setPage(1); // reset pagination on filter change
-  }, [industryId, categoryId, subCategoryId, setFilters, setPage]);
+  }, [industryId, categoryId, subCategoryId, setFilters, setPage , sortBy]);
 
 
   useEffect(() => {
     fetchProducts(true);
   }, [debouncedFilters, page, fetchProducts]);
 
-  const sortedProducts = useMemo(() => {
-    if (!products || products.length === 0) return [];
+  // const sortedProducts = useMemo(() => {
+  //   if (!products || products.length === 0) return [];
 
-    let result = [...products];
+  //   let result = [...products];
 
-    switch (sortBy) {
-      case "all":
-        return result;
-      case "popular":
-        return result.filter(p => p.isBestSeller === 1);
+  //   switch (sortBy) {
+  //     case "all":
+  //       return result;
+  //     case "popular":
+  //       return result.filter(p => p.isBestSeller === 1);
 
-      case "price_asc":
-        return result.sort((a, b) => a.price - b.price);
+  //     case "price_asc":
+  //       return result.sort((a, b) => a.price - b.price);
 
-      case "price_desc":
-        return result.sort((a, b) => b.price - a.price);
+  //     case "price_desc":
+  //       return result.sort((a, b) => b.price - a.price);
 
-      case "newest":
-        return result.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() -
-            new Date(a.createdAt).getTime()
-        );
+  //     case "newest":
+  //       return result.sort(
+  //         (a, b) =>
+  //           new Date(b.createdAt).getTime() -
+  //           new Date(a.createdAt).getTime()
+  //       );
 
-      case "rating":
-        return result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  //     case "rating":
+  //       return result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
-      default:
-        return result;
-    }
-  }, [products, sortBy]);
+  //     default:
+  //       return result;
+  //   }
+  // }, [products, sortBy]);
 
 
   const filterData = useMemo(() => {
@@ -305,7 +300,6 @@ const ProductListingPage = () => {
   };
 
   const { addItem } = useCart();
-  const { toast } = useToast();
   const navigate = useNavigate();
 
 
@@ -395,7 +389,8 @@ const ProductListingPage = () => {
                         category: [],
                         subCategory: [],
                         discount: [],
-                        price: [],
+                        minPrice: null,
+                        maxPrice: null,
                         size: [],
                         color: [],
                         fabric: [],
@@ -514,7 +509,7 @@ const ProductListingPage = () => {
                     )
                   )}
                 </div>
-              ) : sortedProducts.length === 0 ? (
+              ) : products.length === 0 ? (
                 <NoProductsFound />
               ) : (
                 <div
@@ -524,13 +519,13 @@ const ProductListingPage = () => {
                       : "space-y-4 mb-6"
                   }
                 >
-                  {sortedProducts.map((p) => (
+                  {products.map((p) => (
                     <ProductCard key={p.id} product={p} />
                   ))}
                 </div>
               )}
 
-              {!loading && sortedProducts.length !== 0 && (
+              {!loading && products.length !== 0 && (
                 <div className="bg-white shadow-sm rounded-lg p-4">
                   <div className="flex items-center justify-center gap-2">
 

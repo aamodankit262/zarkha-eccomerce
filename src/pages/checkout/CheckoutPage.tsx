@@ -263,6 +263,7 @@ const CheckoutPage = () => {
                 last_name: formData.lastName,
                 address: formData.address,
                 pin_code: formData.pinCode,
+                email: formData.email,
                 country: formData.country,
                 stateId: formData.state,
                 cityId: formData.city,
