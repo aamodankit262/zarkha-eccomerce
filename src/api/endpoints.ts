@@ -89,6 +89,6 @@ export const API_ENDPOINTS = {
     PRODUCT_LIST: "/api/web/affiliate/product-list",
     SALES_LIST: "/api/web/affiliate/sales-list",
     COUPON_LIST: "/api/web/coupon/affiliate/list" ,
-    EARNINGS_LIST: "/affiliate/api/earnings-list" ,
+    EARNINGS_LIST: "/api/web/affiliate/earnings-and-payments" ,
   }
 };

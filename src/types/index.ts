@@ -42,7 +42,7 @@ export interface ProductListPayload {
   page?: number;
   limit?: number;
   search?: string;
-  sort_by?: string;
+  sort_by?: SortOption | "";
 }
 export interface ChartListPayload {
   category_id?: string;
@@ -57,6 +57,7 @@ export interface AddressPayload {
   last_name: string;
   address: string;
   pin_code: string;
+  email: string;
   country: string;
   stateId: string;
   cityId: string;
@@ -78,6 +79,7 @@ export interface SavedAddress {
   last_name: string;
   address: string;
   pin_code: string;
+  email: string;
   cityId?: {
     _id: string;
     name: string;

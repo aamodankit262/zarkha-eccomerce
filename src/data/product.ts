@@ -1,17 +1,17 @@
 export const productsData = (products: any[]) => products?.map((product: any) => {
-  const discount =
-    product.mrp && product.product_price
-      ? Math.round(
-        ((product.mrp - product.product_price) / product.mrp) * 100
-      )
-      : 0;
+  // const discount =
+  //   product.mrp && product.product_price
+  //     ? Math.round(
+  //       ((product.mrp - product.product_price) / product.mrp) * 100
+  //     )
+  //     : 0;
 
   return {
     id: product._id || product.id,
     title: product.product_title || product?.name,
     price: product.product_price || product?.msp,
     originalPrice: product.mrp,
-    discount, 
+    discount : product.save_in || 0, 
     image: product?.images?.[0]?.url || "/assets/no_image.jpg",
     isNew: product.isNew,
     isBestSeller: product.isBestSeller || false,

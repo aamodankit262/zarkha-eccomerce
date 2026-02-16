@@ -16,7 +16,8 @@ type Filters = {
   subCategory: string[];
   discount: string[];
   sort: SortOption;
-  price: string[];
+  minPrice: any;
+  maxPrice: any;
   size: string[];
   color: string[];
   fabric: string[];
@@ -59,7 +60,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     subCategory: [],
     discount: [],
     sort: "popular",
-    price: [],
+    minPrice: null,
+    maxPrice: null,
     size: [],
     color: [],
     fabric: [],
@@ -89,7 +91,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         subcategory_id: filters.subCategory.join(","),
         discount: filters.discount.join(","),
         sort_by: filters.sort,
-        price: filters.price.join(","),
+        min_price: filters.minPrice ?? "",
+        max_price: filters.maxPrice ?? "",
         size: filters.size.join(","),
         color: filters.color.join(","),
         fabric_id: filters.fabric.join(","),
@@ -111,44 +114,37 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       });
     } catch (error) {
       console.error("Fetch products failed", error);
-      set({ loading: false,});
+      set({ loading: false, });
     }
   },
-  // fetchNextPage: () => {
-  //   const { hasMore, loadingMore, page } = get();
-  //   if (!hasMore || loadingMore) return;
-  //   set({ loadingMore: true });
-  //   const nextPage = page + 1;
-  //   set({ page: nextPage });
-  //   get().fetchProducts(false);
-  // }
+
   fetchNextPage: async () => {
-  const { hasMore, loadingMore, page, filters, limit, productsList } = get();
-  if (!hasMore || loadingMore) return;
+    const { hasMore, loadingMore, page, filters, limit, productsList } = get();
+    if (!hasMore || loadingMore) return;
 
-  set({ loadingMore: true });
+    set({ loadingMore: true });
 
-  const nextPage = page + 1;
+    const nextPage = page + 1;
 
-  const payload = {
-    search: filters.search.trim(),
-    page: nextPage,
-    limit,
-    sort_by: filters.sort,
-  };
+    const payload = {
+      search: filters.search.trim(),
+      page: nextPage,
+      limit,
+      sort_by: filters.sort,
+    };
 
-  const res = await productService.getAll(payload);
+    const res = await productService.getAll(payload);
 
-  const newProducts = res?.body || [];
-  const totalPages = res?.total_pages || 1;
+    const newProducts = res?.body || [];
+    const totalPages = res?.total_pages || 1;
 
-  set({
-    page: nextPage,
-    productsList: [...productsList, ...newProducts],
-    totalPages,
-    hasMore: newProducts.length > 0 && nextPage < totalPages,
-    loadingMore: false,
-  });
-},
+    set({
+      page: nextPage,
+      productsList: [...productsList, ...newProducts],
+      totalPages,
+      hasMore: newProducts.length > 0 && nextPage < totalPages,
+      loadingMore: false,
+    });
+  },
 
 }));

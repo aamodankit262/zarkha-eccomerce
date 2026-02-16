@@ -36,10 +36,7 @@ export const productService = {
     const res = await apiClient.post<ApiResponse<SizeChart[]>>(API_ENDPOINTS.SIZE.LIST, formData);
     return res as any;
   },
-
-  // getById: async (id: string, itemId?: string): Promise<Product> => {
-  //   return await apiClient.post<Product>(API_ENDPOINTS.PRODUCTS.DETAIL, { product_id: id, item_id: itemId });
-  // },
+  
   getById: async ({
   productId,
   itemId,

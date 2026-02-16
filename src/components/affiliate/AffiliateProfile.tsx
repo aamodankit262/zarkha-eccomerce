@@ -276,7 +276,7 @@ const AffiliateProfile = () => {
           />
         </CardContent>
       </Card>
-      <Card className="border-destructive/50">
+      {/* <Card className="border-destructive/50">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
         </CardHeader>
@@ -293,7 +293,7 @@ const AffiliateProfile = () => {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 };
