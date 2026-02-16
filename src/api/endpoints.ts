@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
   PRODUCTS: {
     LIST: "/api/web/products",
     RARTING: "/api/web/products/ratings",
+    SUBMIT: "/api/web/products/ratings/add",
     DETAIL: "/api/web/products/details",
   },
   SIZE: {
