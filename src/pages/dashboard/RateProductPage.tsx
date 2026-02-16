@@ -1,17 +1,20 @@
 import { NO_IMAGE } from "@/api/endpoints";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
+import { useApi } from "@/hooks/useApi";
+import { productService } from "@/services/productService";
 import { ArrowLeft, Star, Upload, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 const MAX_IMAGES = 5;
 
-const RateProductPage = ({ onBack, productRating }) => {
+const RateProductPage = ({ onBack, productRating, orderId }) => {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const fileRef = useRef<HTMLInputElement | null>(null);
-
+  console.log(productRating, 'product rating')
+  // const { request: submitRating, loading } = useApi(productService.ratingForm);
   /* ---------------- Image Upload ---------------- */
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -42,7 +45,7 @@ const RateProductPage = ({ onBack, productRating }) => {
   };
 
   /* ---------------- Submit ---------------- */
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
       toast.error("Please select a rating");
       return;
@@ -52,24 +55,31 @@ const RateProductPage = ({ onBack, productRating }) => {
     //   toast.error("Review must be at least 10 characters");
     //   return;
     // }
+    try {
+      const formData = new FormData();
+      formData.append("product_id", productRating?.product_id || "");
+      formData.append("rating", String(rating));
+      formData.append("review", reviewText || "");
+      formData.append("order_id", orderId || "");
 
-    const formData = new FormData();
-    formData.append("product_id", productRating?._id);
-    formData.append("rating", String(rating));
-    formData.append("review", reviewText);
+      images.forEach((file, index) => {
+        formData.append("review_images", file);
+      });
+      for (const [key, value] of formData.entries()) {
+        console.log([key, value]);
+      }
+      console.log(formData.entries(), 'formdata')
+      // 🔥 API CALL HERE
+      await productService.ratingForm(formData)
 
-    images.forEach((file, index) => {
-      formData.append("images", file);
-    });
-    for (const [key, value] of formData.entries()) {
-      console.log([key, value]);
+      toast.success("Review submitted successfully");
+      onBack?.();
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Failed to submit review"
+      );
     }
-    console.log(formData.entries(), 'formdata')
-    // 🔥 API CALL HERE
-    // await reviewService.submit(formData)
 
-    toast.success("Review submitted successfully");
-    onBack?.();
   };
 
   return (

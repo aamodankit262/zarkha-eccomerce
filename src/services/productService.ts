@@ -36,24 +36,30 @@ export const productService = {
     const res = await apiClient.post<ApiResponse<SizeChart[]>>(API_ENDPOINTS.SIZE.LIST, formData);
     return res as any;
   },
-  
-  getById: async ({
-  productId,
-  itemId,
-  affiliateId,
-}: {
-  productId: string;
-  itemId?: string;
-  affiliateId?: string;
-}): Promise<Product> => {
-  return await apiClient.post<Product>(
-    API_ENDPOINTS.PRODUCTS.DETAIL,
-    {
-      product_id: productId,
-      item_id: itemId,
-     affiliate_id: affiliateId,
-    }
-  );
-},
 
+  getById: async ({
+    productId,
+    itemId,
+    affiliateId,
+  }: {
+    productId: string;
+    itemId?: string;
+    affiliateId?: string;
+  }): Promise<Product> => {
+    return await apiClient.post<Product>(
+      API_ENDPOINTS.PRODUCTS.DETAIL,
+      {
+        product_id: productId,
+        item_id: itemId,
+        affiliate_id: affiliateId,
+      }
+    );
+  },
+ ratingForm: async (payload: FormData) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.PRODUCTS.SUBMIT,
+      payload
+    );
+    return res;
+  }
 };

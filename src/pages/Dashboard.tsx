@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  Search,
   Heart,
   Package,
   MapPin,
-  Shield,
   LogOut,
   ArrowLeft,
-  Download,
-  Star,
-  Upload,
   Menu,
   X,
   Check,
@@ -601,14 +596,14 @@ const Dashboard = () => {
                         {/* )} */}
                       </div>
 
-                      {order.order_status === "delivered" && (
+                      {/* {order.order_status === "delivered" && (
                         <button
                           onClick={() => handleRateProduct(order?.first_item)}
                           className="w-full bg-[#FF8A18] text-white py-3 rounded-lg font-medium hover:bg-orange-600"
                         >
                           Rate Product
                         </button>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 </div>
@@ -795,9 +790,9 @@ const Dashboard = () => {
     // You can extract TrackOrderPage and RateProductPage similarly
     return <TrackOrderPage onBack={resetFormAndView} orderId={selectedOrderId} />;
   }
-  if (currentView === "rate-product") {
-    return <RateProductPage onBack={resetFormAndView} productRating={selectedProductForRating} />;
-  }
+  // if (currentView === "rate-product") {
+  //   return <RateProductPage onBack={resetFormAndView} productRating={selectedProductForRating} />;
+  // }
 
   return <MainDashboard />;
 };

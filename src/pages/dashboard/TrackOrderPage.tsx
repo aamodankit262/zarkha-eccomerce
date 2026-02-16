@@ -5,22 +5,40 @@ import { formatDate } from "@/lib/utils";
 import { orderService } from "@/services/orderService";
 import { useAuthStore } from "@/store/authStore";
 import { ArrowLeft, Download } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import RateProductPage from "./RateProductPage";
 
 const TrackOrderPage = ({ onBack, orderId }) => {
   const { data: orderResp, request: fetchOrderDetails, loading: orderderLoading } = useApi(orderService.getOrderDetails);
   const { userDetails } = useAuthStore();
- 
+  const [selectedProductForRating, setSelectedProductForRating] = useState<any>(null);
+  const [currentView, setCurrentView] = useState<"dashboard" | "add-address" | "track-order" | "rate-product">(
+    "dashboard"
+  );
   useEffect(() => {
     if (orderId) {
       fetchOrderDetails(orderId);
     };
   }, [orderId]);
+  const handleRateProduct = (product) => {
+    setSelectedProductForRating(product);
+    setCurrentView("rate-product");
+
+  };
   console.log("Order Details:", orderResp);
   const orderDetails = orderResp?.body || {};
   const getShippingAddress = orderDetails.shipping_address || {};
   const getItems = orderDetails.items || [];
+  const resetFormAndView = () => {
+    setCurrentView("track-order");
+    setSelectedProductForRating(null);
+
+  };
   if (orderderLoading) return <p>Loading order details...</p>;
+  if (currentView === "rate-product") {
+    return <RateProductPage onBack={resetFormAndView} productRating={selectedProductForRating} orderId={orderId} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#FAF6F2]">
       <HeaderOtherPages />
@@ -79,13 +97,13 @@ const TrackOrderPage = ({ onBack, orderId }) => {
           </div>
 
           {/* More Actions */}
-          <div className="bg-[#FAF6F2] rounded-lg p-6">
+          {/* <div className="bg-[#FAF6F2] rounded-lg p-6">
             <h3 className="font-semibold mb-4">More Actions</h3>
             <button className="w-full flex items-center justify-center gap-3 py-3 border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50">
               <Download className="h-5 w-5" />
               Download Invoice
             </button>
-          </div>
+          </div> */}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -93,22 +111,44 @@ const TrackOrderPage = ({ onBack, orderId }) => {
             <h3 className="font-semibold mb-6">Product Details</h3>
             <div className="space-y-6">
               {getItems?.map((i) => (
-                <div key={i._id} className="flex gap-4 pb-6 border-b last:border-0">
+                <div
+                  key={i._id}
+                  className="flex flex-col sm:flex-row gap-4 pb-6 border-b last:border-0"
+                >
+                  {/* Product Image */}
                   <img
                     src={i.image || NO_IMAGE}
                     alt={i.product_title || "Product Image"}
                     className="w-20 h-24 object-cover rounded"
                   />
-                  <div>
-                    <p className="font-medium mb-2">
+
+                  {/* Product Info */}
+                  <div className="flex-1">
+                    <p className="font-medium mb-1">
                       {i.product_title || "Product Title"}
                     </p>
-                    <p className="text-sm text-gray-600">Amount Paid: ₹ {i.final_price || i.discount_price}</p>
+                    <p className="text-sm text-gray-600">
+                      Amount Paid: ₹ {i.final_price || i.discount_price}
+                    </p>
                     <p className="text-sm text-gray-600">QTY: {i.quantity}</p>
                   </div>
+                  <div>
+                    {orderDetails.order_status === "delivered" && (
+                      <button
+                        onClick={() => handleRateProduct(i)}
+                        className="sm:ml-auto px-4 py-2 text-sm bg-[#FF8A18] text-white rounded-md hover:bg-orange-600 transition"
+                      >
+                        Rate Product
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Rate Button */}
+
                 </div>
               ))}
             </div>
+
           </div>
 
           <div className="bg-white rounded-lg p-6">
