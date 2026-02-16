@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Store, Package, ShoppingCart, TrendingUp, User, 
+import {
+  Store, Package, ShoppingCart, TrendingUp, User,
   LogOut, Search, Plus, Minus, Eye, EyeOff, IndianRupee, Calendar,
   CheckCircle, Clock, Truck, Filter, X, ChevronRight, Percent,
   MapPin, UserCheck, Ticket, Warehouse,
@@ -28,6 +28,7 @@ import SalesAnalytics from "@/components/boutique/SalesAnalytics";
 import BoutiqueProfile from "@/components/boutique/BoutiqueProfile";
 import BoutiqueCurations from "@/components/boutique/BoutiqueCurations";
 import BoutiqueInventory from "@/components/boutique/BoutiqueInventory";
+import { logoImage } from "@/api/endpoints";
 
 const SUBCATEGORIES: Record<string, string[]> = {
   "Kurta Sets": ["Cotton Kurta", "Silk Kurta", "Embroidered Kurta", "Printed Kurta"],
@@ -44,7 +45,7 @@ const BoutiqueDashboard = () => {
   const { toast } = useToast();
   const { isLoggedIn, user, orders, sales, logout, placeOrder, updateProductPrice, getProductPrice, productPrices, toggleProductDisplay } = useBoutique();
   const { addItem, getTotalItems } = useBoutiqueCart();
-  
+
   const [activeTab, setActiveTab] = useState("products");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -53,7 +54,7 @@ const BoutiqueDashboard = () => {
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showPriceDialog, setShowPriceDialog] = useState(false);
   const [showCart, setShowCart] = useState(false);
-  
+
   // Product Filters
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
@@ -62,12 +63,12 @@ const BoutiqueDashboard = () => {
   const [stockFilter, setStockFilter] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Order Filters
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [orderTypeFilter, setOrderTypeFilter] = useState("all");
-  
+
   // Customer Info for single order
   const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "", email: "" });
   const [shippingAddress, setShippingAddress] = useState({ name: "", phone: "", address: "", city: "", state: "", pincode: "" });
@@ -213,11 +214,11 @@ const BoutiqueDashboard = () => {
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
     const matchesSubcategory = subcategoryFilter === "all" || p.subcategory === subcategoryFilter;
     const matchesPrice = p.adminPrice >= priceRange[0] && p.adminPrice <= priceRange[1];
-    const matchesDiscount = discountFilter === "all" || 
+    const matchesDiscount = discountFilter === "all" ||
       (discountFilter === "10" && p.discount >= 10) ||
       (discountFilter === "20" && p.discount >= 20) ||
       (discountFilter === "30" && p.discount >= 30);
-    const matchesStock = stockFilter === "all" || 
+    const matchesStock = stockFilter === "all" ||
       (stockFilter === "in_stock" && p.stock > 0) ||
       (stockFilter === "low_stock" && p.stock > 0 && p.stock <= 10) ||
       (stockFilter === "out_of_stock" && p.stock === 0);
@@ -225,7 +226,7 @@ const BoutiqueDashboard = () => {
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch(sortBy) {
+    switch (sortBy) {
       case "price-low": return a.adminPrice - b.adminPrice;
       case "price-high": return b.adminPrice - a.adminPrice;
       case "discount": return b.discount - a.discount;
@@ -239,7 +240,7 @@ const BoutiqueDashboard = () => {
       order.id.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
       (order.customerInfo?.name.toLowerCase().includes(orderSearchQuery.toLowerCase()));
     const matchesStatus = orderStatusFilter === "all" || order.status === orderStatusFilter;
-    const matchesType = orderTypeFilter === "all" || 
+    const matchesType = orderTypeFilter === "all" ||
       (orderTypeFilter === "bulk" && order.isBulkOrder) ||
       (orderTypeFilter === "single" && !order.isBulkOrder);
     return matchesSearch && matchesStatus && matchesType;
@@ -274,12 +275,25 @@ const BoutiqueDashboard = () => {
       {/* Header */}
       <header className="border-b border-border bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 md:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
+          {/* <div className="flex items-center gap-2 min-w-0">
             <Store className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-brand-orange flex-shrink-0" />
             <div className="min-w-0">
               <span className="text-sm sm:text-lg md:text-xl font-bold text-warm-brown truncate block">{user?.shopName}</span>
               <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{user?.category}</p>
             </div>
+          </div> */}
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2">
+              {/* <ShoppingBag className="h-6 w-6 text-primary" />
+              <span className="font-bold text-foreground">Ethnic Store</span> */}
+              <img
+                src={logoImage}
+                alt="Zarkha"
+                className="h-8 w-auto cursor-pointer"
+                onClick={() => navigate("/")}
+              />
+            </Link>
+            <Badge variant="secondary" className="hidden sm:flex">Boutique Partner</Badge>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="relative" onClick={() => setShowCart(true)}>
@@ -386,10 +400,10 @@ const BoutiqueDashboard = () => {
                 { value: "support", icon: Ticket, label: "Support" },
                 { value: "profile", icon: User, label: "Profile" },
               ].map(tab => (
-                <Button 
+                <Button
                   key={tab.value}
-                  variant={activeTab === tab.value ? "brand" : "outline"} 
-                  size="sm" 
+                  variant={activeTab === tab.value ? "brand" : "outline"}
+                  size="sm"
                   onClick={() => setActiveTab(tab.value)}
                   className="flex-shrink-0 text-xs h-8 px-3"
                 >
@@ -431,7 +445,7 @@ const BoutiqueDashboard = () => {
                       </Button>
                     </div>
                   </div>
-                  
+
                   {/* Filters with Subcategory */}
                   {showFilters && (
                     <div className="bg-muted/50 p-4 rounded-lg space-y-4">
@@ -565,9 +579,9 @@ const BoutiqueDashboard = () => {
                             <Button variant={priceInfo ? "outline" : "brand"} size="sm" className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-3" onClick={() => handleUpdatePrice(product)}>
                               <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" /> <span className="hidden sm:inline">{priceInfo ? "Update Price" : "Set Price"}</span><span className="sm:hidden">{priceInfo ? "Price" : "Set"}</span>
                             </Button>
-                            <Button 
-                              variant="brand" 
-                              size="sm" 
+                            <Button
+                              variant="brand"
+                              size="sm"
                               className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-3"
                               onClick={() => handleAddToCart(product)}
                               disabled={product.stock === 0}
@@ -576,7 +590,7 @@ const BoutiqueDashboard = () => {
                             </Button>
                           </div>
                           {priceInfo && (
-                            <Button 
+                            <Button
                               variant={priceInfo.displayOnBrandPage ? "default" : "outline"}
                               size="sm" className="w-full"
                               onClick={() => toggleProductDisplay(product.id)}
@@ -785,21 +799,21 @@ const BoutiqueDashboard = () => {
               <div className="space-y-3">
                 <Label className="text-base font-semibold">Customer Information</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Input placeholder="Customer Name *" value={customerInfo.name} onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})} />
-                  <Input placeholder="Phone *" value={customerInfo.phone} onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
-                  <Input type="email" placeholder="Email" value={customerInfo.email} onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})} className="sm:col-span-2" />
+                  <Input placeholder="Customer Name *" value={customerInfo.name} onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })} />
+                  <Input placeholder="Phone *" value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} />
+                  <Input type="email" placeholder="Email" value={customerInfo.email} onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })} className="sm:col-span-2" />
                 </div>
               </div>
               <Separator />
               <div className="space-y-3">
                 <Label className="text-base font-semibold">Shipping Address</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Input placeholder="Recipient Name *" value={shippingAddress.name} onChange={(e) => setShippingAddress({...shippingAddress, name: e.target.value})} />
-                  <Input placeholder="Phone *" value={shippingAddress.phone} onChange={(e) => setShippingAddress({...shippingAddress, phone: e.target.value})} />
-                  <Input placeholder="Address *" value={shippingAddress.address} onChange={(e) => setShippingAddress({...shippingAddress, address: e.target.value})} className="sm:col-span-2" />
-                  <Input placeholder="City *" value={shippingAddress.city} onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})} />
-                  <Input placeholder="State *" value={shippingAddress.state} onChange={(e) => setShippingAddress({...shippingAddress, state: e.target.value})} />
-                  <Input placeholder="Pincode *" value={shippingAddress.pincode} onChange={(e) => setShippingAddress({...shippingAddress, pincode: e.target.value})} />
+                  <Input placeholder="Recipient Name *" value={shippingAddress.name} onChange={(e) => setShippingAddress({ ...shippingAddress, name: e.target.value })} />
+                  <Input placeholder="Phone *" value={shippingAddress.phone} onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })} />
+                  <Input placeholder="Address *" value={shippingAddress.address} onChange={(e) => setShippingAddress({ ...shippingAddress, address: e.target.value })} className="sm:col-span-2" />
+                  <Input placeholder="City *" value={shippingAddress.city} onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })} />
+                  <Input placeholder="State *" value={shippingAddress.state} onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })} />
+                  <Input placeholder="Pincode *" value={shippingAddress.pincode} onChange={(e) => setShippingAddress({ ...shippingAddress, pincode: e.target.value })} />
                 </div>
               </div>
               <Separator />
@@ -810,12 +824,12 @@ const BoutiqueDashboard = () => {
                 </div>
                 {!sameAsShipping && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Input placeholder="Name *" value={billingAddress.name} onChange={(e) => setBillingAddress({...billingAddress, name: e.target.value})} />
-                    <Input placeholder="Phone *" value={billingAddress.phone} onChange={(e) => setBillingAddress({...billingAddress, phone: e.target.value})} />
-                    <Input placeholder="Address *" value={billingAddress.address} onChange={(e) => setBillingAddress({...billingAddress, address: e.target.value})} className="sm:col-span-2" />
-                    <Input placeholder="City *" value={billingAddress.city} onChange={(e) => setBillingAddress({...billingAddress, city: e.target.value})} />
-                    <Input placeholder="State *" value={billingAddress.state} onChange={(e) => setBillingAddress({...billingAddress, state: e.target.value})} />
-                    <Input placeholder="Pincode *" value={billingAddress.pincode} onChange={(e) => setBillingAddress({...billingAddress, pincode: e.target.value})} />
+                    <Input placeholder="Name *" value={billingAddress.name} onChange={(e) => setBillingAddress({ ...billingAddress, name: e.target.value })} />
+                    <Input placeholder="Phone *" value={billingAddress.phone} onChange={(e) => setBillingAddress({ ...billingAddress, phone: e.target.value })} />
+                    <Input placeholder="Address *" value={billingAddress.address} onChange={(e) => setBillingAddress({ ...billingAddress, address: e.target.value })} className="sm:col-span-2" />
+                    <Input placeholder="City *" value={billingAddress.city} onChange={(e) => setBillingAddress({ ...billingAddress, city: e.target.value })} />
+                    <Input placeholder="State *" value={billingAddress.state} onChange={(e) => setBillingAddress({ ...billingAddress, state: e.target.value })} />
+                    <Input placeholder="Pincode *" value={billingAddress.pincode} onChange={(e) => setBillingAddress({ ...billingAddress, pincode: e.target.value })} />
                   </div>
                 )}
               </div>

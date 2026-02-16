@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from "@/api/endpoints";
 
 export interface CreatePaymentOrderPayload {
   amount: number;      // in rupees
-  cart_id: string;
+  cart_id?: string;
 }
 
 export interface CreatePaymentOrderResponse {
