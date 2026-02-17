@@ -91,5 +91,18 @@ export const API_ENDPOINTS = {
     SALES_LIST: "/api/web/affiliate/sales-list",
     COUPON_LIST: "/api/web/coupon/affiliate/list" ,
     EARNINGS_LIST: "/api/web/affiliate/earnings-and-payments" ,
+  },
+  BOUTIQUE: {
+    SIGNUP: "/api/web/boutique/signup",
+    LOGIN: "/api/web/boutique/login",
+    PROFILE: "/api/web/boutique/profile", 
+    UPDATE_PROFILE: "/api/web/boutique/profile",
+    CategoryList: "/api/web/boutique/category-list",
+    DASHBOARD_STATS: "/api/web/boutique/dashboard-stats",
+    PRODUCT_CATEGORY_LIST: "/api/web/boutique/product-category-list",
+    PRODUCT_LIST: "/api/web/boutique/product-list",
+    SALES_LIST: "/api/web/boutique/sales-list",
+    COUPON_LIST: "/api/web/coupon/boutique/list" ,
+    EARNINGS_LIST: "/api/web/boutique/earnings-and-payments" ,
   }
 };

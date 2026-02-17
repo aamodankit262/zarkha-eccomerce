@@ -249,7 +249,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   };
 
   if (showRatingsPage) {
-    return <RatingsPage onBack={handleBackFromRatings} />;
+    return <RatingsPage onBack={handleBackFromRatings} id={id} />;
   }
   if (error) {
     return (

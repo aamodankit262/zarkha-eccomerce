@@ -61,5 +61,12 @@ export const productService = {
       payload
     );
     return res;
+  },
+  getRatings: async (productId: string) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.PRODUCTS.RARTING,
+      { product_id: productId }
+    );
+    return res;
   }
 };
