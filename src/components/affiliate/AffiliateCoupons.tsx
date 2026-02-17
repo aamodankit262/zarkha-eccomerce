@@ -105,21 +105,21 @@ const AffiliateCoupons = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <Tag className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="text-2xl font-bold text-foreground">{summary?.activeCoupons?? 0}</p>
+            <p className="text-2xl font-bold text-foreground">{summary?.active_coupons?? 0}</p>
             <p className="text-sm text-muted-foreground">Active Coupons</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <ShoppingCart className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="text-2xl font-bold text-foreground">{summary?.totalUses?? 0}</p>
+            <p className="text-2xl font-bold text-foreground">{summary?.total_uses?? 0}</p>
             <p className="text-sm text-muted-foreground">Total Uses</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Percent className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="text-2xl font-bold text-green-600">₹{summary?.totalEarnings?? 0}</p>
+            <p className="text-2xl font-bold text-green-600">₹{summary?.total_earnings?? 0}</p>
             <p className="text-sm text-muted-foreground">Total Earnings</p>
           </CardContent>
         </Card>

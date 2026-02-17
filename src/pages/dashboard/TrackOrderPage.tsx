@@ -7,7 +7,28 @@ import { useAuthStore } from "@/store/authStore";
 import { ArrowLeft, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import RateProductPage from "./RateProductPage";
-
+// [
+//   {
+//     label: "Order Confirmed",
+//     date: formatDate(orderDetails?.confirmed_at),
+//     done: !!orderDetails?.confirmed_at,
+//   },
+//   {
+//     label: "Shipped",
+//     date: formatDate(orderDetails?.shipped_at),
+//     done: !!orderDetails?.shipped_at,
+//   },
+//   {
+//     label: "Out For Delivery",
+//     date: formatDate(orderDetails?.out_for_delivery_at, "Expected soon"),
+//     done: !!orderDetails?.out_for_delivery_at,
+//   },
+//   {
+//     label: "Delivered",
+//     date: formatDate(orderDetails?.delivered_at),
+//     done: !!orderDetails?.delivered_at,
+//   },
+// ]
 const TrackOrderPage = ({ onBack, orderId }) => {
   const { data: orderResp, request: fetchOrderDetails, loading: orderderLoading } = useApi(orderService.getOrderDetails);
   const { userDetails } = useAuthStore();
@@ -29,6 +50,7 @@ const TrackOrderPage = ({ onBack, orderId }) => {
   const orderDetails = orderResp?.body || {};
   const getShippingAddress = orderDetails.shipping_address || {};
   const getItems = orderDetails.items || [];
+  const getTimestatms = orderDetails?.tracking_timeline || [];
   const resetFormAndView = () => {
     setCurrentView("track-order");
     setSelectedProductForRating(null);
@@ -90,10 +112,23 @@ const TrackOrderPage = ({ onBack, orderId }) => {
                 <span className="font-medium">{new Date(orderDetails?.ordered_at).toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Payment</span>
+                <span className="text-gray-600">Payment Status</span>
                 <span className="font-medium text-green-600">{orderDetails?.payment_status}</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Payment Method</span>
+                <span className="font-medium">{orderDetails?.payment_method || "N/A"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Shipping Charge</span>
+                <span className="font-medium">₹ {orderDetails?.shipping_charge || "0.00"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Amount</span>
+                <span className="font-medium">₹ {orderDetails?.total_amount || "0"}</span>
+              </div>
             </div>
+
           </div>
 
           {/* More Actions */}
@@ -164,41 +199,21 @@ const TrackOrderPage = ({ onBack, orderId }) => {
 
             <div className="relative pl-8">
               <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-300" />
-              {[
-                {
-                  label: "Order Confirmed",
-                  date: formatDate(orderDetails?.confirmed_at),
-                  done: !!orderDetails?.confirmed_at,
-                },
-                {
-                  label: "Shipped",
-                  date: formatDate(orderDetails?.shipped_at),
-                  done: !!orderDetails?.shipped_at,
-                },
-                {
-                  label: "Out For Delivery",
-                  date: formatDate(orderDetails?.out_for_delivery_at, "Expected soon"),
-                  done: !!orderDetails?.out_for_delivery_at,
-                },
-                {
-                  label: "Delivered",
-                  date: formatDate(orderDetails?.delivered_at),
-                  done: !!orderDetails?.delivered_at,
-                },
-              ].map((step, i) => (
-                <div key={i} className="relative mb-8 last:mb-0">
-                  <div
-                    className={`absolute -left-9 w-5 h-5 rounded-full border-4 border-white ${step.done ? "bg-green-500" : "bg-gray-300"
-                      }`}
-                  />
-                  <p className={`font-medium ${step.done ? "text-gray-900" : "text-gray-500"}`}>
-                    {step.label}
-                  </p>
-                  <p className={`text-sm ${step.done ? "text-gray-600" : "text-gray-400"}`}>
-                    {step.date}
-                  </p>
-                </div>
-              ))}
+              {
+                getTimestatms?.map((step, i) => (
+                  <div key={step.key || i} className="relative mb-8 last:mb-0">
+                    <div
+                      className={`absolute -left-9 w-5 h-5 rounded-full border-4 border-white ${step.status === "completed" ? "bg-green-500" : "bg-gray-300"
+                        }`}
+                    />
+                    <p className={`font-medium ${step.status === "completed" ? "text-gray-900" : "text-gray-500"}`}>
+                      {step.title}
+                    </p>
+                    <p className={`text-sm ${step.status === "completed" ? "text-gray-600" : "text-gray-400"}`}>
+                      {step.formatted}
+                    </p>
+                  </div>
+                ))}
             </div>
           </div>
         </div>

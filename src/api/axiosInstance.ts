@@ -19,6 +19,15 @@ const getAffiliateToken = () => {
     return null;
   }
 };
+const getBoutiqueToken = () => {
+  try {
+    const auth = localStorage.getItem("boutique-auth");
+    // console.log(auth, "boutique-auth")
+    return auth ? JSON.parse(auth)?.token : null;
+  } catch {
+    return null;
+  }
+};
 
 // console.log(getAffiliateToken, 'affiate token')
 
@@ -35,15 +44,21 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const url = config.url || "";
 
-    // 👇 Affiliate APIs
-
+    //  Affiliate APIs
     if (url.includes("/affiliate")) {
       const affiliateToken = getAffiliateToken();
       if (affiliateToken && config.headers) {
         config.headers.Authorization = `Bearer ${affiliateToken}`;
       }
     }
-    // 👇 Normal user APIs
+    // if (url.includes("/boutique")) {
+    //   const boutiqueToken = getBoutiqueToken();
+    //   if (boutiqueToken && config.headers) {
+    //     config.headers.Authorization = `Bearer ${boutiqueToken}`;
+    //   }
+    // }
+
+    // Normal user APIs
     else {
       const userToken = getUserToken();
       if (userToken && config.headers) {
