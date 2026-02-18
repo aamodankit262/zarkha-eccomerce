@@ -15,9 +15,9 @@ export const CMS_TYPES = {
 interface ApiResponse<T> {
   success: boolean;
   message: string;
-  body: T;
-  total_pages: number;
-  filtered_by: object
+  body?: T;
+  total_pages?: number;
+  filtered_by?: object
 }
 
 export const getCms = async (type: string) => {
@@ -31,4 +31,12 @@ export const getCms = async (type: string) => {
 
   return res;
 };
+export const uploadImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await apiClient.post(API_ENDPOINTS.IMAGE_UPLOAD, formData);
+  return res ; // { path, url, filename }
+};
+
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,16 +8,18 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Store, User, MapPin, Phone, Mail, Clock, Calendar, 
-  Building2, CreditCard, FileText, Image, Upload, 
+import {
+  Store, User, MapPin, Phone, Mail, Clock, Calendar,
+  Building2, CreditCard, FileText, Image, Upload,
   Instagram, Facebook, Globe, MessageCircle, Pencil, Save, X
 } from "lucide-react";
 import { useBoutique } from "@/contexts/BoutiqueContext";
 import { useToast } from "@/hooks/use-toast";
+import { useApi } from "@/hooks/useApi";
+import { boutiqueService } from "@/boutiqueServices/boutiqueService";
 
 const BOUTIQUE_CATEGORIES = [
-  "Women Ethnic Wear", "Women Western Wear", "Men's Fashion", 
+  "Women Ethnic Wear", "Women Western Wear", "Men's Fashion",
   "Kids Wear", "Bridal Wear", "Accessories", "Footwear", "Home Decor"
 ];
 
@@ -67,21 +69,23 @@ const BoutiqueProfile = () => {
   const { user } = useBoutique();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const { data, request: fetchProfile, loading } = useApi(boutiqueService.getProfile);
+  const { request: fetchCategory, data: categoryData } = useApi(boutiqueService.boutiqueCategoryList);
 
   const [profile, setProfile] = useState<BoutiqueProfileData>(() => {
     const stored = localStorage.getItem('boutique_profile');
     return stored ? JSON.parse(stored) : {
-      storeName: user?.shopName || '',
-      ownerName: user?.name || '',
-      category: user?.category || '',
+      storeName: user?.shop_name || '',
+      ownerName: user?.owner_name || '',
+      category: user?.boutique_category || '',
       subcategory: '',
       email: user?.email || '',
-      phone: user?.phone || '',
-      storeAddress: user?.address || '',
+      phone: user?.phone_number || '',
+      storeAddress: user?.shop_address || '',
       city: 'Mumbai',
       state: 'Maharashtra',
       pincode: '400001',
-      gstNumber: user?.gstNumber || '',
+      gstNumber: user?.gst_number || '',
       pickupPersonName: '',
       pickupPersonPhone: '',
       pickupAddress: '',
@@ -104,6 +108,11 @@ const BoutiqueProfile = () => {
       aboutBrand: ''
     };
   });
+
+  useEffect(() => {
+    fetchProfile();
+    fetchCategory();
+  }, []);
 
   const handleSave = () => {
     localStorage.setItem('boutique_profile', JSON.stringify(profile));
@@ -135,7 +144,7 @@ const BoutiqueProfile = () => {
   const toggleDay = (day: string) => {
     setProfile(prev => ({
       ...prev,
-      operatingDays: prev.operatingDays.includes(day) 
+      operatingDays: prev.operatingDays.includes(day)
         ? prev.operatingDays.filter(d => d !== day)
         : [...prev.operatingDays, day]
     }));
@@ -185,7 +194,7 @@ const BoutiqueProfile = () => {
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="flex flex-col items-center gap-2">
             <Label className="text-sm text-muted-foreground">Brand Logo</Label>
-            <div 
+            <div
               className={`w-24 h-24 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden ${isEditing ? 'cursor-pointer hover:border-brand-orange' : ''}`}
               onClick={() => isEditing && handleImageUpload('brandLogo')}
             >
@@ -201,7 +210,7 @@ const BoutiqueProfile = () => {
           </div>
           <div className="flex flex-col items-center gap-2">
             <Label className="text-sm text-muted-foreground">Digital Signature</Label>
-            <div 
+            <div
               className={`w-32 h-16 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden ${isEditing ? 'cursor-pointer hover:border-brand-orange' : ''}`}
               onClick={() => isEditing && handleImageUpload('digitalSignature')}
             >
@@ -455,8 +464,8 @@ const BoutiqueProfile = () => {
               <Label className="text-xs text-muted-foreground mb-2 block">Operating Days</Label>
               <div className="flex flex-wrap gap-2">
                 {DAYS.map(day => (
-                  <Badge 
-                    key={day} 
+                  <Badge
+                    key={day}
                     variant={profile.operatingDays.includes(day) ? "default" : "outline"}
                     className={`cursor-pointer select-none ${isEditing ? 'hover:opacity-80' : ''} ${profile.operatingDays.includes(day) ? 'bg-brand-orange hover:bg-brand-orange/90' : ''}`}
                     onClick={() => isEditing && toggleDay(day)}
@@ -497,7 +506,7 @@ const BoutiqueProfile = () => {
               {isEditing ? (
                 <Input placeholder="ABCDE1234F" value={profile.panNumber} onChange={(e) => update('panNumber', e.target.value.toUpperCase())} />
               ) : (
-                <p className="font-medium">{profile.panNumber ? `${profile.panNumber.slice(0,2)}****${profile.panNumber.slice(-2)}` : '—'}</p>
+                <p className="font-medium">{profile.panNumber ? `${profile.panNumber.slice(0, 2)}****${profile.panNumber.slice(-2)}` : '—'}</p>
               )}
             </div>
             <div className="space-y-1">
@@ -530,9 +539,9 @@ const BoutiqueProfile = () => {
         <Section title="About Your Brand" icon={Building2}>
           <div className="space-y-1">
             {isEditing ? (
-              <Textarea 
-                placeholder="Tell your customers about your boutique, your story, specializations..." 
-                value={profile.aboutBrand} 
+              <Textarea
+                placeholder="Tell your customers about your boutique, your story, specializations..."
+                value={profile.aboutBrand}
                 onChange={(e) => update('aboutBrand', e.target.value)}
                 className="min-h-[100px]"
               />

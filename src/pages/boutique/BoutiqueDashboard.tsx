@@ -43,7 +43,8 @@ const SUBCATEGORIES: Record<string, string[]> = {
 const BoutiqueDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isLoggedIn, user, orders, sales, logout, placeOrder, updateProductPrice, getProductPrice, productPrices, toggleProductDisplay } = useBoutique();
+  const { isLoggedIn, user, orders, sales, logout, placeOrder, updateProductPrice, getProductPrice, productPrices, toggleProductDisplay, token } = useBoutique();
+  console.log(token, "--- Boutique Auth Token ---");
   const { addItem, getTotalItems } = useBoutiqueCart();
 
   const [activeTab, setActiveTab] = useState("products");
@@ -152,7 +153,7 @@ const BoutiqueDashboard = () => {
     const shareData = {
       title: product.name,
       text: `Check out ${product.name} - Selling Price: ₹${priceInfo?.sellingPrice || product.mrp}`,
-      url: window.location.origin + `/shop/${user?.shopName?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`
+      url: window.location.origin + `/shop/${user?.shop_name?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`
     };
     if (navigator.share) {
       try { await navigator.share(shareData); } catch {
@@ -726,7 +727,7 @@ const BoutiqueDashboard = () => {
                     <CardTitle className="text-lg">Your Brand Page</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">Share your unique brand page with customers</p>
                   </div>
-                  <Button variant="brand" onClick={() => navigate(`/shop/${user?.shopName?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`)}>
+                  <Button variant="brand" onClick={() => navigate(`/shop/${user?.shop_name?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`)}>
                     <ExternalLink className="h-4 w-4 mr-2" /> View Page
                   </Button>
                 </div>
@@ -735,9 +736,9 @@ const BoutiqueDashboard = () => {
                 <div className="p-4 bg-muted rounded-lg">
                   <Label className="text-sm text-muted-foreground">Your Brand Link</Label>
                   <div className="flex items-center gap-2 mt-2">
-                    <Input readOnly value={`${window.location.origin}/shop/${user?.shopName?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`} className="font-mono text-sm" />
+                    <Input readOnly value={`${window.location.origin}/shop/${user?.shop_name?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`} className="font-mono text-sm" />
                     <Button variant="outline" size="icon" onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/shop/${user?.shopName?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`);
+                      navigator.clipboard.writeText(`${window.location.origin}/shop/${user?.shop_name?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`);
                       toast({ title: "Link Copied!", description: "Share it with your customers." });
                     }}>
                       <Share2 className="h-4 w-4" />

@@ -36,6 +36,11 @@ export const productService = {
     const res = await apiClient.post<ApiResponse<SizeChart[]>>(API_ENDPOINTS.SIZE.LIST, formData);
     return res as any;
   },
+  getSizeChart: async (
+    ): Promise<ApiResponse<SizeChart[]>> => {
+    const res = await apiClient.get<ApiResponse<SizeChart[]>>(API_ENDPOINTS.SIZE.SIZE,);
+    return res as any;
+  },
 
   getById: async ({
     productId,
@@ -55,7 +60,7 @@ export const productService = {
       }
     );
   },
- ratingForm: async (payload: FormData) => {
+ ratingForm: async (payload) => {
     const res = await apiClient.post(
       API_ENDPOINTS.PRODUCTS.SUBMIT,
       payload

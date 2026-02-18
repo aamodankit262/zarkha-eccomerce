@@ -3,14 +3,14 @@ import { API_ENDPOINTS } from "@/api/endpoints";
 
 /* ------------------ Service ------------------ */
 export interface BoutiqueSignupPayload {
-  full_name: string;
-  email: string;
+  shop_name: string;
+  owner_name: string;
   password: string;
   phone_number: string;
-  country?: string;
-  state_id: string;
-  city_id: string;
-  affiliate_category_id: string;
+  shop_address?: string;
+  email: string;
+  gst_number: string;
+  boutique_category_id: string;
   aadhaar_card?: File | null;
 }
 
@@ -50,25 +50,25 @@ export interface BoutiqueLoginResponse {
 export const boutiqueAuthService = {
   /** BOUTIQUE SIGNUP */
   signup: async (payload: BoutiqueSignupPayload) => {
-    const formData = new FormData();
+    // const formData = new FormData();
 
-    formData.append("full_name", payload.full_name);
-    formData.append("email", payload.email);
-    formData.append("password", payload.password);
-    formData.append("phone_number", payload.phone_number);
-    formData.append("state_id", payload.state_id);
-    formData.append("city_id", payload.city_id);
-    formData.append("affiliate_category_id", payload.affiliate_category_id);
+    // formData.append("shop_name", payload.shop_name);
+    // formData.append("owner_name", payload.owner_name);
+    // formData.append("email", payload.email);
+    // formData.append("password", payload.password);
+    // formData.append("phone_number", payload.phone_number);
+    // formData.append("shop_address", payload.shop_address || "");
+    // formData.append("gst_number", payload.gst_number);
+    // formData.append("boutique_category_id", payload.boutique_category_id);
 
-    if (payload.aadhaar_card) {
-      formData.append("aadhaar_card", payload.aadhaar_card);
-    }
-
+    // if (payload.aadhaar_card) {
+    //   formData.append("aadhaar_card", payload.aadhaar_card);
+    // }
+ 
     const res = await apiClient.post<BoutiqueSignupResponse>(
       API_ENDPOINTS.BOUTIQUE.SIGNUP,
-      formData
+      payload
     );
-
     return res;
   },
 

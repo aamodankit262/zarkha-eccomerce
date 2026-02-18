@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
   },
   SIZE: {
     LIST: "/api/web/size-chart/list",
+    SIZE: "/api/web/size-chart",
     PRODUCT: "/api/web/size-chart/product",
     CATEGORY: "/api/web/size-chart/category",
   },
@@ -70,15 +71,15 @@ export const API_ENDPOINTS = {
     UPDATE: "/api/web/order/update",
     CANCEL: "/api/web/order/cancel",
   },
-  // API_ENDPOINTS.ts
+
   PAYMENT: {
     CREATE_ORDER: "/api/web/payment/create-order",
     VERIFY: "/api/web/payment/verify",
   },
   CMS: "/api/web/user/cms/get",
   CONTACT_US: "/api/web/contact-us",
+  IMAGE_UPLOAD: "/api/web/upload/image",
 
-  // API_ENDPOINTS.ts
   AFFILIATE: {
     SIGNUP: "/api/web/affiliate/signup",
     LOGIN: "/api/web/affiliate/login",
@@ -89,20 +90,20 @@ export const API_ENDPOINTS = {
     PRODUCT_CATEGORY_LIST: "/api/web/affiliate/product-category-list",
     PRODUCT_LIST: "/api/web/affiliate/product-list",
     SALES_LIST: "/api/web/affiliate/sales-list",
-    COUPON_LIST: "/api/web/coupon/affiliate/list" ,
-    EARNINGS_LIST: "/api/web/affiliate/earnings-and-payments" ,
+    COUPON_LIST: "/api/web/coupon/affiliate/list",
+    EARNINGS_LIST: "/api/web/affiliate/earnings-and-payments",
   },
   BOUTIQUE: {
     SIGNUP: "/api/web/boutique/signup",
     LOGIN: "/api/web/boutique/login",
-    PROFILE: "/api/web/boutique/profile", 
+    PROFILE: "/api/web/boutique/profile",
     UPDATE_PROFILE: "/api/web/boutique/profile",
-    CategoryList: "/api/web/boutique/category-list",
+    CategoryList: "/api/web/boutique-category/list",
     DASHBOARD_STATS: "/api/web/boutique/dashboard-stats",
     PRODUCT_CATEGORY_LIST: "/api/web/boutique/product-category-list",
     PRODUCT_LIST: "/api/web/boutique/product-list",
     SALES_LIST: "/api/web/boutique/sales-list",
-    COUPON_LIST: "/api/web/coupon/boutique/list" ,
-    EARNINGS_LIST: "/api/web/boutique/earnings-and-payments" ,
+    COUPON_LIST: "/api/web/coupon/boutique/list",
+    EARNINGS_LIST: "/api/web/boutique/earnings-and-payments",
   }
 };

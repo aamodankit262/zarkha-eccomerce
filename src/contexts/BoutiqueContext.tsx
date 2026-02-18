@@ -1,14 +1,20 @@
+import { boutiqueAuthService } from '@/boutiqueServices/boutiqueAuthService';
+import { set } from 'date-fns';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { toast } from 'sonner';
 
 interface BoutiqueUser {
-  id: string;
-  name: string;
+  _id?: string;
+  shop_name: string;
+  owner_name: string;
+  password?: string;
+  phone_number: string;
+  shop_address?: string;
   email: string;
-  phone: string;
-  category: string;
-  shopName: string;
-  address: string;
-  gstNumber?: string;
+  gst_number: string;
+  boutique_category_id?: string;
+  boutique_category?: string;
+  aadhaar_card?: File | null;
 }
 
 interface Address {
@@ -84,6 +90,7 @@ interface OrderInput {
 
 interface BoutiqueContextType {
   isLoggedIn: boolean;
+  token: string | null;
   user: BoutiqueUser | null;
   orders: BoutiqueOrder[];
   sales: BoutiqueSale[];
@@ -118,7 +125,9 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
     const stored = localStorage.getItem('boutique_user');
     return stored ? JSON.parse(stored) : null;
   });
-  
+ const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem('boutique_auth_token') || null;
+  });
   const [productPrices, setProductPrices] = useState<ProductPrice[]>(() => {
     const stored = localStorage.getItem('boutique_product_prices');
     return stored ? JSON.parse(stored) : [
@@ -129,15 +138,20 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
   });
 
   // Update user and persist to localStorage
-  const updateUser = (newUser: BoutiqueUser | null, loggedIn: boolean) => {
+  const updateUser = (newUser: BoutiqueUser | null, loggedIn: boolean, authToken?: string) => {
     setUser(newUser);
     setIsLoggedIn(loggedIn);
+    setToken(authToken || null);
     if (newUser) {
       localStorage.setItem('boutique_user', JSON.stringify(newUser));
       localStorage.setItem('boutique_logged_in', 'true');
+      if (authToken) {
+        localStorage.setItem('boutique_auth_token', authToken);
+      }
     } else {
       localStorage.removeItem('boutique_user');
       localStorage.setItem('boutique_logged_in', 'false');
+      localStorage.removeItem('boutique_auth_token');
     }
   };
   const [orders, setOrders] = useState<BoutiqueOrder[]>([
@@ -270,41 +284,92 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
   ]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (email && password) {
-      updateUser({
-        id: '1',
-        name: 'Fashion Boutique',
-        email,
-        phone: '+91 9876543210',
-        category: 'Women Ethnic Wear',
-        shopName: 'Elegance Boutique',
-        address: '123 Fashion Street, Mumbai'
-      }, true);
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    // if (email && password) {
+    //   updateUser({
+    //     id: '1',
+    //     name: 'Fashion Boutique',
+    //     email,
+    //     phone: '+91 9876543210',
+    //     category: 'Women Ethnic Wear',
+    //     shopName: 'Elegance Boutique',
+    //     address: '123 Fashion Street, Mumbai'
+    //   }, true);
+    //   return true;
+    // }
+    // return false;
+
+    try {
+      const res: any = await boutiqueAuthService.login({ email, password });
+
+      if (!res.success) {
+        toast.error(res.message);
+        return false;
+      }
+      updateUser(res?.body, true, res?.token);
+      //   updateUser({
+      //   id: '1',
+      //   name: 'Fashion Boutique',
+      //   email,
+      //   phone: '+91 9876543210',
+      //   category: 'Women Ethnic Wear',
+      //   shopName: 'Elegance Boutique',
+      //   address: '123 Fashion Street, Mumbai'
+      // }, true);
+
+      toast.success(res.message);
       return true;
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Login failed");
+      return false;
     }
-    return false;
   };
 
   const signup = async (userData: Partial<BoutiqueUser> & { password: string }): Promise<boolean> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (userData.email && userData.password) {
-      updateUser({
-        id: '1',
-        name: userData.name || '',
-        email: userData.email,
-        phone: userData.phone || '',
-        category: userData.category || '',
-        shopName: userData.shopName || '',
-        address: userData.address || ''
-      }, true);
-      return true;
+    try {
+      const payloadData = {
+        shop_name: userData.shop_name || "",
+        owner_name: userData.owner_name || "",
+        email: userData.email || "",
+        password: userData.password,
+        phone_number: userData.phone_number || "",
+        shop_address: userData.shop_address || "",
+        gst_number: userData.gst_number || "",
+        boutique_category_id: userData.boutique_category_id || "",
+        aadhaar_card: userData.aadhaar_card || null
+      }
+      const res = await boutiqueAuthService.signup(payloadData);
+      if (res.success) {
+        toast.success(res.message);
+        updateUser(res?.body, false, null);
+        return true;
+
+      } else {
+        toast.error(res?.message || "Signup failed");
+        return false;
+      }
+
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error.message || "Signup failed");
+      return false;
     }
-    return false;
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    // if (userData.email && userData.password) {
+    //   updateUser({
+    //     name: userData.name || '',
+    //     email: userData.email,
+    //     phone: userData.phone || '',
+    //     category: userData.category || '',
+    //     shopName: userData.shopName || '',
+    //     address: userData.address || ''
+    //   }, true);
+    //   return true;
+    // }
+    // return false;
   };
 
   const logout = () => {
-    updateUser(null, false);
+    updateUser(null, false, null);
   };
 
   const placeOrder = (order: OrderInput) => {
@@ -333,11 +398,11 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
     setProductPrices(prev => {
       const existing = prev.find(p => p.productId === productId);
       const updated = existing
-        ? prev.map(p => 
-            p.productId === productId 
-              ? { ...p, sellingPrice, lastUpdated: today, displayOnBrandPage }
-              : p
-          )
+        ? prev.map(p =>
+          p.productId === productId
+            ? { ...p, sellingPrice, lastUpdated: today, displayOnBrandPage }
+            : p
+        )
         : [...prev, { productId, sellingPrice, lastUpdated: today, displayOnBrandPage }];
       localStorage.setItem('boutique_product_prices', JSON.stringify(updated));
       return updated;
@@ -346,8 +411,8 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
 
   const toggleProductDisplay = (productId: string) => {
     setProductPrices(prev => {
-      const updated = prev.map(p => 
-        p.productId === productId 
+      const updated = prev.map(p =>
+        p.productId === productId
           ? { ...p, displayOnBrandPage: !p.displayOnBrandPage }
           : p
       );
@@ -364,6 +429,7 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
     <BoutiqueContext.Provider value={{
       isLoggedIn,
       user,
+      token,
       orders,
       sales,
       payments,
