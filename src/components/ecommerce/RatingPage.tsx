@@ -3,6 +3,7 @@ import { Layout } from "../common";
 import { Star, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { productService } from "@/services/productService";
+import { NO_IMAGE } from "@/api/endpoints";
 
 interface RatingsPageProps {
   onBack: () => void;
@@ -49,7 +50,7 @@ export const RatingsPage = ({ onBack, id }: RatingsPageProps) => {
               <img
                 src={
                   body?.product_image ||
-                  "/assets/8e7b5ac5-809f-4968-9838-2b60e5952347.png"
+                  NO_IMAGE
                 }
                 alt="Product"
                 className="rounded-lg border border-gray-200"
@@ -77,7 +78,7 @@ export const RatingsPage = ({ onBack, id }: RatingsPageProps) => {
 
                 {/* Breakdown */}
                 <div className="space-y-2">
-                  {ratingBreakdown.map((rating) => {
+                  {ratingBreakdown?.map((rating) => {
                     const percent =
                       totalRatings > 0
                         ? (rating.count / totalRatings) * 100
@@ -123,7 +124,7 @@ export const RatingsPage = ({ onBack, id }: RatingsPageProps) => {
               </h2>
 
               <div className="space-y-6">
-                {reviews.map((review: any, idx: number) => (
+                {reviews?.map((review: any, idx: number) => (
                   <div key={idx} className="border-b border-gray-200 pb-4">
                     {review.comments && (
                       <p className="text-gray-700 mb-3">{review.comments}</p>

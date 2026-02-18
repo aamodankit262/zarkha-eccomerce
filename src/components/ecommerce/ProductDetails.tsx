@@ -24,6 +24,7 @@ import { measurements } from "@/types";
 import ProductImages from "../product/ProductImages";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import GlobalLoader from "../GlobalLoader";
+import { NO_IMAGE } from "@/api/endpoints";
 
 interface ProductDetailsPageProps {
   onClose: () => void;
@@ -49,7 +50,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   //  const {affiliate, isLoggedIn, logout } = useAffiliate();
 
   const { data, request, error, loading } = useApi(productService.getById);
-  const { data: ChartList, request: fetchChartList, error: chartError } = useApi(productService.getSizeChartList);
+  const { data: ChartList, request: fetchChartList, error: chartError } = useApi(productService.getSizeChart);
   const selectedVariantId = searchParams.get("variant");
   const affiliateId = searchParams.get("affiliate");
 
@@ -159,21 +160,15 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
  
   useEffect(() => {
     if (!showSizeChart || ChartList) return;
-    fetchChartList({
-      category_id: "",
-      subcategory_id: "",
-      status: "",
-      page: 1,
-      limit: 10,
-    });
+    fetchChartList();
   }, [showSizeChart, ChartList]);
 
   useEffect(() => {
-    if (ChartList?.body?.length > 0) {
-      setSizeChartData(ChartList?.body[0]?.measurements); // ✅ first chart
+    if (ChartList?.body) {
+      setSizeChartData(ChartList?.body?.measurements); // ✅ first chart
     }
   }, [ChartList]);
-
+ console.log("Size Chart Data:", sizeChartData);
   // useEffect(() => {
   //   if (!selectedVariantId && productVariants.length > 0) {
   //     const params = new URLSearchParams(searchParams);
@@ -660,7 +655,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                         </div>
 
                         {/* Customer Reviews */}
-                        {/* <div className="space-y-6">
+                        <div className="space-y-6">
                           <h4 className="text-lg font-medium text-gray-900">
                             Customers Feedback ({customerReviews?.length})
                           </h4>
@@ -679,7 +674,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                                 {review?.images?.map((image, index) => (
                                   <img
                                     key={index}
-                                    src={image}
+                                    src={image || NO_IMAGE}
                                     alt={review.name}
                                     className="w-12 h-12 object-cover rounded"
                                   />
@@ -703,7 +698,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                             </div>
                           )}
                             
-                        </div> */}
+                        </div>
                       </div>
                     </div>
                   )}

@@ -2,68 +2,64 @@ import axios from "axios";
 import { API_ENDPOINTS } from "./endpoints";
 import { toast } from "sonner";
 
-const getUserToken = () => {
+/* ---------------- TOKEN HELPERS ---------------- */
+
+const getToken = (key: string, path?: string) => {
   try {
-    const auth = localStorage.getItem("zarkha-auth");
-    return auth ? JSON.parse(auth)?.state?.token : null;
-  } catch {
+    const auth = localStorage.getItem(key);
+    console.log(`Retrieving token for ${key}:`, auth);
+    if (!auth) return null;
+     const parsed = typeof auth === "string" && auth.startsWith("{") ? JSON.parse(auth) : auth;
+    // const parsed = JSON.parse(auth); 
+
+    console.log(`Parsed token for ${key}:`, parsed);
+    // user token is nested differently
+    if (key === "zarkha-auth") return parsed?.state?.token;
+    // if(key === "boutique_auth_token") return auth; 
+
+    return parsed?.token || parsed; // fallback to raw value if not nested
+  } catch (error) {
+    console.error("Error retrieving token:", error);
     return null;
   }
 };
-const getAffiliateToken = () => {
-  try {
-    const auth = localStorage.getItem("affiliate-auth");
-    // console.log(auth, "affiliate-auth")
-    return auth ? JSON.parse(auth)?.token : null;
-  } catch {
-    return null;
-  }
-};
-const getBoutiqueToken = () => {
-  try {
-    const auth = localStorage.getItem("boutique-auth");
-    // console.log(auth, "boutique-auth")
-    return auth ? JSON.parse(auth)?.token : null;
-  } catch {
-    return null;
-  }
+console.log("Tokens:", {
+  "zarkha-auth": getToken("zarkha-auth"),
+  "affiliate-auth": getToken("affiliate-auth"),
+  "boutique_auth_token": getToken("boutique_auth_token"),
+});
+const clearAllAuth = () => {
+  localStorage.removeItem("zarkha-auth");
+  localStorage.removeItem("affiliate-auth");
+  localStorage.removeItem("boutique_auth_token");
 };
 
-// console.log(getAffiliateToken, 'affiate token')
+/* ---------------- AXIOS INSTANCE ---------------- */
 
 const axiosInstance = axios.create({
   baseURL: API_ENDPOINTS.BASE_URL,
   timeout: 10000,
-  headers: {
-    Accept: "application/json",
-  },
+  headers: { Accept: "application/json" },
 });
 
 /* ---------------- REQUEST INTERCEPTOR ---------------- */
+
 axiosInstance.interceptors.request.use(
   (config) => {
     const url = config.url || "";
 
-    //  Affiliate APIs
-    if (url.includes("/affiliate")) {
-      const affiliateToken = getAffiliateToken();
-      if (affiliateToken && config.headers) {
-        config.headers.Authorization = `Bearer ${affiliateToken}`;
-      }
-    }
-    // if (url.includes("/boutique")) {
-    //   const boutiqueToken = getBoutiqueToken();
-    //   if (boutiqueToken && config.headers) {
-    //     config.headers.Authorization = `Bearer ${boutiqueToken}`;
-    //   }
-    // }
+    let token: string | null = null;
 
-    // Normal user APIs
-    else {
-      const userToken = getUserToken();
-      if (userToken && config.headers) {
-        config.headers.Authorization = `Bearer ${userToken}`;
-      }
+    if (url.includes("/affiliate")) {
+      token = getToken("affiliate-auth");
+    } else if (url.includes("/boutique")) {
+      token = getToken("boutique_auth_token");
+    } else {
+      token = getToken("zarkha-auth");
+    }
+
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
@@ -71,30 +67,33 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-
 /* ---------------- RESPONSE INTERCEPTOR ---------------- */
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    const requestUrl = error.config?.url;
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "An error occurred. Please try again.";
 
     console.error("API Error:", {
-      url: requestUrl,
+      url: error.config?.url,
       status,
-      message: error.response?.data?.message || error.message,
+      message,
     });
-    const nothoundmessage = error.response?.data?.message || error.message || "An error occurred. Please try again.";
-    //  Handle Unauthorized
-    if (nothoundmessage.toLowerCase().includes("unauthorized") || nothoundmessage.toLowerCase().includes("unauthorised") || status === 401) {
-      // Avoid infinite redirect loop
 
-      localStorage.removeItem("zarkha-auth");
-      localStorage.removeItem("affiliate-auth");
+    /* -------- Handle Unauthorized -------- */
+    if (status === 401 || message.toLowerCase().includes("unauthor")) {
+      clearAllAuth();
 
       toast.error(
-        error.response?.data?.message || error.message || "Session expired. Please login again."
+        message || "Session expired. Please login again."
       );
+
+      // Optional: redirect to login page
+      // window.location.href = "/login";
     }
 
     return Promise.reject(error);

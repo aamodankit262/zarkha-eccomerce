@@ -1,6 +1,7 @@
 import { NO_IMAGE } from "@/api/endpoints";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
 import { useApi } from "@/hooks/useApi";
+import { uploadImage } from "@/services/cms.service";
 import { productService } from "@/services/productService";
 import { ArrowLeft, Star, Upload, X } from "lucide-react";
 import { useRef, useState } from "react";
@@ -13,7 +14,7 @@ const RateProductPage = ({ onBack, productRating, orderId }) => {
   const [reviewText, setReviewText] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  console.log(productRating, 'product rating')
+
   // const { request: submitRating, loading } = useApi(productService.ratingForm);
   /* ---------------- Image Upload ---------------- */
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,21 +57,24 @@ const RateProductPage = ({ onBack, productRating, orderId }) => {
     //   return;
     // }
     try {
-      const formData = new FormData();
-      formData.append("product_id", productRating?.product_id || "");
-      formData.append("rating", String(rating));
-      formData.append("review", reviewText || "");
-      formData.append("order_id", orderId || "");
-
-      images.forEach((file, index) => {
-        formData.append("review_images", file);
-      });
-      for (const [key, value] of formData.entries()) {
-        console.log([key, value]);
+      toast.loading("Uploading images...");
+      // 🔥 1. Upload all images first
+      const uploadedPaths: string[] = [];
+      for (const file of images) {
+        const res:any = await uploadImage(file);
+        uploadedPaths.push(res?.body?.path); // only PATH required
       }
-      console.log(formData.entries(), 'formdata')
-      // 🔥 API CALL HERE
-      await productService.ratingForm(formData)
+      toast.dismiss();
+       
+      //  2. Send rating API with PATH array
+    const payload = {
+      product_id: productRating?.product_id,
+      rating,
+      review: reviewText || "",
+      order_id: orderId,
+      review_images: uploadedPaths, // ✅ correct format
+    };
+      await productService.ratingForm(payload)
 
       toast.success("Review submitted successfully");
       onBack?.();

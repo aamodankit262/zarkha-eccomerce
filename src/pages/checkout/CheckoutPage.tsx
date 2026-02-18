@@ -45,7 +45,8 @@ const CheckoutPage = () => {
     const { sendOtp, verifyOtp, otpSent, isLoading, error, isLogin, userDetails, token } = useAuthStore()
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [showOTP, setShowOTP] = useState(false);
-    const [loader, setLoading] = useState(false);
+    const [timer, setTimer] = useState(0); // seconds left
+    const [loading, setLoading] = useState(false);
     const [showCouponModal, setShowCouponModal] = useState(false);
     const [orderId, setOrderId] = useState("");
     const [orderDetail, setOrderDetail] = useState<any>("");
@@ -89,7 +90,7 @@ const CheckoutPage = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     /* ---------------- API ---------------- */
-    const { data, request, loading } = useApi(getAddressList);
+    const { data, request } = useApi(getAddressList);
     const { request: applyCouponRequest, loading: applyCouponLoading } = useApi(applyCoupon);
     const { request: removeCouponApi } = useApi(removeCoupon);
     // const { request: createOrder, loading: createOrderLoading } = useApi(orderService.createOrder);
@@ -97,6 +98,16 @@ const CheckoutPage = () => {
     const { Razorpay } = useRazorpay();
     const { cartId, fetchCart, items, getTotalPrice } = useCart()
     console.log(items, 'items')
+    useEffect(() => {
+        if (timer <= 0) return;
+
+        const interval = setInterval(() => {
+            setTimer((prev) => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [timer]);
+
     //    useEffect(() => {
     //     if(items.length === 0){
     //         navigate(-1);
@@ -166,6 +177,7 @@ const CheckoutPage = () => {
             setLoading(true);
             await sendOtp(formData.fullName, formData.mobileNumber);
             setShowOTP(true);
+            setTimer(30);
             toast.success("OTP sent successfully");
         } catch (err) {
             toast.error("Failed to send OTP");
@@ -183,9 +195,10 @@ const CheckoutPage = () => {
         try {
             setLoading(true);
             await verifyOtp(formData.mobileNumber, formData.otp);
-            toast.success("Mobile number verified");
             setIsOtpVerified(true);
             setShowOTP(false);
+            setTimer(0);
+            toast.success("Mobile number verified");
         } catch (err) {
             toast.error("Invalid OTP");
         } finally {
@@ -197,17 +210,7 @@ const CheckoutPage = () => {
     const deliveryCharges = 0;
     console.log(appliedCoupon, 'applied coupon..')
     const couponDiscount = appliedCoupon?.coupon_discount;
-    // const couponDiscount = appliedCoupon
-    //     ? appliedCoupon.discount_type === "percentage"
-    //         ? Math.min(
-    //             (subtotal * appliedCoupon.discount_value) / 100,
-    //             appliedCoupon.max_discount_amount ?? Infinity
-    //         )
-    //         : appliedCoupon.discount_value
-    //     : 0;
-
     const totalAmount = appliedCoupon?.payable_amount + deliveryCharges || subtotal + deliveryCharges;
-    // const totalAmount = subtotal - couponDiscount + deliveryCharges;
 
     /* ---------------- ADDRESS HANDLERS ---------------- */
     const handleInputChange = (key: string, value: any) => {
@@ -327,7 +330,7 @@ const CheckoutPage = () => {
                 cart_id: cartId,
             };
 
-            const res:any = await applyCouponRequest(payload);
+            const res: any = await applyCouponRequest(payload);
 
             if (res?.success) {
                 setAppliedCoupon(res.cart_summary); // use API response coupon
@@ -353,44 +356,6 @@ const CheckoutPage = () => {
         await getApplyCoupon(couponCode);
     };
 
-
-    // const handleApplyCoupon = async (coupon: Coupon) => {
-    //     // if (subtotal < coupon.min_cart_value) {
-
-    //     //     toast.success(`Add items worth ₹${coupon.min_cart_value - subtotal} more to use this coupon.`)
-    //     //     return;
-    //     // }
-    //     try {
-    //         const payload = {
-    //             coupon_code: coupon.code,
-    //             amount: subtotal,
-    //             cart_id: cartId,              // from cart context
-    //             // user_id: userDetails?.id
-    //         }
-    //         const res = await applyCouponRequest(payload)
-    //         console.log(res, 'apply cou...')
-    //         if (res?.success) {
-    //             setAppliedCoupon(coupon);
-    //             setCouponCode(coupon.code);
-    //             setShowCouponModal(false);
-
-    //             toast.success(res.message || "Coupon applied successfully");
-    //             toast.success(`${coupon.code} - ${coupon.description}`)
-
-    //         } else {
-    //             toast.error(res?.message || "Failed to apply coupon");
-    //         }
-    //     } catch (error) {
-    //         toast.error(
-    //             error?.response?.data?.message || "Invalid or expired coupon"
-    //         );
-    //     }
-    //     // setAppliedCoupon(coupon);
-    //     // setCouponCode(coupon.code);
-    //     // setShowCouponModal(false);
-
-    //     // toast.success(`${coupon.code} - ${coupon.description}`)
-    // };
     const handleRemoveCoupon = async () => {
         try {
             const res: any = await removeCouponApi(cartId, userDetails?.id);
@@ -403,191 +368,107 @@ const CheckoutPage = () => {
             toast.error(err?.message || "Failed to remove coupon");
         }
     };
-    
+
     /* ---------------- PAYMENT ---------------- */
     const handlePayment = async () => {
-  if (!isOtpVerified) {
-    toast.error("Please verify your mobile number");
-    return;
-  }
-
-  if (!selectedAddressId) {
-    toast.error("Please select delivery address");
-    return;
-  }
-
-  if (!items.length) {
-    toast.error("Your cart is empty");
-    return;
-  }
-
-  try {
-    const res:any = await paymentService.createPaymentOrder({
-      amount: totalAmount,
-    //   cart_id: cartId,
-    });
-
-    // ❌ Amount mismatch handled here
-    if (!res.success) {
-      if (res?.cart_total) {
-        toast.error(
-          `Cart total updated. Please review amount ₹${res.cart_total} and try again.`
-        );
-
-        // 🔄 refresh cart from backend
-        await fetchCart(cartId);
-        return;
-      }
-
-      toast.error(res.message || "Unable to create payment order");
-      return;
-    }
-
-    // ✅ Success flow
-    const { order_id, key_id, amount } = res.body;
-
-    const options: RazorpayOrderOptions = {
-      key: key_id,
-      amount,
-      currency: "INR",
-      name: "Zarkha",
-      description: "Order Payment",
-      order_id,
-
-      handler: async (response) => {
-        try {
-          const verifyRes = await paymentService.verifyPayment({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            address_id: selectedAddressId,
-            cart_id: cartId,
-            customer_notes: "Please deliver between 10 AM - 6 PM",
-          });
-
-          if (verifyRes?.success) {
-            const { order } = verifyRes.body;
-
-            setOrderDetail(order);
-            setOrderId(order?.order_id);
-
-            toast.success(verifyRes.message || "Payment successful");
-            setShowSuccessModal(true);
-
-            await fetchCart(cartId); // clear cart
-          } else {
-            toast.error(verifyRes.message || "Payment verification failed");
-          }
-        } catch (err) {
-          toast.error("Payment verification error");
+        if (!isOtpVerified) {
+            toast.error("Please verify your mobile number");
+            return;
         }
-      },
 
-      prefill: {
-        name: userDetails?.name || "",
-        contact: userDetails?.phone || "",
-      },
+        if (!selectedAddressId) {
+            toast.error("Please select delivery address");
+            return;
+        }
 
-      theme: { color: "#ed8936" },
+        if (!items.length) {
+            toast.error("Your cart is empty");
+            return;
+        }
 
-      modal: {
-        ondismiss: () => toast.info("Payment cancelled"),
-      },
+        try {
+            const res: any = await paymentService.createPaymentOrder({
+                amount: totalAmount,
+                //   cart_id: cartId,
+            });
+
+            //  Amount mismatch handled here
+            if (!res.success) {
+                if (res?.cart_total) {
+                    toast.error(
+                        `Cart total updated. Please review amount ₹${res.cart_total} and try again.`
+                    );
+
+                    // 🔄 refresh cart from backend
+                    await fetchCart(cartId);
+                    return;
+                }
+
+                toast.error(res.message || "Unable to create payment order");
+                return;
+            }
+
+            //  Success flow
+            const { order_id, key_id, amount } = res.body;
+
+            const options: RazorpayOrderOptions = {
+                key: key_id,
+                amount,
+                currency: "INR",
+                name: "Zarkha",
+                description: "Order Payment",
+                order_id,
+
+                handler: async (response) => {
+                    try {
+                        const verifyRes = await paymentService.verifyPayment({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            address_id: selectedAddressId,
+                            cart_id: cartId,
+                            customer_notes: "Please deliver between 10 AM - 6 PM",
+                        });
+
+                        if (verifyRes?.success) {
+                            const { order } = verifyRes.body;
+
+                            setOrderDetail(order);
+                            setOrderId(order?.order_id);
+
+                            toast.success(verifyRes.message || "Payment successful");
+                            setShowSuccessModal(true);
+
+                            await fetchCart(cartId); // clear cart
+                        } else {
+                            toast.error(verifyRes.message || "Payment verification failed");
+                        }
+                    } catch (err) {
+                        toast.error("Payment verification error");
+                    }
+                },
+
+                prefill: {
+                    name: userDetails?.name || "",
+                    contact: userDetails?.phone || "",
+                },
+
+                theme: { color: "#ed8936" },
+
+                modal: {
+                    ondismiss: () => toast.info("Payment cancelled"),
+                },
+            };
+
+            const razorpay = new Razorpay(options);
+            razorpay.open();
+        } catch (error: any) {
+            console.error(error);
+            toast.error(
+                error?.response?.data?.message || "Payment failed. Please try again."
+            );
+        }
     };
-
-    const razorpay = new Razorpay(options);
-    razorpay.open();
-  } catch (error: any) {
-    console.error(error);
-    toast.error(
-      error?.response?.data?.message || "Payment failed. Please try again."
-    );
-  }
-};
-
-    // const handlePayment = async () => {
-    //     if (!isOtpVerified) {
-    //         toast.error("Please varify your mobile number");
-    //         return;
-    //     }
-    //     if (!selectedAddressId) {
-    //         toast.error("Please select delivery address");
-    //         return;
-    //     }
-    //     if (!items.length) {
-    //         toast.error("Please add product in you cart ");
-    //         return;
-    //     }
-
-    //     try {
-    //         const res = await paymentService.createPaymentOrder({
-    //             amount: totalAmount,
-    //             cart_id: cartId,
-    //         });
-    //         console.log(res, 'payment create')
-    //         const {
-    //             order_id,
-    //             key_id,
-    //             amount
-    //         } = res.body;
-    //         // setOrderId(order_id);
-    //         const options: RazorpayOrderOptions = {
-    //             key: key_id,
-    //             amount, // in paise
-    //             currency: "INR",
-    //             name: "Zarkha",
-    //             description: "Order Payment",
-    //             order_id: order_id,
-
-    //             handler: async (response) => {
-    //                 console.log("Payment handler", response);
-
-    //                 // 3️⃣ Verify payment API (backend)
-    //                 const res = await paymentService.verifyPayment({
-    //                     razorpay_order_id: response.razorpay_order_id,
-    //                     razorpay_payment_id: response.razorpay_payment_id,
-    //                     razorpay_signature: response.razorpay_signature,
-    //                     address_id: selectedAddressId,
-    //                     cart_id: cartId,
-    //                     customer_notes: "Please deliver between 10 AM - 6 PM",
-    //                 });
-    //                 // setOrderDetail()
-    //                 const { verified, order } = res?.body
-    //                 if (res?.success) {
-    //                     setOrderDetail(order)
-    //                     setOrderId(order?.order_id)
-    //                     toast.success(res.message || "Payment successful");
-    //                     setShowSuccessModal(true);
-    //                     await fetchCart(cartId);
-    //                 }
-
-    //             },
-
-    //             prefill: {
-    //                 name: userDetails?.name || "",
-    //                 contact: userDetails?.phone || "",
-    //             },
-
-    //             theme: {
-    //                 color: "#ed8936",
-    //             },
-
-    //             modal: {
-    //                 ondismiss: () => {
-    //                     toast.info("Payment cancelled");
-    //                 },
-    //             },
-    //         };
-
-    //         // 4️⃣ Open Razorpay
-    //         const razorpay = new Razorpay(options);
-    //         razorpay.open();
-
-    //     } catch (error) {
-    //         console.error(error);
-    //         toast.error("Payment failed");
-    //     }
-    // };
 
 
     return (
@@ -624,7 +505,7 @@ const CheckoutPage = () => {
                                     type="tel"
                                     placeholder="Enter Mobile Number"
                                     value={formData.mobileNumber}
-                                    disabled={isOtpVerified || otpSent}
+                                    disabled={isOtpVerified}
                                     readOnly={isOtpVerified}
                                     onChange={(e) =>
                                         handleInputChange(
@@ -632,10 +513,10 @@ const CheckoutPage = () => {
                                             e.target.value.replace(/\D/g, "").slice(0, 10)
                                         )
                                     }
-                                    className="pl-4 pr-10 h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
+                                    className="pl-4 pr-24 h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
                                     maxLength={10}
                                 />
-                                <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
+
                                 {!isOtpVerified && !showOTP && !isLogin && (
                                     <Button
                                         size="sm"
@@ -643,39 +524,61 @@ const CheckoutPage = () => {
                                         onClick={handleSendOtp}
                                         className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white text-xs"
                                     >
-                                        {isLoading ? "Sending..." : "Send OTP"}
+                                        {loading ? "Sending..." : "Send OTP"}
                                     </Button>
                                 )}
+
                                 {isOtpVerified && (
-                                    <span className="text-green-600 text-xs">✔ Verified</span>
+                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-green-600 text-xs">
+                                        ✔ Verified
+                                    </span>
                                 )}
                             </div>
+
                             {showOTP && (
                                 <div className="space-y-2">
                                     <Input
                                         type="tel"
+                                        autoFocus
                                         placeholder="Enter OTP"
                                         value={formData.otp}
                                         onChange={(e) =>
-                                            handleInputChange(
-                                                "otp",
-                                                e.target.value.replace(/\D/g, "").slice(0, 4)
-                                            )
+                                            handleInputChange("otp", e.target.value.replace(/\D/g, "").slice(0, 4))
                                         }
                                         maxLength={4}
                                         className="h-10 lg:h-12 border-gray-200 text-sm lg:text-base"
                                     />
 
-                                    <Button
-                                        size="sm"
-                                        disabled={isLoading}
-                                        onClick={handleVerifyOtp}
-                                        className="bg-green-600 hover:bg-green-700 text-white text-xs"
-                                    >
-                                        {loading ? "Verifying..." : "Verify OTP"}
-                                    </Button>
+                                    <div className="flex items-center gap-3">
+                                        <Button
+                                            size="sm"
+                                            disabled={loading}
+                                            onClick={handleVerifyOtp}
+                                            className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                                        >
+                                            {loading ? "Verifying..." : "Verify OTP"}
+                                        </Button>
+
+                                        {/* Resend / Timer */}
+                                        {timer > 0 ? (
+                                            <span className="text-xs text-gray-500">
+                                                Resend in {timer}s
+                                            </span>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                disabled={loading}
+                                                onClick={handleSendOtp}
+                                                className="text-xs text-orange-600 font-medium hover:underline"
+                                            >
+                                                Resend OTP
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             )}
+
+
 
                         </div>
                     </div>

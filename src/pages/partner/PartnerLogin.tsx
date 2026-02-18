@@ -16,6 +16,7 @@ import { getCityList, getStateList } from "@/services/address.service";
 import { useApi } from "@/hooks/useApi";
 import { affiliateService } from "@/services/affiliateService";
 import { logoImage } from "@/api/endpoints";
+import { boutiqueService } from "@/boutiqueServices/boutiqueService";
 
 type PartnerType = 'affiliate' | 'boutique' | null;
 
@@ -37,7 +38,9 @@ const PartnerLogin = () => {
   const { login: affiliateLogin, signup: affiliateSignup, isLoggedIn: affiliateLoggedIn } = useAffiliate();
 
   const { login: boutiqueLogin, signup: boutiqueSignup, isLoggedIn: boutiqueLoggedIn } = useBoutique();
-  const { request: fetchCategory, data, error, loading: cateLoading } = useApi(affiliateService.affiliateCatgeoryList)
+  const { request: fetchCategory, data, error, loading: cateLoading } = useApi(boutiqueService.boutiqueCategoryList);
+
+  const { request: fetchBoutiqueCategory, data: boutiqueCategoryData, error: boutiqueCategoryError, loading: boutiqueCategoryLoading } = useApi(boutiqueService.boutiqueCategoryList)
 
   // Affiliate form data
   const [affiliateData, setAffiliateData] = useState({
@@ -75,15 +78,15 @@ const PartnerLogin = () => {
   //   "Other"
   // ];
 
-  const boutiqueCategories = [
-    "Women Ethnic Wear",
-    "Men Ethnic Wear",
-    "Kids Ethnic Wear",
-    "Bridal Collection",
-    "Festive Wear",
-    "Designer Boutique",
-    "Multi-Category Store"
-  ];
+  // const boutiqueCategories = [
+  //   "Women Ethnic Wear",
+  //   "Men Ethnic Wear",
+  //   "Kids Ethnic Wear",
+  //   "Bridal Collection",
+  //   "Festive Wear",
+  //   "Designer Boutique",
+  //   "Multi-Category Store"
+  // ];
 
   useEffect(() => {
     if (affiliateLoggedIn && partnerType === 'affiliate') {
@@ -107,7 +110,12 @@ const PartnerLogin = () => {
   useEffect(() => {
     fetchCategory();
   }, [])
+  useEffect(() => {
+    fetchBoutiqueCategory();
+  }, [initialType === 'boutique']);
+  
   const affiliateCategories = data?.body;
+  const boutiqueCategories = boutiqueCategoryData?.body;
   const handleTypeSelect = (type: PartnerType) => {
     setPartnerType(type);
     setShowTypeSelector(false);
@@ -135,12 +143,8 @@ const PartnerLogin = () => {
         if (success) {
           // navigate('/affiliate/login');
           setIsSignup(false)
-        
-        } else {
-          // toast.error("Signup failed. Please try again.");
-          // toast.error(error?.response?.data?.message || error.message || "Signup failed");
 
-        }
+        } 
       } else {
         const success = await affiliateLogin(affiliateData.email, affiliateData.password);
         if (success) {
@@ -167,25 +171,24 @@ const PartnerLogin = () => {
           return;
         }
         const success = await boutiqueSignup({
-          name: boutiqueData.ownerName,
+          owner_name: boutiqueData.ownerName,
           email: boutiqueData.email,
-          phone: boutiqueData.phone,
+          phone_number: boutiqueData.phone,
           password: boutiqueData.password,
-          category: boutiqueData.category,
-          shopName: boutiqueData.shopName,
-          address: boutiqueData.address,
-          gstNumber: boutiqueData.gstNumber
+          boutique_category_id: boutiqueData.category,
+          shop_name: boutiqueData.shopName,
+          shop_address: boutiqueData.address,
+          gst_number: boutiqueData.gstNumber
         });
         if (success) {
-          toast.success("Boutique registered successfully!");
-          navigate('/boutique/dashboard');
-        } else {
-          toast.error("Registration failed. Please try again.");
-        }
+          // toast.success("Boutique registered successfully!");
+          // navigate('/boutique/dashboard');
+          setIsSignup(false)
+        } 
       } else {
         const success = await boutiqueLogin(boutiqueData.email, boutiqueData.password);
         if (success) {
-          toast.success("Welcome back!");
+          // toast.success("Welcome back!");
           navigate('/boutique/dashboard');
         } else {
           toast.error("Invalid credentials");
@@ -395,7 +398,7 @@ const PartnerLogin = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {affiliateCategories.map((cat) => (
-                              <SelectItem key={cat} value={cat._id}>{cat?.category_name}</SelectItem>
+                              <SelectItem key={cat._id} value={cat._id}>{cat?.category_name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -514,8 +517,11 @@ const PartnerLogin = () => {
                           id="phone"
                           type="tel"
                           value={boutiqueData.phone}
-                          onChange={(e) => setBoutiqueData({ ...boutiqueData, phone: e.target.value })}
-                          placeholder="+91 XXXXXXXXXX"
+                          onChange={(e) => setBoutiqueData({
+                            ...boutiqueData,
+                            phone: e.target.value.replace(/\D/g, "").slice(0, 10)
+                          })}
+                          placeholder="mobile number"
                           className="h-10 sm:h-11"
                         />
                       </div>
@@ -530,8 +536,8 @@ const PartnerLogin = () => {
                             <SelectValue placeholder="Select your category" />
                           </SelectTrigger>
                           <SelectContent>
-                            {boutiqueCategories.map((cat) => (
-                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                            {boutiqueCategories?.map((cat) => (
+                              <SelectItem key={cat._id} value={cat._id}>{cat?.type}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
