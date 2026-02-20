@@ -38,9 +38,9 @@ const PartnerLogin = () => {
   const { login: affiliateLogin, signup: affiliateSignup, isLoggedIn: affiliateLoggedIn } = useAffiliate();
 
   const { login: boutiqueLogin, signup: boutiqueSignup, isLoggedIn: boutiqueLoggedIn } = useBoutique();
-  const { request: fetchCategory, data, error, loading: cateLoading } = useApi(boutiqueService.boutiqueCategoryList);
+  const { request: fetchCategory, data, } = useApi(boutiqueService.boutiqueCategoryList);
 
-  const { request: fetchBoutiqueCategory, data: boutiqueCategoryData, error: boutiqueCategoryError, loading: boutiqueCategoryLoading } = useApi(boutiqueService.boutiqueCategoryList)
+  const { request: fetchBoutiqueCategory, data: boutiqueCategoryData,} = useApi(boutiqueService.boutiqueCategoryList)
 
   // Affiliate form data
   const [affiliateData, setAffiliateData] = useState({

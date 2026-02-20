@@ -87,7 +87,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   const similarProductsRaw = product?.similar_products ?? [];
   // const audioSrc =
   //   product?.audio?.trim()
-      
+
   const audioSrc =
     product?.audio?.trim()
       ? product.audio
@@ -157,7 +157,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
       affiliateId: affiliateId ?? undefined,
     });
   }, [id, selectedVariantId]);
- 
+
   useEffect(() => {
     if (!showSizeChart || ChartList) return;
     fetchChartList();
@@ -168,7 +168,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
       setSizeChartData(ChartList?.body?.measurements); // ✅ first chart
     }
   }, [ChartList]);
- console.log("Size Chart Data:", sizeChartData);
+  //  console.log("Size Chart Data:", sizeChartData);
   // useEffect(() => {
   //   if (!selectedVariantId && productVariants.length > 0) {
   //     const params = new URLSearchParams(searchParams);
@@ -260,11 +260,13 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
   if (!data) {
     return null; // or fallback UI
   }
-  {loading && (
-  <div className="fixed inset-0 bg-white/60 z-50 flex items-center justify-center">
-    <p>Loading...</p>
-  </div>
-)}
+  {
+    loading && (
+      <div className="fixed inset-0 bg-white/60 z-50 flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    )
+  }
 
   return (
     <Layout>
@@ -351,7 +353,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                               ? "border-orange-500  ring-orange-400 ring-offset-2 scale-110"
                               : "border-gray-300 hover:border-orange-400"}`}
                           style={{ backgroundColor: variant.color.color_code }}
-                           aria-label={variant.color.name}
+                          aria-label={variant.color.name}
                         />
                       );
                     })}
@@ -697,7 +699,7 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
                               </button>
                             </div>
                           )}
-                            
+
                         </div>
                       </div>
                     </div>

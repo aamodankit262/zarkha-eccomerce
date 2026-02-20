@@ -1,9 +1,10 @@
 import { boutiqueAuthService } from '@/boutiqueServices/boutiqueAuthService';
+import { BoutiqueProfileData } from '@/components/boutique/BoutiqueProfile';
 import { set } from 'date-fns';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 
-interface BoutiqueUser {
+export interface BoutiqueUser {
   _id?: string;
   shop_name: string;
   owner_name: string;
@@ -92,6 +93,8 @@ interface BoutiqueContextType {
   isLoggedIn: boolean;
   token: string | null;
   user: BoutiqueUser | null;
+  profile: any | null;
+  setProfile : (profile: any) => void;
   orders: BoutiqueOrder[];
   sales: BoutiqueSale[];
   payments: BoutiquePayment[];
@@ -121,6 +124,7 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
     const stored = localStorage.getItem('boutique_logged_in');
     return stored === 'true';
   });
+  const [profile , setProfile] = useState<any | null>(null)
   const [user, setUser] = useState<BoutiqueUser | null>(() => {
     const stored = localStorage.getItem('boutique_user');
     return stored ? JSON.parse(stored) : null;
@@ -128,12 +132,13 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
  const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('boutique_auth_token') || null;
   });
+  // const [productPrices, setProductPrices] = useState<ProductPrice[]>([]);
   const [productPrices, setProductPrices] = useState<ProductPrice[]>(() => {
     const stored = localStorage.getItem('boutique_product_prices');
     return stored ? JSON.parse(stored) : [
-      { productId: '1', sellingPrice: 2499, lastUpdated: '2024-01-15', displayOnBrandPage: true },
-      { productId: '2', sellingPrice: 1799, lastUpdated: '2024-01-18', displayOnBrandPage: true },
-      { productId: '3', sellingPrice: 6499, lastUpdated: '2024-01-20', displayOnBrandPage: true },
+      // { productId: '1', sellingPrice: 2499, lastUpdated: '2024-01-15', displayOnBrandPage: true },
+      // { productId: '2', sellingPrice: 1799, lastUpdated: '2024-01-18', displayOnBrandPage: true },
+      // { productId: '3', sellingPrice: 6499, lastUpdated: '2024-01-20', displayOnBrandPage: true },
     ];
   });
 
@@ -429,6 +434,8 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
     <BoutiqueContext.Provider value={{
       isLoggedIn,
       user,
+      profile,
+      setProfile,
       token,
       orders,
       sales,

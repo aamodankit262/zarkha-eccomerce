@@ -16,16 +16,18 @@ import {
 import { useBoutique } from "@/contexts/BoutiqueContext";
 import { useToast } from "@/hooks/use-toast";
 import { useApi } from "@/hooks/useApi";
-import { boutiqueService } from "@/boutiqueServices/boutiqueService";
-
-const BOUTIQUE_CATEGORIES = [
-  "Women Ethnic Wear", "Women Western Wear", "Men's Fashion",
-  "Kids Wear", "Bridal Wear", "Accessories", "Footwear", "Home Decor"
-];
+import { boutiqueService, profileResponse } from "@/boutiqueServices/boutiqueService";
+import { productService } from "@/services/productService";
+import { uploadImage } from "@/services/cms.service";
+import { getCityList, getStateList } from "@/services/address.service";
+// const BOUTIQUE_CATEGORIES = [
+//   "Women Ethnic Wear", "Women Western Wear", "Men's Fashion",
+//   "Kids Wear", "Bridal Wear", "Accessories", "Footwear", "Home Decor"
+// ];
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-interface BoutiqueProfileData {
+export interface BoutiqueProfileData {
   storeName: string;
   ownerName: string;
   category: string;
@@ -35,6 +37,7 @@ interface BoutiqueProfileData {
   storeAddress: string;
   city: string;
   state: string;
+  country: string;
   pincode: string;
   gstNumber: string;
   // Pickup Person
@@ -64,78 +67,270 @@ interface BoutiqueProfileData {
   digitalSignature: string;
   aboutBrand: string;
 }
+const Section = ({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) => (
+  <div className="space-y-4">
+    <div className="flex items-center gap-2">
+      <div className="p-2 bg-brand-orange/10 rounded-lg">
+        <Icon className="h-4 w-4 text-brand-orange" />
+      </div>
+      <h3 className="font-semibold text-base">{title}</h3>
+    </div>
+    {children}
+  </div>
+);
+
 
 const BoutiqueProfile = () => {
-  const { user } = useBoutique();
+  // const { user } = useBoutique();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  const { profile: boutiqueProfile, setProfile: setBoutiqueProfile , isLoggedIn} = useBoutique();
   const { data, request: fetchProfile, loading } = useApi(boutiqueService.getProfile);
   const { request: fetchCategory, data: categoryData } = useApi(boutiqueService.boutiqueCategoryList);
+  const {
+    request: updateProfile,
+    loading: updating,
+  } = useApi(boutiqueService.updateProfile);
 
-  const [profile, setProfile] = useState<BoutiqueProfileData>(() => {
-    const stored = localStorage.getItem('boutique_profile');
-    return stored ? JSON.parse(stored) : {
-      storeName: user?.shop_name || '',
-      ownerName: user?.owner_name || '',
-      category: user?.boutique_category || '',
-      subcategory: '',
-      email: user?.email || '',
-      phone: user?.phone_number || '',
-      storeAddress: user?.shop_address || '',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pincode: '400001',
-      gstNumber: user?.gst_number || '',
-      pickupPersonName: '',
-      pickupPersonPhone: '',
-      pickupAddress: '',
-      bankName: '',
-      accountNumber: '',
-      ifscCode: '',
-      accountHolderName: '',
-      upiId: '',
-      instagram: '',
-      facebook: '',
-      whatsapp: '',
-      website: '',
-      operatingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      openingTime: '10:00',
-      closingTime: '20:00',
-      panNumber: '',
-      aadharNumber: '',
-      brandLogo: '',
-      digitalSignature: '',
-      aboutBrand: ''
-    };
+  const [profile, setProfile] = useState<BoutiqueProfileData>({
+    storeName: "",
+    ownerName: "",
+    category: "",
+    subcategory: "",
+    email: "",
+    phone: "",
+    storeAddress: "",
+    city: "",
+    state: "",
+    country: "68481ffbfba1d82fccf0d2b4",
+    pincode: "",
+    gstNumber: "",
+
+    pickupPersonName: "",
+    pickupPersonPhone: "",
+    pickupAddress: "",
+
+    bankName: "",
+    accountNumber: "",
+    ifscCode: "",
+    accountHolderName: "",
+    upiId: "",
+
+    instagram: "",
+    facebook: "",
+    whatsapp: "",
+    website: "",
+
+    operatingDays: [],
+    openingTime: "",
+    closingTime: "",
+
+    panNumber: "",
+    aadharNumber: "",
+
+    brandLogo: "",
+    digitalSignature: "",
+    aboutBrand: "",
   });
 
-  useEffect(() => {
-    fetchProfile();
-    fetchCategory();
-  }, []);
 
-  const handleSave = () => {
-    localStorage.setItem('boutique_profile', JSON.stringify(profile));
-    setIsEditing(false);
-    toast({ title: "Profile Saved!", description: "Your boutique profile has been updated." });
+  useEffect(() => {
+   if (isLoggedIn) {
+    fetchProfile();
+    fetchCategory();  
+  }
+  }, [isLoggedIn]);
+  useEffect(() => {
+    getStateList().then((res) => setStates(res?.data || []));
+  }, []);
+  useEffect(() => {
+    if (!profile.state) {
+      setCities([]);
+      return;
+    }
+    getCityList(profile.state).then((res) => setCities(res?.data || []));
+  }, []);
+  // console.log("Profile images:", profile.digitalSignature, profile.brandLogo);
+
+  useEffect(() => {
+    if (!data?.body) return;
+  
+    const b = data.body;
+    setBoutiqueProfile(data.body); // Update context with fetched profile
+    setProfile({
+      storeName: b.store_name || "",
+      ownerName: b.owner_name || "",
+      category: b.category || "",
+      subcategory: b.subcategory || "",
+      email: b.email || "",
+      phone: b.phone || "",
+      storeAddress: b.store_address || "",
+      city: b.city || "",
+      state: b.state || "",
+      country: b.country || "",
+      pincode: b.pincode || "",
+      gstNumber: b.gst_number || "",
+      pickupPersonName: b.pickup_person_name || "",
+      pickupPersonPhone: b.pickup_phone || "",
+      pickupAddress: b.pickup_address || "",
+      bankName: b.bank_name || "",
+      accountNumber: b.account_number || "",
+      ifscCode: b.ifsc_code || "",
+      accountHolderName: b.account_holder_name || "",
+      upiId: b.upi_id || "",
+      instagram: b.instagram || "",
+      facebook: b.facebook || "",
+      whatsapp: b.whatsapp || "",
+      website: b.website || "",
+      operatingDays: b.operating_days || [],
+      openingTime: b.opening_time || "",
+      closingTime: b.closing_time || "",
+      panNumber: b.pan_number || "",
+      aadharNumber: b.aadhaar_number || "",
+      brandLogo: b.brand_logo || "",
+      digitalSignature: b.digital_signature || "",
+      aboutBrand: b.about_brand || "",
+    });
+  }, [data]);
+  const BOUTIQUE_CATEGORIES = categoryData?.body;
+  // localStorage.setItem('boutique_profile', JSON.stringify(profile));
+  // setIsEditing(false);
+  // toast({ title: "Profile Saved!", description: "Your boutique profile has been updated." });
+  const stripBaseUrl = (url?: string) => {
+    if (!url) return "";
+
+    const BASE = "https://staging.admin.zarkha.com/";
+    return url.startsWith(BASE) ? url.replace(BASE, "") : url;
+  };
+  const getStateId = (value: string) => {
+    return states.find((s) => s._id === value || s.name === value)?._id || "";
   };
 
-  const handleImageUpload = (field: 'brandLogo' | 'digitalSignature') => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = (e) => {
+  const getCityId = (value: string) => {
+    return cities.find((c) => c._id === value || c.name === value)?._id || "";
+  };
+
+
+  const handleSave = async () => {
+    try {
+      const payload = {
+        store_name: profile.storeName,
+        owner_name: profile.ownerName,
+        phone_number: profile.phone,
+        category: BOUTIQUE_CATEGORIES?.find((c: any) => c._id === profile.category)
+          ?.type || "",
+        // category: profile.category,
+        subcategory: profile.subcategory || "",
+        email: profile.email,
+        phone: profile.phone,
+        store_address: profile.storeAddress,
+        // city_id: profile.city,
+        // state_id: profile.state,
+        city_id: getCityId(profile.city),
+        state_id: getStateId(profile.state),
+        country_id: profile.country,
+        pincode: profile.pincode,
+
+        gst_number: profile.gstNumber,
+        // store_logo: profile.brandLogo,
+        digital_signature: stripBaseUrl(profile.digitalSignature),
+
+        store_logo: stripBaseUrl(profile.brandLogo),
+        pickup_person_name: profile.pickupPersonName,
+        pickup_phone: profile.pickupPersonPhone,
+        pickup_address: profile.pickupAddress,
+
+        bank_name: profile.bankName,
+        account_number: profile.accountNumber,
+        ifsc_code: profile.ifscCode,
+        account_holder_name: profile.accountHolderName,
+        upi_id: profile.upiId,
+
+        instagram: profile.instagram,
+        facebook: profile.facebook,
+        whatsapp: profile.whatsapp,
+        website: profile.website,
+
+        operating_days: profile.operatingDays,
+        opening_time: profile.openingTime,
+        closing_time: profile.closingTime,
+
+        pan_number: profile.panNumber,
+        aadhaar_number: profile.aadharNumber,
+        about_brand: profile.aboutBrand,
+      };
+      console.log('Payload:', payload);
+     const response:any = await updateProfile(payload);
+      // setBoutiqueProfile(response?.body || null); 
+      // setIsEditing(false);
+      toast({
+        title: "Profile updated successfully",
+        description: "Your boutique profile has been updated."
+      });
+      setIsEditing(false);
+      fetchProfile();
+    } catch (error) {
+      toast({
+        title: "Error updating profile",
+        description: error?.message || error?.response?.data?.message || "There was an issue updating your profile. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  const handleImageUpload = async (field: "brandLogo" | "digitalSignature") => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+
+    input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          setProfile(prev => ({ ...prev, [field]: ev.target?.result as string }));
-        };
-        reader.readAsDataURL(file);
+      if (!file) return;
+
+      try {
+        const res: any = await uploadImage(file);
+        console.log("Upload response:", res);
+        const imagePath = res?.body?.path; // uploads/images/xxx.png
+
+        setProfile((prev) => ({
+          ...prev,
+          [field]: imagePath,
+        }));
+
+        toast({
+          title: "Upload successful",
+          description: "Image uploaded successfully.",
+        });
+      } catch (err: any) {
+        toast({
+          title: "Upload failed",
+          description:
+            err?.response?.data?.message || "Image upload failed. Try again.",
+          variant: "destructive",
+        });
       }
     };
+
     input.click();
   };
+
+  // const handleImageUpload = (field: 'brandLogo' | 'digitalSignature') => {
+  //   const input = document.createElement('input');
+  //   input.type = 'file';
+  //   input.accept = 'image/*';
+  //   input.onchange = (e) => {
+  //     const file = (e.target as HTMLInputElement).files?.[0];
+  //     if (file) {
+  //       const reader = new FileReader();
+  //       reader.onload = (ev) => {
+  //         setProfile(prev => ({ ...prev, [field]: ev.target?.result as string }));
+  //       };
+  //       reader.readAsDataURL(file);
+  //     }
+  //   };
+  //   input.click();
+  // };
 
   const handleDocUpload = (docType: string) => {
     toast({ title: `${docType} Upload`, description: "Document upload functionality ready." });
@@ -154,17 +349,6 @@ const BoutiqueProfile = () => {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
 
-  const Section = ({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) => (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="p-2 bg-brand-orange/10 rounded-lg">
-          <Icon className="h-4 w-4 text-brand-orange" />
-        </div>
-        <h3 className="font-semibold text-base">{title}</h3>
-      </div>
-      {children}
-    </div>
-  );
 
   return (
     <Card>
@@ -198,8 +382,11 @@ const BoutiqueProfile = () => {
               className={`w-24 h-24 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden ${isEditing ? 'cursor-pointer hover:border-brand-orange' : ''}`}
               onClick={() => isEditing && handleImageUpload('brandLogo')}
             >
-              {profile.brandLogo ? (
-                <img src={profile.brandLogo} alt="Logo" className="w-full h-full object-cover" />
+              {profile?.brandLogo ? (
+                <img
+                  src={profile?.brandLogo}
+                  alt="Logo"
+                  className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center">
                   <Image className="h-6 w-6 mx-auto text-muted-foreground" />
@@ -214,8 +401,8 @@ const BoutiqueProfile = () => {
               className={`w-32 h-16 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden ${isEditing ? 'cursor-pointer hover:border-brand-orange' : ''}`}
               onClick={() => isEditing && handleImageUpload('digitalSignature')}
             >
-              {profile.digitalSignature ? (
-                <img src={profile.digitalSignature} alt="Signature" className="w-full h-full object-contain" />
+              {profile?.digitalSignature ? (
+                <img src={profile?.digitalSignature} alt="Signature" className="w-full h-full object-contain" />
               ) : (
                 <div className="text-center">
                   <FileText className="h-5 w-5 mx-auto text-muted-foreground" />
@@ -234,15 +421,20 @@ const BoutiqueProfile = () => {
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Store Name</Label>
               {isEditing ? (
-                <Input value={profile.storeName} onChange={(e) => update('storeName', e.target.value)} />
+                <Input value={profile?.storeName} onChange={(e) => update('storeName', e.target.value)} />
               ) : (
-                <p className="font-medium">{profile.storeName || '—'}</p>
+                <p className="font-medium">{profile?.storeName || '—'}</p>
               )}
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Owner Name</Label>
               {isEditing ? (
-                <Input value={profile.ownerName} onChange={(e) => update('ownerName', e.target.value)} />
+                <Input
+                  value={profile.ownerName}
+                  id="ownerName"
+                  name="ownerName"
+                  onChange={(e) => update('ownerName', e.target.value)}
+                />
               ) : (
                 <p className="font-medium">{profile.ownerName || '—'}</p>
               )}
@@ -253,21 +445,21 @@ const BoutiqueProfile = () => {
                 <Select value={profile.category} onValueChange={(v) => update('category', v)}>
                   <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
                   <SelectContent>
-                    {BOUTIQUE_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {BOUTIQUE_CATEGORIES?.map(c => <SelectItem key={c?._id} value={c?._id}>{c?.type}</SelectItem>)}
                   </SelectContent>
                 </Select>
               ) : (
                 <p className="font-medium">{profile.category || '—'}</p>
               )}
             </div>
-            <div className="space-y-1">
+            {/* <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Subcategory</Label>
               {isEditing ? (
                 <Input placeholder="e.g. Sarees, Lehengas" value={profile.subcategory} onChange={(e) => update('subcategory', e.target.value)} />
               ) : (
                 <p className="font-medium">{profile.subcategory || '—'}</p>
               )}
-            </div>
+            </div> */}
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Email</Label>
               {isEditing ? (
@@ -293,20 +485,49 @@ const BoutiqueProfile = () => {
               )}
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">City</Label>
+              {/* <Label className="text-xs text-muted-foreground">City</Label>
               {isEditing ? (
                 <Input value={profile.city} onChange={(e) => update('city', e.target.value)} />
               ) : (
                 <p className="font-medium">{profile.city || '—'}</p>
-              )}
-            </div>
-            <div className="space-y-1">
+              )} */}
               <Label className="text-xs text-muted-foreground">State</Label>
               {isEditing ? (
-                <Input value={profile.state} onChange={(e) => update('state', e.target.value)} />
+
+                <Select value={profile.state} onValueChange={(v) => update('state', v)}>
+                  <SelectTrigger><SelectValue placeholder="Select State" /></SelectTrigger>
+                  <SelectContent>
+                    {states?.map(c => <SelectItem key={c?._id} value={c?._id}>{c?.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               ) : (
                 <p className="font-medium">{profile.state || '—'}</p>
               )}
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">City</Label>
+              {isEditing ? (
+                // <Input value={profile.city} onChange={(e) => update('city', e.target.value)} />
+                <Select
+                  value={profile.city}
+                  onValueChange={(v) => update('city', v)}
+                  disabled={!profile.state}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select City *" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cities.map((city) => (
+                      <SelectItem key={city._id} value={city._id}>
+                        {city.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="font-medium">{profile.city || '—'}</p>
+              )}
+
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Pincode</Label>
@@ -518,7 +739,7 @@ const BoutiqueProfile = () => {
               )}
             </div>
           </div>
-          {isEditing && (
+          {/* {isEditing && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
               <Button variant="outline" size="sm" onClick={() => handleDocUpload('PAN Card')}>
                 <Upload className="h-4 w-4 mr-1" /> Upload PAN Card
@@ -530,7 +751,7 @@ const BoutiqueProfile = () => {
                 <Upload className="h-4 w-4 mr-1" /> Upload GST Certificate
               </Button>
             </div>
-          )}
+          )} */}
         </Section>
 
         <Separator />
