@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage, devtools } from "zustand/middleware";
 import { UserInterface } from "@/types/authInterface";
 import { authService } from "@/services/authService";
+import { toast } from "sonner";
 
 interface AuthState {
   isLogin: boolean;
@@ -45,10 +46,12 @@ export const useAuthStore = create<AuthState>()(
               // userDetails: { name, mobile } as UserInterface,
               mobile,
             });
+            toast.success(res?.message || "OTP sent successfully!");
           } catch (err: any) {
             set({
               error: err?.message || "Failed to send OTP",
             });
+            toast.error(err?.response?.data?.message || err?.message || "Failed to send OTP");
             throw err; // 🔥 important: propagate error to UI if needed
           } finally {
             set({ isLoading: false });
@@ -72,10 +75,12 @@ export const useAuthStore = create<AuthState>()(
               userDetails : res?.user, 
               otpSent: false,
             });
+            toast.success(res?.message || "OTP verified successfully!");
           } catch (err: any) {
             set({
               error: err?.message || "OTP verification failed",
             });
+            toast.error(err?.response?.data?.message || err?.message || "OTP verification failed");
             throw err;
           } finally {
             set({ isLoading: false });

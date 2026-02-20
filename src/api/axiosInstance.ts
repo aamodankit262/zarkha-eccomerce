@@ -83,16 +83,14 @@ axiosInstance.interceptors.response.use(
     });
 
     /* -------- Handle Unauthorized -------- */
-    if (status === 401 || message.toLowerCase().includes("unauthor")) {
-      clearAllAuth();
+    // if (status === 401 || message.toLowerCase().includes("unauthor")) {
+    //   clearAllAuth();
 
-      toast.error(
-        message || "Session expired. Please login again."
-      );
-
-      // Optional: redirect to login page
-      // window.location.href = "/login";
-    }
+    //   toast.error(
+    //     message || "Session expired. Please login again."
+    //   );
+    
+    // }
 
     return Promise.reject(error);
   }
