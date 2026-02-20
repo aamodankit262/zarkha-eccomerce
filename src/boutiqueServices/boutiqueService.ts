@@ -43,8 +43,13 @@ export interface BoutiqueProductResponse {
 export interface BoutiqueProductListParams {
   search?: string;
   category_id?: string;
+  subcategory_id?: string;
+  min_price?: number;
+  max_price?: number;
+  stock_status?: string;
   page?: number;
   limit?: number;
+  discount?: any;
 }
 export interface SalesListParams {
   status?: "completed" | "pending";
@@ -169,15 +174,21 @@ export const boutiqueService = {
     );
   },
   productList: async (params: BoutiqueProductListParams) => {
-    const formData = new URLSearchParams();
-    if (params.search) formData.append("search", params.search);
-    if (params.category_id && params.category_id !== "all") {
-      formData.append("category_id", params.category_id);
-    }
-    formData.append("page", String(params.page ?? 1));
-    formData.append("limit", String(params.limit ?? 10));
+    const payload = {
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
+      ...(params.search && { search: params.search }),
+      ...(params.category_id && params.category_id !== "all" && { category_id: params.category_id }),
+      ...(params.subcategory_id && { subcategory_id: params.subcategory_id }),
+      ...(params.min_price !== undefined && { min_price: params.min_price }),
+      ...(params.max_price !== undefined && { max_price: params.max_price }),
+      ...(params.stock_status && { stock_status: params.stock_status }),
+      ...(params.discount && { discount: params.discount }),
+    };
+    console.log("Requesting products with payload:", payload);
     return apiClient.post<BoutiqueProductResponse>(
-      API_ENDPOINTS.BOUTIQUE.PRODUCT_LIST, formData
+      API_ENDPOINTS.BOUTIQUE.PRODUCT_LIST,
+      payload
     );
   },
 
@@ -208,5 +219,11 @@ export const boutiqueService = {
   getCouponList: async (id?: string) => {
     return apiClient.get(`${API_ENDPOINTS.BOUTIQUE.COUPON_LIST}?affiliate_id=${id}`);
   },
-
+  getSetPrice: async (productId: string, price: number) => {
+    const payload = {
+      product_id: productId,
+      selling_price: price
+    }
+    return apiClient.post(API_ENDPOINTS.BOUTIQUE.SET_PRICE, payload);
+  }
 };

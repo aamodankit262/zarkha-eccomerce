@@ -7,12 +7,10 @@ import { toast } from "sonner";
 const getToken = (key: string, path?: string) => {
   try {
     const auth = localStorage.getItem(key);
-    console.log(`Retrieving token for ${key}:`, auth);
     if (!auth) return null;
      const parsed = typeof auth === "string" && auth.startsWith("{") ? JSON.parse(auth) : auth;
     // const parsed = JSON.parse(auth); 
 
-    console.log(`Parsed token for ${key}:`, parsed);
     // user token is nested differently
     if (key === "zarkha-auth") return parsed?.state?.token;
     // if(key === "boutique_auth_token") return auth; 
@@ -23,11 +21,11 @@ const getToken = (key: string, path?: string) => {
     return null;
   }
 };
-console.log("Tokens:", {
-  "zarkha-auth": getToken("zarkha-auth"),
-  "affiliate-auth": getToken("affiliate-auth"),
-  "boutique_auth_token": getToken("boutique_auth_token"),
-});
+// console.log("Tokens:", {
+//   "zarkha-auth": getToken("zarkha-auth"),
+//   "affiliate-auth": getToken("affiliate-auth"),
+//   "boutique_auth_token": getToken("boutique_auth_token"),
+// });
 const clearAllAuth = () => {
   localStorage.removeItem("zarkha-auth");
   localStorage.removeItem("affiliate-auth");

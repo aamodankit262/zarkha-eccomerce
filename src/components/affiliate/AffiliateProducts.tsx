@@ -19,57 +19,6 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-// const Pagination: React.FC<PaginationProps> = ({
-//   currentPage,
-//   totalPages,
-//   onPageChange,
-// }) => {
-//   return (
-//     <div className="flex items-center justify-center gap-2 mt-6">
-//       {/* Prev */}
-//       <button
-//         disabled={currentPage === 1}
-//         onClick={() => onPageChange(currentPage - 1)}
-//         className="px-3 py-1 text-sm border rounded
-//           disabled:opacity-50 disabled:cursor-not-allowed
-//           hover:bg-gray-100"
-//       >
-//         Prev
-//       </button>
-
-//       {/* Page Numbers */}
-//       {Array.from({ length: totalPages }, (_, i) => {
-//         const page = i + 1;
-//         return (
-//           <button
-//             key={page}
-//             onClick={() => onPageChange(page)}
-//             className={`px-3 py-1 text-sm border rounded
-//               ${page === currentPage
-//                 ? "bg-primary text-white"
-//                 : "hover:bg-gray-100"
-//               }`}
-//           >
-//             {page}
-//           </button>
-//         );
-//       })}
-
-//       {/* Next */}
-//       <button
-//         disabled={currentPage === totalPages}
-//         onClick={() => onPageChange(currentPage + 1)}
-//         className="px-3 py-1 text-sm border rounded
-//           disabled:opacity-50 disabled:cursor-not-allowed
-//           hover:bg-gray-100"
-//       >
-//         Next
-//       </button>
-//     </div>
-//   );
-// };
-
-
 const AffiliateProducts = () => {
   const { affiliate } = useAffiliate();
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -117,7 +66,7 @@ const AffiliateProducts = () => {
     ];
   }, [data]);
 
-  const filteredProducts = products;
+  // const filteredProducts = products;
 
   const copyProductLink = (productId: string) => {
     const link = `${window.location.origin}/product/${productId}`;

@@ -16,7 +16,8 @@ import {
   LogOut, Search, Plus, Minus, Eye, EyeOff, IndianRupee, Calendar,
   CheckCircle, Clock, Truck, Filter, X, ChevronRight, Percent,
   MapPin, UserCheck, Ticket, Warehouse,
-  BarChart3, Download, ExternalLink, Share2, Edit, Image, Layers
+  BarChart3, Download, ExternalLink, Share2, Edit, Image, Layers,
+  ShoppingBag
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useBoutique } from "@/contexts/BoutiqueContext";
@@ -28,7 +29,14 @@ import SalesAnalytics from "@/components/boutique/SalesAnalytics";
 import BoutiqueProfile from "@/components/boutique/BoutiqueProfile";
 import BoutiqueCurations from "@/components/boutique/BoutiqueCurations";
 import BoutiqueInventory from "@/components/boutique/BoutiqueInventory";
-import { logoImage } from "@/api/endpoints";
+import { logoImage, NO_IMAGE } from "@/api/endpoints";
+import { useApi } from "@/hooks/useApi";
+import { boutiqueService } from "@/boutiqueServices/boutiqueService";
+import { useDebounce } from "@/hooks/useDebounce";
+import { boutiqueProducts } from "@/data/product";
+import dayjs from "dayjs";
+import Pagination from "@/components/ecommerce/Pagination";
+import { profile } from "console";
 
 const SUBCATEGORIES: Record<string, string[]> = {
   "Kurta Sets": ["Cotton Kurta", "Silk Kurta", "Embroidered Kurta", "Printed Kurta"],
@@ -43,8 +51,8 @@ const SUBCATEGORIES: Record<string, string[]> = {
 const BoutiqueDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isLoggedIn, user, orders, sales, logout, placeOrder, updateProductPrice, getProductPrice, productPrices, toggleProductDisplay, token } = useBoutique();
-  console.log(token, "--- Boutique Auth Token ---");
+  const { isLoggedIn, user, orders, sales, logout, placeOrder, profile, setProfile, updateProductPrice, getProductPrice, productPrices, toggleProductDisplay, token } = useBoutique();
+  const { data, request: fetchProfile, loading } = useApi(boutiqueService.getProfile);
   const { addItem, getTotalItems } = useBoutiqueCart();
 
   const [activeTab, setActiveTab] = useState("products");
@@ -65,6 +73,14 @@ const BoutiqueDashboard = () => {
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
 
+  const debouncedSearch = useDebounce(searchQuery, 500);
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const {
+    data: productRes,
+    request: fetchProducts,
+    loading: productLoading,
+  } = useApi(boutiqueService.productList);
   // Order Filters
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
@@ -75,23 +91,45 @@ const BoutiqueDashboard = () => {
   const [shippingAddress, setShippingAddress] = useState({ name: "", phone: "", address: "", city: "", state: "", pincode: "" });
   const [billingAddress, setBillingAddress] = useState({ name: "", phone: "", address: "", city: "", state: "", pincode: "" });
   const [sameAsShipping, setSameAsShipping] = useState(true);
-
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/boutique/login');
     }
   }, [isLoggedIn, navigate]);
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchProfile();
+    }
+  }, [isLoggedIn]);
+  useEffect(() => {
+    if (data?.body) {
+      const b = data.body;
+      setProfile(b);
+    }
+  }, [profile]);
 
-  const products = [
-    { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', subcategory: 'Silk Kurta', adminPrice: 1800, mrp: 2500, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 50, discount: 28 },
-    { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', subcategory: 'Floor Length', adminPrice: 1200, mrp: 1800, image: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png', stock: 35, discount: 33 },
-    { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', subcategory: 'Bridal Lehenga', adminPrice: 4500, mrp: 6500, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 20, discount: 31 },
-    { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', subcategory: 'Banarasi', adminPrice: 3200, mrp: 4500, image: '/lovable-uploads/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', stock: 25, discount: 29 },
-    { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', subcategory: 'Printed Palazzo', adminPrice: 1500, mrp: 2200, image: '/lovable-uploads/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', stock: 40, discount: 32 },
-    { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', subcategory: 'Straight Suit', adminPrice: 2000, mrp: 2800, image: '/lovable-uploads/15ff49d2-e060-4344-956a-c6030caf0a58.png', stock: 30, discount: 29 },
-    { id: '7', name: 'Bridal Lehenga Set', category: 'Lehengas', subcategory: 'Bridal Lehenga', adminPrice: 8500, mrp: 12000, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 8, discount: 29 },
-    { id: '8', name: 'Party Wear Gown', category: 'Gowns', subcategory: 'Party Gown', adminPrice: 3500, mrp: 5000, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 0, discount: 30 }
-  ];
+  console.log("Boutique Profile from Context:", profile);
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchProducts({
+        page,
+        limit,
+      })
+    };
+  }, [page, isLoggedIn]);
+  const body = productRes?.body || [];
+  // console.log("Fetched res:", productRes?.total_pages);
+  const products = boutiqueProducts(body) || [];
+  // const products = [
+  //   { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', subcategory: 'Silk Kurta', adminPrice: 1800, mrp: 2500, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 50, discount: 28 },
+  //   { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', subcategory: 'Floor Length', adminPrice: 1200, mrp: 1800, image: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png', stock: 35, discount: 33 },
+  //   { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', subcategory: 'Bridal Lehenga', adminPrice: 4500, mrp: 6500, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 20, discount: 31 },
+  //   { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', subcategory: 'Banarasi', adminPrice: 3200, mrp: 4500, image: '/lovable-uploads/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', stock: 25, discount: 29 },
+  //   { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', subcategory: 'Printed Palazzo', adminPrice: 1500, mrp: 2200, image: '/lovable-uploads/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', stock: 40, discount: 32 },
+  //   { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', subcategory: 'Straight Suit', adminPrice: 2000, mrp: 2800, image: '/lovable-uploads/15ff49d2-e060-4344-956a-c6030caf0a58.png', stock: 30, discount: 29 },
+  //   { id: '7', name: 'Bridal Lehenga Set', category: 'Lehengas', subcategory: 'Bridal Lehenga', adminPrice: 8500, mrp: 12000, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 8, discount: 29 },
+  //   { id: '8', name: 'Party Wear Gown', category: 'Gowns', subcategory: 'Party Gown', adminPrice: 3500, mrp: 5000, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 0, discount: 30 }
+  // ];
 
   const categories = [...new Set(products.map(p => p.category))];
   const availableSubcategories = categoryFilter !== "all" ? (SUBCATEGORIES[categoryFilter] || []) : [];
@@ -104,20 +142,39 @@ const BoutiqueDashboard = () => {
 
   const handleUpdatePrice = (product: any) => {
     setSelectedProduct(product);
-    const existingPrice = getProductPrice(product.id);
-    setBoutiquePrice(existingPrice?.sellingPrice?.toString() || "");
+    // const existingPrice = getProductPrice(product?.id);
+    setBoutiquePrice(product?.sellingPrice?.toString() || "");
     setShowPriceDialog(true);
   };
 
-  const handleSavePrice = () => {
+  const handleSavePrice = async () => {
     if (!selectedProduct || !boutiquePrice) {
       toast({ title: "Error", description: "Please enter a selling price", variant: "destructive" });
       return;
     }
-    updateProductPrice(selectedProduct.id, parseFloat(boutiquePrice));
-    toast({ title: "Price Updated!", description: `Selling price for ${selectedProduct.name} set to ₹${boutiquePrice}` });
-    setShowPriceDialog(false);
-    setSelectedProduct(null);
+    try {
+      const response: any = await boutiqueService.getSetPrice(selectedProduct.id, parseFloat(boutiquePrice));
+      console.log("Set Price Response:", response);
+      const { success, message, body } = response;
+      if (success) {
+        // updateProductPrice(selectedProduct.id, parseFloat(body?.selling_price || boutiquePrice));
+        fetchProducts({ page, limit });
+        toast({
+          title: "Price Updated!",
+          description: `Selling price for ${selectedProduct.name} set to ₹${body?.selling_price || boutiquePrice}`
+        });
+        setShowPriceDialog(false);
+        setSelectedProduct(null);
+      } else {
+        toast({ title: "Error", description: message || "Failed to update selling price", variant: "destructive" });
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error?.message || "Failed to update selling price", variant: "destructive" });
+
+    } finally {
+      setShowPriceDialog(false);
+      setSelectedProduct(null);
+    }
   };
 
   const handleAddToCart = (product: any) => {
@@ -141,7 +198,7 @@ const BoutiqueDashboard = () => {
   const handleDownloadImage = (product: any) => {
     const link = document.createElement('a');
     link.href = product.image;
-    link.download = `${product.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+    link.download = `${product.product_title.replace(/\s+/g, '-').toLowerCase()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -149,10 +206,10 @@ const BoutiqueDashboard = () => {
   };
 
   const handleShareProduct = async (product: any) => {
-    const priceInfo = getProductPrice(product.id);
+    // const priceInfo = getProductPrice(product._id);
     const shareData = {
-      title: product.name,
-      text: `Check out ${product.name} - Selling Price: ₹${priceInfo?.sellingPrice || product.mrp}`,
+      title: product.product_title,
+      text: `Check out ${product.product_title} - Selling Price: ₹${product.sellingPrice || product.mrp}`,
       url: window.location.origin + `/shop/${user?.shop_name?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`
     };
     if (navigator.share) {
@@ -288,13 +345,16 @@ const BoutiqueDashboard = () => {
               {/* <ShoppingBag className="h-6 w-6 text-primary" />
               <span className="font-bold text-foreground">Ethnic Store</span> */}
               <img
+                // src={profile?.brand_logo || logoImage}
                 src={logoImage}
                 alt="Zarkha"
                 className="h-8 w-auto cursor-pointer"
                 onClick={() => navigate("/")}
               />
             </Link>
-            <Badge variant="secondary" className="hidden sm:flex">Boutique Partner</Badge>
+
+            <Badge variant="secondary" className="hidden sm:flex">{profile?.store_name || "Boutique Partner"}</Badge>
+            {/* <Badge variant="secondary" className="hidden sm:flex">Boutique Partner</Badge> */}
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="relative" onClick={() => setShowCart(true)}>
@@ -421,7 +481,7 @@ const BoutiqueDashboard = () => {
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col sm:flex-row gap-3 justify-between">
                     <CardTitle className="text-lg">Product Catalog</CardTitle>
-                    <p className="text-sm text-muted-foreground">{sortedProducts.length} products</p>
+                    <p className="text-sm text-muted-foreground">{products?.length} products</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
@@ -463,7 +523,7 @@ const BoutiqueDashboard = () => {
                             <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="all">All Categories</SelectItem>
-                              {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                              {/* {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)} */}
                             </SelectContent>
                           </Select>
                         </div>
@@ -512,22 +572,25 @@ const BoutiqueDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm text-muted-foreground">{sortedProducts.length} products</p>
+                  <p className="text-sm text-muted-foreground">{products?.length} products</p>
                   <Button variant="outline" size="sm" onClick={handleDownloadCatalogue}>
                     <Download className="h-4 w-4 mr-2" /> Download Catalogue
                   </Button>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
-                  {sortedProducts.map((product) => {
-                    const priceInfo = getProductPrice(product.id);
+                  {products?.map((product) => {
+                    // const priceInfo = getProductPrice(product.id);
+                    const priceInfo = product.sellingPrice > 0;
                     return (
                       <Card key={product.id} className="overflow-hidden">
                         <div className="aspect-square relative group">
-                          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                          <img src={product.image || NO_IMAGE} alt={product.name} className="w-full h-full object-cover" />
                           <Badge className="absolute top-2 right-2 bg-warm-brown">{product.category}</Badge>
-                          <Badge className="absolute top-2 left-2 bg-green-600">
-                            <Percent className="h-3 w-3 mr-1" />{product.discount}% off
-                          </Badge>
+                          {product.discount && (
+                            <Badge className="absolute top-2 left-2 bg-green-600">
+                              <Percent className="h-3 w-3 mr-1" />{product.discount ?? 0}% off
+                            </Badge>
+                          )}
                           {product.stock === 0 && (
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                               <Badge variant="destructive">Out of Stock</Badge>
@@ -547,28 +610,30 @@ const BoutiqueDashboard = () => {
                         </div>
                         <CardContent className="p-2 sm:p-3 md:p-4">
                           <h3 className="font-semibold text-warm-brown mb-1 text-xs sm:text-sm md:text-base line-clamp-2">{product.name}</h3>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{product.subcategory}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{product?.subcategory ?? "No Subcategory"}</p>
                           <div className="flex items-center justify-between mb-1 sm:mb-2">
                             <div>
                               <p className="text-[10px] sm:text-xs text-muted-foreground">Your Price</p>
-                              <p className="text-sm sm:text-lg font-bold text-brand-orange">₹{product.adminPrice}</p>
+                              <p className="text-sm sm:text-lg font-bold text-brand-orange">₹{product?.adminPrice ?? 0}</p>
                             </div>
-                            <Badge variant="outline" className="text-[10px] sm:text-xs">Stock: {product.stock}</Badge>
+                            <Badge variant="outline" className="text-[10px] sm:text-xs">Stock: {product?.stock ?? 0}</Badge>
                           </div>
                           {priceInfo ? (
                             <div className="bg-green-50 border border-green-200 rounded-lg p-2 mb-3">
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-xs text-green-700">Selling Price</p>
-                                  <p className="text-base font-bold text-green-700">₹{priceInfo.sellingPrice}</p>
+                                  <p className="text-base font-bold text-green-700">₹{product?.sellingPrice ?? 0}</p>
                                 </div>
                                 <div className="text-right">
                                   <p className="text-xs text-green-600">Profit</p>
-                                  <p className="text-sm font-semibold text-green-700">₹{priceInfo.sellingPrice - product.adminPrice}</p>
+                                  <p className="text-sm font-semibold text-green-700">₹{product?.profit ?? 0}</p>
+                                  {/* <p className="text-sm font-semibold text-green-700">₹{priceInfo?.sellingPrice - product?.adminPrice}</p> */}
                                 </div>
                               </div>
                               <p className="text-xs text-muted-foreground mt-1">
-                                <Calendar className="h-3 w-3 inline mr-1" />Updated: {priceInfo.lastUpdated}
+                                <Calendar className="h-3 w-3 inline mr-1" />Updated: {dayjs(product?.lastUpdated).format("DD MMM YYYY")}
+                                {/* <Calendar className="h-3 w-3 inline mr-1" />Updated: {dayjs(product?.lastUpdated).format("DD MMM YYYY")} */}
                               </p>
                             </div>
                           ) : (
@@ -592,11 +657,11 @@ const BoutiqueDashboard = () => {
                           </div>
                           {priceInfo && (
                             <Button
-                              variant={priceInfo.displayOnBrandPage ? "default" : "outline"}
+                              variant={priceInfo ? "default" : "outline"}
                               size="sm" className="w-full"
                               onClick={() => toggleProductDisplay(product.id)}
                             >
-                              {priceInfo.displayOnBrandPage ? (
+                              {priceInfo ? (
                                 <><Eye className="h-4 w-4 mr-1" />Visible on Brand Page</>
                               ) : (
                                 <><EyeOff className="h-4 w-4 mr-1" />Hidden from Brand Page</>
@@ -609,6 +674,14 @@ const BoutiqueDashboard = () => {
                   })}
                 </div>
               </CardContent>
+              {productRes?.total_pages > 1 && (
+                <Pagination
+                  currentPage={productRes?.current_page}
+                  totalPages={productRes?.total_pages}
+                  onPageChange={setPage}
+                // onPageChange={(page) => setPage(page)}
+                />
+              )}
             </Card>
           </TabsContent>
 
@@ -870,14 +943,21 @@ const BoutiqueDashboard = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">MRP:</span>
-                    <span className="text-sm line-through text-muted-foreground">₹{selectedProduct.mrp}</span>
+                    <span className="text-sm line-through text-muted-foreground">₹{selectedProduct.mrp ?? 0}</span>
                   </div>
                 </div>
               </div>
               <Separator />
               <div className="space-y-2">
                 <Label htmlFor="sellingPrice">Your Selling Price (₹)</Label>
-                <Input id="sellingPrice" type="number" placeholder="Enter your selling price" value={boutiquePrice} onChange={(e) => setBoutiquePrice(e.target.value)} className="text-lg" />
+                <Input
+                  id="sellingPrice"
+                  type="number"
+                  placeholder="Enter your selling price"
+                  value={boutiquePrice}
+                  onChange={(e) => setBoutiquePrice(e.target.value)}
+                  className="text-lg"
+                />
                 {boutiquePrice && parseFloat(boutiquePrice) > 0 && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-2">
                     <div className="flex justify-between items-center">
