@@ -36,7 +36,6 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { boutiqueProducts } from "@/data/product";
 import dayjs from "dayjs";
 import Pagination from "@/components/ecommerce/Pagination";
-import { profile } from "console";
 
 const SUBCATEGORIES: Record<string, string[]> = {
   "Kurta Sets": ["Cotton Kurta", "Silk Kurta", "Embroidered Kurta", "Printed Kurta"],
@@ -51,7 +50,7 @@ const SUBCATEGORIES: Record<string, string[]> = {
 const BoutiqueDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isLoggedIn, user, orders, sales, logout, placeOrder, profile, setProfile, updateProductPrice, getProductPrice, productPrices, toggleProductDisplay, token } = useBoutique();
+  const { isLoggedIn, user, orders, sales, logout, placeOrder, profile, setProfile, toggleProductDisplay } = useBoutique();
   const { data, request: fetchProfile, loading } = useApi(boutiqueService.getProfile);
   const { addItem, getTotalItems } = useBoutiqueCart();
 
@@ -523,7 +522,7 @@ const BoutiqueDashboard = () => {
                             <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="all">All Categories</SelectItem>
-                              {/* {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)} */}
+                              {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>

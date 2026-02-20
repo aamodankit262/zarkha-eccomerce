@@ -97,7 +97,7 @@ const CheckoutPage = () => {
 
     const { Razorpay } = useRazorpay();
     const { cartId, fetchCart, items, getTotalPrice } = useCart()
-    console.log(items, 'items')
+    // console.log(items, 'items')
     useEffect(() => {
         if (timer <= 0) return;
 
@@ -178,7 +178,7 @@ const CheckoutPage = () => {
             await sendOtp(formData.fullName, formData.mobileNumber);
             setShowOTP(true);
             setTimer(30);
-            toast.success("OTP sent successfully");
+            // toast.success("OTP sent successfully");
         } catch (err) {
             toast.error("Failed to send OTP");
         } finally {
@@ -208,7 +208,7 @@ const CheckoutPage = () => {
     /* ---------------- PRICE CALC ---------------- */
     const subtotal = getTotalPrice();
     const deliveryCharges = 0;
-    console.log(appliedCoupon, 'applied coupon..')
+    // console.log(appliedCoupon, 'applied coupon..')
     const couponDiscount = appliedCoupon?.coupon_discount;
     const totalAmount = appliedCoupon?.payable_amount + deliveryCharges || subtotal + deliveryCharges;
 
@@ -235,8 +235,8 @@ const CheckoutPage = () => {
     };
 
     const handleEditAddress = (address: SavedAddress) => {
-        console.log(address, 'editaddress..')
-        console.log(address.stateId, address.cityId);
+        // console.log(address, 'editaddress..')
+        // console.log(address.stateId, address.cityId);
         setEditingAddressId(address._id);
         setFormData({
             ...formData,
@@ -276,7 +276,7 @@ const CheckoutPage = () => {
                 other: formData.addressType === "Other" ? "true" : "",
                 is_default: formData.isDefault,
             }
-            console.log(payload, 'payload... ')
+            // console.log(payload, 'payload... ')
             let savedAddress: SavedAddress;
             if (editingAddressId) {
                 // Update existing address

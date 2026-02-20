@@ -26,15 +26,15 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
 
   const [otp, setOtp] = useState<string[]>(["", "", "", ""]);
 
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error",
-        description: error,
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
+  // useEffect(() => {
+  //   if (error) {
+  //     toast({
+  //       title: "Error",
+  //       description: error,
+  //       variant: "destructive",
+  //     });
+  //   }
+  // }, [error, toast]);
 
   useEffect(() => {
     if (!showOTP || countdown <= 0) return;
@@ -66,24 +66,24 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
       return;
     }
 
-    await sendOtp(formData.name, formData.phone);
+    const res = await sendOtp(formData.name, formData.phone);
+    // console.log("OTP send response:", res);
     setShowOTP(true);
-
-    toast({
-      title: "OTP Sent",
-      description: "Please check your phone for the verification code.",
-    });
+    // toast({
+    //   title: "OTP Sent",
+    //   description: "Please check your phone for the verification code.",
+    // });
   };
 
   const handleVerify = async (code: string) => {
     if (code.length !== 4) return;
 
-    await verifyOtp(formData.phone, code);
-
-    toast({
-      title: "Success",
-      description: "Account created successfully!",
-    });
+   const res:any = await verifyOtp(formData.phone, code);
+    console.log("OTP verification response:", res);
+    // toast({
+    //   title: "Success",
+    //   description: "Account created successfully!",
+    // });
 
     onClose();
     setShowOTP(false);
