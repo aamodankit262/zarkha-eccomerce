@@ -185,7 +185,6 @@ export const boutiqueService = {
       ...(params.stock_status && { stock_status: params.stock_status }),
       ...(params.discount && { discount: params.discount }),
     };
-    console.log("Requesting products with payload:", payload);
     return apiClient.post<BoutiqueProductResponse>(
       API_ENDPOINTS.BOUTIQUE.PRODUCT_LIST,
       payload

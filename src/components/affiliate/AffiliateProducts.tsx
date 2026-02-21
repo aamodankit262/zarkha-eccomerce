@@ -20,7 +20,6 @@ interface PaginationProps {
 }
 
 const AffiliateProducts = () => {
-  const { affiliate } = useAffiliate();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 500)

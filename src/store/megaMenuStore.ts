@@ -31,7 +31,7 @@ interface MegaMenuStore {
   loadingSubCategories: Record<string, boolean>;
 
   fetchIndustries: () => Promise<void>;
-  fetchCategories: (industryId: string) => Promise<void>;
+  fetchCategories: (industryId?: string) => Promise<void>;
   fetchSubCategories: (categoryId: string) => Promise<void>;
 }
 

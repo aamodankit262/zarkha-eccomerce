@@ -15,6 +15,7 @@ interface Product {
   selling_price: number | any;
   profit:  number |any;
   mrp: any;
+  discount: number | any;
   selling_price_updated_at:  string | any;
 }
 export const productsData = (products: any[]) => products?.map((product: any) => {
@@ -53,7 +54,7 @@ export  const boutiqueProducts = (products: any[]) => products?.map((p:Product) 
       adminPrice: p.boutique_cost_price,
       mrp:  p?.mrp || "not available",
       sellingPrice: p?.selling_price || 0,
-      discount: p?.category_percentage || 0,
+      discount: p?.discount || 0,
       stock: p.stock || 0,
       profit: p?.profit || 0,
       lastUpdated: p.selling_price_updated_at || "N/A",
