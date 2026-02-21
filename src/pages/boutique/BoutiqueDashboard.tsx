@@ -36,6 +36,8 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { boutiqueProducts } from "@/data/product";
 import dayjs from "dayjs";
 import Pagination from "@/components/ecommerce/Pagination";
+import { useMegaMenuStores } from "@/store/megaMenuStore";
+import { industryService } from "@/services/industryService";
 
 const SUBCATEGORIES: Record<string, string[]> = {
   "Kurta Sets": ["Cotton Kurta", "Silk Kurta", "Embroidered Kurta", "Printed Kurta"],
@@ -64,13 +66,20 @@ const BoutiqueDashboard = () => {
   const [showCart, setShowCart] = useState(false);
 
   // Product Filters
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState<any>("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [discountFilter, setDiscountFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
+  // const {
+  //   industries,
+  //   categories,
+  //   fetchIndustries,
+  //   fetchCategories,
+  // } = useMegaMenuStores();
+
 
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [page, setPage] = useState(1);
@@ -78,7 +87,6 @@ const BoutiqueDashboard = () => {
   const {
     data: productRes,
     request: fetchProducts,
-    loading: productLoading,
   } = useApi(boutiqueService.productList);
   // Order Filters
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
@@ -90,6 +98,8 @@ const BoutiqueDashboard = () => {
   const [shippingAddress, setShippingAddress] = useState({ name: "", phone: "", address: "", city: "", state: "", pincode: "" });
   const [billingAddress, setBillingAddress] = useState({ name: "", phone: "", address: "", city: "", state: "", pincode: "" });
   const [sameAsShipping, setSameAsShipping] = useState(true);
+  const { data: categories, request: fetchCategories } = useApi(industryService.getCat);
+  const { data: subcategories, request: fetchSubCategories } = useApi(industryService.getSubCat);
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/boutique/login');
@@ -106,18 +116,32 @@ const BoutiqueDashboard = () => {
       setProfile(b);
     }
   }, [profile]);
+  useEffect(() => {
+    fetchCategories()
+  }, [showFilters])
+  useEffect(() => {
+    if (categoryFilter !== "all") fetchSubCategories(categoryFilter);
+  }, [categoryFilter]);
+  useEffect(() => {
+    setPage(1);
+  }, [categoryFilter, subcategoryFilter, debouncedSearch, discountFilter, stockFilter]);
 
-  console.log("Boutique Profile from Context:", profile);
   useEffect(() => {
     if (isLoggedIn) {
       fetchProducts({
         page,
         limit,
-      })
-    };
-  }, [page, isLoggedIn]);
+        category_id: categoryFilter === "all" ? undefined : categoryFilter,
+        subcategory_id: subcategoryFilter === "all" ? undefined : subcategoryFilter,
+        search: debouncedSearch || undefined,
+        min_price: priceRange[0] > 0 ? priceRange[0] : undefined,
+        max_price: priceRange[1] < 10000 ? priceRange[1] : undefined,
+        discount: discountFilter !== "all" ? discountFilter : undefined,
+        stock_status: stockFilter !== "all" ? stockFilter : undefined,
+      });
+    }
+  }, [page, categoryFilter, subcategoryFilter, debouncedSearch, discountFilter, stockFilter, isLoggedIn]);
   const body = productRes?.body || [];
-  // console.log("Fetched res:", productRes?.total_pages);
   const products = boutiqueProducts(body) || [];
   // const products = [
   //   { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', subcategory: 'Silk Kurta', adminPrice: 1800, mrp: 2500, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 50, discount: 28 },
@@ -130,8 +154,10 @@ const BoutiqueDashboard = () => {
   //   { id: '8', name: 'Party Wear Gown', category: 'Gowns', subcategory: 'Party Gown', adminPrice: 3500, mrp: 5000, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 0, discount: 30 }
   // ];
 
-  const categories = [...new Set(products.map(p => p.category))];
-  const availableSubcategories = categoryFilter !== "all" ? (SUBCATEGORIES[categoryFilter] || []) : [];
+  // const categories = [...new Set(products?.map(p => p.category))];
+  // console.log(categories,  'categories')
+
+  // const availableSubcategories = categoryFilter !== "all" ? (SUBCATEGORIES[categoryFilter] || []) : [];
 
   const handleLogout = () => {
     logout();
@@ -266,31 +292,31 @@ const BoutiqueDashboard = () => {
     setSelectedProduct(null);
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
-    const matchesSubcategory = subcategoryFilter === "all" || p.subcategory === subcategoryFilter;
-    const matchesPrice = p.adminPrice >= priceRange[0] && p.adminPrice <= priceRange[1];
-    const matchesDiscount = discountFilter === "all" ||
-      (discountFilter === "10" && p.discount >= 10) ||
-      (discountFilter === "20" && p.discount >= 20) ||
-      (discountFilter === "30" && p.discount >= 30);
-    const matchesStock = stockFilter === "all" ||
-      (stockFilter === "in_stock" && p.stock > 0) ||
-      (stockFilter === "low_stock" && p.stock > 0 && p.stock <= 10) ||
-      (stockFilter === "out_of_stock" && p.stock === 0);
-    return matchesSearch && matchesCategory && matchesSubcategory && matchesPrice && matchesDiscount && matchesStock;
-  });
+  // const filteredProducts = products.filter(p => {
+  //   const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase());
+  //   const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
+  //   const matchesSubcategory = subcategoryFilter === "all" || p.subcategory === subcategoryFilter;
+  //   const matchesPrice = p.adminPrice >= priceRange[0] && p.adminPrice <= priceRange[1];
+  //   const matchesDiscount = discountFilter === "all" ||
+  //     (discountFilter === "10" && p.discount >= 10) ||
+  //     (discountFilter === "20" && p.discount >= 20) ||
+  //     (discountFilter === "30" && p.discount >= 30);
+  //   const matchesStock = stockFilter === "all" ||
+  //     (stockFilter === "in_stock" && p.stock > 0) ||
+  //     (stockFilter === "low_stock" && p.stock > 0 && p.stock <= 10) ||
+  //     (stockFilter === "out_of_stock" && p.stock === 0);
+  //   return matchesSearch && matchesCategory && matchesSubcategory && matchesPrice && matchesDiscount && matchesStock;
+  // });
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case "price-low": return a.adminPrice - b.adminPrice;
-      case "price-high": return b.adminPrice - a.adminPrice;
-      case "discount": return b.discount - a.discount;
-      case "stock": return b.stock - a.stock;
-      default: return 0;
-    }
-  });
+  // const sortedProducts = [...filteredProducts].sort((a, b) => {
+  //   switch (sortBy) {
+  //     case "price-low": return a.adminPrice - b.adminPrice;
+  //     case "price-high": return b.adminPrice - a.adminPrice;
+  //     case "discount": return b.discount - a.discount;
+  //     case "stock": return b.stock - a.stock;
+  //     default: return 0;
+  //   }
+  // });
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.productName.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
@@ -485,10 +511,14 @@ const BoutiqueDashboard = () => {
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Search products..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
+                      <Input
+                        placeholder="Search products..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9" />
                     </div>
                     <div className="flex gap-2">
-                      <Select value={sortBy} onValueChange={setSortBy}>
+                      {/* <Select value={sortBy} onValueChange={setSortBy}>
                         <SelectTrigger className="w-[140px]">
                           <SelectValue placeholder="Sort by" />
                         </SelectTrigger>
@@ -499,7 +529,7 @@ const BoutiqueDashboard = () => {
                           <SelectItem value="discount">Highest Discount</SelectItem>
                           <SelectItem value="stock">Stock Available</SelectItem>
                         </SelectContent>
-                      </Select>
+                      </Select> */}
                       <Button variant="outline" size="icon" onClick={() => setShowFilters(!showFilters)}>
                         <Filter className="h-4 w-4" />
                       </Button>
@@ -518,11 +548,12 @@ const BoutiqueDashboard = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                         <div className="space-y-2">
                           <Label>Category</Label>
-                          <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setSubcategoryFilter("all"); }}>
+                          {/* <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setSubcategoryFilter("all"); }}> */}
+                          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                             <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="all">All Categories</SelectItem>
-                              {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                              {categories?.map((cat: any) => <SelectItem key={cat.id} value={cat.id}>{cat?.category_name}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -532,13 +563,27 @@ const BoutiqueDashboard = () => {
                             <SelectTrigger><SelectValue placeholder={categoryFilter === "all" ? "Select category first" : "All Subcategories"} /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="all">All Subcategories</SelectItem>
-                              {availableSubcategories.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
+                              {subcategories?.map(sub => <SelectItem key={sub?.id} value={sub.id}>{sub?.subcategory_name}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
                           <Label>Price: ₹{priceRange[0]} - ₹{priceRange[1]}</Label>
-                          <Slider value={priceRange} onValueChange={setPriceRange} min={0} max={10000} step={100} className="mt-2" />
+                          <Slider value={priceRange}
+                            onValueChange={setPriceRange}
+                            onValueCommit={(value) => {
+                              fetchProducts({
+                                page: 1,
+                                limit,
+                                min_price: value[0],
+                                max_price: value[1],
+
+                              })
+                            }}
+                            min={0}
+                            max={10000}
+                            step={100}
+                            className="mt-2" />
                         </div>
                         <div className="space-y-2">
                           <Label>Discount</Label>
@@ -570,26 +615,29 @@ const BoutiqueDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between mb-4">
+                {/* <div className="flex items-center justify-between mb-4">
                   <p className="text-sm text-muted-foreground">{products?.length} products</p>
                   <Button variant="outline" size="sm" onClick={handleDownloadCatalogue}>
                     <Download className="h-4 w-4 mr-2" /> Download Catalogue
                   </Button>
-                </div>
+                </div> */}
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
-                  {products?.map((product) => {
+                  {products.length === 0 ? (
+                    <p className="col-span-full text-center text-muted-foreground">No products available</p>
+                  ) : null}
+                  {products.map((product) => {
                     // const priceInfo = getProductPrice(product.id);
                     const priceInfo = product.sellingPrice > 0;
                     return (
                       <Card key={product.id} className="overflow-hidden">
                         <div className="aspect-square relative group">
+                          <Link to={`/product/${product?.id}`}>
                           <img src={product.image || NO_IMAGE} alt={product.name} className="w-full h-full object-cover" />
+                          </Link>
                           <Badge className="absolute top-2 right-2 bg-warm-brown">{product.category}</Badge>
-                          {product.discount && (
-                            <Badge className="absolute top-2 left-2 bg-green-600">
-                              <Percent className="h-3 w-3 mr-1" />{product.discount ?? 0}% off
-                            </Badge>
-                          )}
+                          <Badge className="absolute top-2 left-2 bg-green-600">
+                            <Percent className="h-3 w-3 mr-1" />{product.discount ?? 0}% off
+                          </Badge>
                           {product.stock === 0 && (
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                               <Badge variant="destructive">Out of Stock</Badge>
@@ -608,7 +656,9 @@ const BoutiqueDashboard = () => {
                           </div>
                         </div>
                         <CardContent className="p-2 sm:p-3 md:p-4">
+                          <Link to={`/product/${product?.id}`} >
                           <h3 className="font-semibold text-warm-brown mb-1 text-xs sm:text-sm md:text-base line-clamp-2">{product.name}</h3>
+                          </Link>
                           <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{product?.subcategory ?? "No Subcategory"}</p>
                           <div className="flex items-center justify-between mb-1 sm:mb-2">
                             <div>
@@ -672,6 +722,7 @@ const BoutiqueDashboard = () => {
                     );
                   })}
                 </div>
+
               </CardContent>
               {productRes?.total_pages > 1 && (
                 <Pagination

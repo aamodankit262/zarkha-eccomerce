@@ -18,8 +18,8 @@ interface Category {
 }
 interface SubCategory {
   id: string;
-  subcategory_name: string;
-  category_id: string;
+  subcategory_name?: string;
+  category_id?: string;
 }
 
 export const industryService = {
