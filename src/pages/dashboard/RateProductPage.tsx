@@ -19,7 +19,6 @@ const RateProductPage = ({ onBack, productRating, orderId }) => {
   /* ---------------- Image Upload ---------------- */
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    console.log(files, 'files')
     if (images.length + files.length > MAX_IMAGES) {
       toast.error("Maximum 5 images allowed");
       return;
@@ -37,7 +36,7 @@ const RateProductPage = ({ onBack, productRating, orderId }) => {
   };
 
   const removeImage = (index: number) => {
-    console.log(index, 'remove image')
+    // console.log(index, 'remove image')
     setImages((prev) => prev.filter((_, i) => i !== index));
     if (fileRef.current) {
       fileRef.current.value = "";

@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/authStore";
 import { logoImage } from "@/api/endpoints";
 import { Link } from "react-router-dom";
 import OTPInput from "../OtpInput";
+import { logger } from "@/helper/logger";
 
 
 interface SignupModalProps {
@@ -78,8 +79,8 @@ const SignupModal = ({ isOpen, onClose }: SignupModalProps) => {
   const handleVerify = async (code: string) => {
     if (code.length !== 4) return;
 
-   const res:any = await verifyOtp(formData.phone, code);
-    console.log("OTP verification response:", res);
+    const res: any = await verifyOtp(formData.phone, code);
+    logger.log("OTP verification response", res);
     // toast({
     //   title: "Success",
     //   description: "Account created successfully!",

@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
-import OrderSuccess from "./OrderSuccess";
-import AddressSection from "./AddressSection";
-import OrderItems from "./OrderItems";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 import { useCart } from "@/contexts/CartContext";
@@ -20,13 +17,13 @@ import { SavedAddress } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Check, Percent, Phone, Tag, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import CouponModal from "./CouponModal";
 import { Checkbox } from "@/components/ui/checkbox";
 import { applyCoupon, getCouponList, removeCoupon } from "@/services/coupon.service";
 import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
-import { Layout } from "@/components";
-import { set } from "date-fns";
 import { paymentService } from "@/services/paymentService";
+import OrderItems from "../checkout/OrderItems";
+import OrderSuccess from "../OrderSuccess";
+import CouponModal from "../checkout/CouponModal";
 export interface Coupon {
     code: string;
     _id: string;
@@ -38,7 +35,7 @@ export interface Coupon {
 }
 
 
-const CheckoutPage = () => {
+const BoutiqueCheckoutPage = () => {
     const navigate = useNavigate();
     // const { items, getTotalPrice } = useCart();
     const { sendOtp, verifyOtp, otpSent, isLoading, error, isLogin, userDetails, token } = useAuthStore()
@@ -92,7 +89,7 @@ const CheckoutPage = () => {
     const { data, request } = useApi(getAddressList);
     const { request: applyCouponRequest, loading: applyCouponLoading } = useApi(applyCoupon);
     const { request: removeCouponApi } = useApi(removeCoupon);
-    
+    // const { request: createOrder, loading: createOrderLoading } = useApi(orderService.createOrder);
 
     const { Razorpay } = useRazorpay();
     const { cartId, fetchCart, items, getTotalPrice } = useCart()
@@ -419,8 +416,6 @@ const CheckoutPage = () => {
                 order_id,
 
                 handler: async (response) => {
-                    // console.log(response, 'handler')
-
                     try {
                         const verifyRes = await paymentService.verifyPayment({
                             razorpay_order_id: response.razorpay_order_id,
@@ -583,7 +578,7 @@ const CheckoutPage = () => {
 
                         </div>
                     </div>
-                    {isLogin && (
+                    {/* {isLogin && (
 
                         <AddressSection
                             savedAddresses={savedAddresses}
@@ -601,7 +596,7 @@ const CheckoutPage = () => {
                             states={states}
                             cities={cities}
                         />
-                    )}
+                    )} */}
 
                     <OrderItems
                         items={items}
@@ -769,4 +764,4 @@ const CheckoutPage = () => {
     );
 };
 
-export default CheckoutPage;
+export default BoutiqueCheckoutPage;

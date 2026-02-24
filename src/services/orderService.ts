@@ -30,24 +30,8 @@ export interface OrderViewPayload {
 /* ------------------ Services ------------------ */
 
 export const orderService = {
-  /** CREATE ORDER */
-  createOrder: async (payload: CreateOrderPayload) => {
-    const formData = new FormData();
-
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, String(value));
-      }
-    });
-
-    const res = await apiClient.post(
-      API_ENDPOINTS.ORDERS.CREATE,
-      formData
-    );
-
-    return res;
-  },
-
+  
+ 
   /** ORDER LIST */
   getOrderList: async (payload: OrderListPayload) => {
     const formData = new FormData();
@@ -77,6 +61,7 @@ export const orderService = {
 
     return res;
   },
+  
   updateOrderStatus: async (payload: OrderUpdateStatusPayload) => {
     const formData = new FormData();
     formData.append("order_id", payload.order_id);

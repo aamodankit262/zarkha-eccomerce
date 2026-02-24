@@ -100,11 +100,17 @@ export const API_ENDPOINTS = {
     UPDATE_PROFILE: "/api/web/boutique/profile",
     CategoryList: "/api/web/boutique-category/list",
     SET_PRICE: "/api/web/boutique/products/set-price",
-    DASHBOARD_STATS: "/api/web/boutique/dashboard-stats",
-    PRODUCT_CATEGORY_LIST: "/api/web/boutique/product-category-list",
+    ADD_TO_CART: "/api/web/boutique/cart/add",
+    GET_CART: "/api/web/boutique/cart",
+    UPDATE_CART: "/api/web/boutique/cart/update",
+    REMOVE_FROM_CART: "/api/web/boutique/cart/remove",
+    CLEAR_CART: "/api/web/boutique/cart/clear",
+    CREATE_ORDER: "/api/web/boutique/order/create",
+    VARIFY_ORDER: "/api/web/boutique/order/verify",
+    ORDER_LIST: "/api/web/boutique/orders/list",
+    CURATION_ADD : "/api/web/boutique/curation/add",
+    CURATIONS_LIST: "/api/web/boutique/curations/list",
     PRODUCT_LIST: "/api/web/boutique/products/list",
-    SALES_LIST: "/api/web/boutique/sales-list",
-    COUPON_LIST: "/api/web/coupon/boutique/list",
-    EARNINGS_LIST: "/api/web/boutique/earnings-and-payments",
+   
   }
 };

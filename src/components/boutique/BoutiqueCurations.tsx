@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,19 +10,28 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { 
-  Plus, FolderOpen, Edit, Trash2, Share2, Download, 
+import {
+  Plus, FolderOpen, Edit, Trash2, Share2, Download,
   Eye, Package, Layers, Filter, X, Search, FileText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
+import { useApi } from "@/hooks/useApi";
+import { boutiqueService } from "@/boutiqueServices/boutiqueService";
+import { logger } from "@/helper/logger";
+import dayjs from "dayjs";
+import { useBoutique } from "@/contexts/BoutiqueContext";
+import { NO_IMAGE } from "@/api/endpoints";
+import Pagination from "../ecommerce/Pagination";
 
 export interface Curation {
-  id: string;
+  _id: string;
   name: string;
+  product_count?: number;
   description: string;
-  productIds: string[];
-  createdAt: string;
+  product_ids: string[];
+  product_details?: string[];
+  created_at?: string;
   coverImage?: string;
 }
 
@@ -54,10 +63,13 @@ interface BoutiqueCurationsProps {
 
 const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
   const { toast } = useToast();
+  const { isLoggedIn } = useBoutique();
+
   const [curations, setCurations] = useState<Curation[]>(() => {
     const stored = localStorage.getItem('boutique_curations');
     return stored ? JSON.parse(stored) : [];
   });
+  const { data: curationRes, request: fetchCurationList } = useApi(boutiqueService.getCurationsList)
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingCuration, setEditingCuration] = useState<Curation | null>(null);
   const [newCuration, setNewCuration] = useState({ name: '', description: '', productIds: [] as string[] });
@@ -69,19 +81,36 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
   const [selectionSubcategory, setSelectionSubcategory] = useState("all");
   const [selectionPriceRange, setSelectionPriceRange] = useState([0, 15000]);
   const [showSelectionFilters, setShowSelectionFilters] = useState(false);
+  const [orderPage, setOrderPage] = useState(1);
+  const orderLimit = 10;
 
   const categories = [...new Set(products.map(p => p.category))];
   const availableSubcategories = selectionCategory !== "all" ? (SUBCATEGORIES[selectionCategory] || []) : [];
 
   const filteredSelectionProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(selectionSearch.toLowerCase()) || 
-                          p.category.toLowerCase().includes(selectionSearch.toLowerCase());
+    const matchesSearch = p.name.toLowerCase().includes(selectionSearch.toLowerCase()) ||
+      p.category.toLowerCase().includes(selectionSearch.toLowerCase());
     const matchesCategory = selectionCategory === "all" || p.category === selectionCategory;
     const matchesSubcategory = selectionSubcategory === "all" || p.subcategory === selectionSubcategory;
     const matchesPrice = p.adminPrice >= selectionPriceRange[0] && p.adminPrice <= selectionPriceRange[1];
     return matchesSearch && matchesCategory && matchesSubcategory && matchesPrice;
   });
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchCurationList({
+        page: orderPage,
+        limit: orderLimit,
+      });
+    }
+  }, [isLoggedIn, orderPage]);
 
+  useEffect(() => {
+    if (!curationRes?.body) return;
+    setCurations(body);
+  }, [curationRes])
+  const body = curationRes?.body || []
+  const pagination = curationRes?.pagination
+  // logger.log('curationList,' , body)
   const clearSelectionFilters = () => {
     setSelectionSearch("");
     setSelectionCategory("all");
@@ -89,12 +118,12 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
     setSelectionPriceRange([0, 15000]);
   };
 
-  const saveCurations = (updated: Curation[]) => {
-    setCurations(updated);
-    localStorage.setItem('boutique_curations', JSON.stringify(updated));
-  };
+  // const saveCurations = (updated: Curation[]) => {
+  //   setCurations(updated);
+  //   localStorage.setItem('boutique_curations', JSON.stringify(updated));
+  // };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!newCuration.name) {
       toast({ title: "Error", description: "Please enter a curation name", variant: "destructive" });
       return;
@@ -103,21 +132,45 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
       toast({ title: "Error", description: "Select at least one product", variant: "destructive" });
       return;
     }
+    // const curation: Curation = {
+    //   _id: `CUR${Date.now()}`,
+    //   name: newCuration.name,
+    //   description: newCuration.description,
+    //   product_ids: newCuration.productIds,
+    //   // product_count: newCuration.productIds,
+    //   // product_details: newCuration.pr,
+    //   created_at: new Date().toISOString().split('T')[0],
+    //   coverImage: products.find(p => p.id === newCuration.productIds[0])?.image
+    // };
 
-    const curation: Curation = {
-      id: `CUR${Date.now()}`,
-      name: newCuration.name,
-      description: newCuration.description,
-      productIds: newCuration.productIds,
-      createdAt: new Date().toISOString().split('T')[0],
-      coverImage: products.find(p => p.id === newCuration.productIds[0])?.image
-    };
+    try {
+      const payload = {
+        name: newCuration.name,
+        description: newCuration.description,
+        product_ids: newCuration.productIds,
+      }
+      const res: any = await boutiqueService.CurationsAdd(payload)
+      logger.log('curation add', res);
+      const { success, message, body } = res
+      if (success) {
+        setCurations([...curations, body]);
+        toast({
+          title: `${message}` || "Curation Created!",
+          description: `"${newCuration.name}" with ${newCuration.productIds.length} products.`
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error!",
+        description: error.response.data.error || error.response.data.message
+      });
+    }
 
     if (editingCuration) {
-      saveCurations(curations.map(c => c.id === editingCuration.id ? { ...curation, id: editingCuration.id, createdAt: editingCuration.createdAt } : c));
+      // saveCurations(curations?.map(c => c._id === editingCuration._id ? { ...curation, _id: editingCuration._id, createdAt: editingCuration.created_at } : c));
       toast({ title: "Curation Updated!", description: `"${newCuration.name}" has been updated.` });
     } else {
-      saveCurations([...curations, curation]);
+      // saveCurations([...curations, curation]);
       toast({ title: "Curation Created!", description: `"${newCuration.name}" with ${newCuration.productIds.length} products.` });
     }
 
@@ -129,40 +182,40 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
 
   const handleEdit = (curation: Curation) => {
     setEditingCuration(curation);
-    setNewCuration({ name: curation.name, description: curation.description, productIds: curation.productIds });
+    setNewCuration({ name: curation.name, description: curation.description, productIds: curation.product_ids });
     clearSelectionFilters();
     setShowCreateDialog(true);
   };
 
   const handleDelete = (id: string) => {
-    saveCurations(curations.filter(c => c.id !== id));
+    // saveCurations(curations.filter(c => c._id !== id));
     toast({ title: "Deleted", description: "Curation removed." });
   };
 
   const toggleProduct = (productId: string) => {
     setNewCuration(prev => ({
       ...prev,
-      productIds: prev.productIds.includes(productId) 
+      productIds: prev.productIds.includes(productId)
         ? prev.productIds.filter(id => id !== productId)
         : [...prev.productIds, productId]
     }));
   };
 
   const handleShareCuration = (curation: Curation) => {
-    const text = `Check out my "${curation.name}" collection - ${curation.productIds.length} products!`;
+    const text = `Check out my "${curation.name}" collection - ${curation.product_ids.length} products!`;
     navigator.clipboard.writeText(text);
     toast({ title: "Copied!", description: "Curation link copied to clipboard." });
   };
 
   const generatePDF = (curation: Curation) => {
-    const curationProducts = products.filter(p => curation.productIds.includes(p.id));
+    const curationProducts = products.filter(p => curation.product_ids.includes(p.id));
     const doc = new jsPDF();
-    
+
     // Title
     doc.setFontSize(22);
     doc.setTextColor(139, 69, 19);
     doc.text(curation.name, 105, 20, { align: "center" });
-    
+
     if (curation.description) {
       doc.setFontSize(11);
       doc.setTextColor(100, 100, 100);
@@ -229,7 +282,7 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        {curations.length === 0 ? (
+        {curations?.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed rounded-lg">
             <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
             <p className="font-medium text-muted-foreground">No curations yet</p>
@@ -240,15 +293,16 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {curations.map(curation => {
-              const curationProducts = products.filter(p => curation.productIds.includes(p.id));
+            {curations?.map(curation => {
+              const curationProducts = curation.product_details;
+              // const curationProducts = products.filter(p => curation.product_ids.includes(p.id));
               return (
-                <Card key={curation.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                <Card key={curation._id} className="overflow-hidden hover:shadow-md transition-shadow">
                   <div className="aspect-video relative bg-muted">
-                    {curationProducts.length > 0 ? (
-                      <div className="grid grid-cols-2 h-full">
-                        {curationProducts.slice(0, 4).map((p, i) => (
-                          <img key={i} src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                    {curationProducts?.length > 0 ? (
+                      <div className="grid grid-cols-2">
+                        {curationProducts.slice(0, 4).map((p: any) => (
+                          <img key={p._id} src={p.image || NO_IMAGE} alt={p.product_title} className="w-full h-full object-cover" />
                         ))}
                       </div>
                     ) : (
@@ -257,7 +311,7 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
                       </div>
                     )}
                     <Badge className="absolute top-2 right-2 bg-brand-orange">
-                      {curation.productIds.length} items
+                      {curation?.product_count} items
                     </Badge>
                   </div>
                   <CardContent className="p-3 space-y-2">
@@ -265,7 +319,7 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
                     {curation.description && (
                       <p className="text-xs text-muted-foreground line-clamp-2">{curation.description}</p>
                     )}
-                    <p className="text-xs text-muted-foreground">Created: {curation.createdAt}</p>
+                    <p className="text-xs text-muted-foreground">Created: {dayjs(curation.created_at).format('DD/MM/YYYY')}</p>
                     <div className="flex gap-1 pt-1">
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => setViewingCuration(curation)}>
                         <Eye className="h-3 w-3 mr-1" /> View
@@ -279,18 +333,26 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
                       <Button variant="brand" size="icon" className="h-8 w-8" onClick={() => generatePDF(curation)} title="Download PDF Catalogue">
                         <FileText className="h-3 w-3" />
                       </Button>
-                      <Button variant="outline" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(curation.id)}>
+                      <Button variant="outline" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(curation._id)}>
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </CardContent>
+
                 </Card>
               );
             })}
+
           </div>
         )}
       </CardContent>
-
+      {pagination?.totalPages > 1 && (
+        <Pagination
+          currentPage={pagination?.currentPage}
+          totalPages={pagination?.totalPages}
+          onPageChange={setOrderPage}
+        />
+      )}
       {/* Create/Edit Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -300,16 +362,16 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Curation Name *</Label>
-              <Input 
-                placeholder="e.g. Wedding Collection, Festive Specials" 
-                value={newCuration.name} 
-                onChange={(e) => setNewCuration(prev => ({ ...prev, name: e.target.value }))} 
+              <Input
+                placeholder="e.g. Wedding Collection, Festive Specials"
+                value={newCuration.name}
+                onChange={(e) => setNewCuration(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
               <Label>Description</Label>
-              <Textarea 
-                placeholder="Describe this collection..." 
+              <Textarea
+                placeholder="Describe this collection..."
                 value={newCuration.description}
                 onChange={(e) => setNewCuration(prev => ({ ...prev, description: e.target.value }))}
                 className="min-h-[60px]"
@@ -332,10 +394,10 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search products..." 
-                  value={selectionSearch} 
-                  onChange={(e) => setSelectionSearch(e.target.value)} 
+                <Input
+                  placeholder="Search products..."
+                  value={selectionSearch}
+                  onChange={(e) => setSelectionSearch(e.target.value)}
                   className="pl-9"
                 />
               </div>
@@ -382,8 +444,8 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
                 {filteredSelectionProducts.map(product => (
-                  <div 
-                    key={product.id} 
+                  <div
+                    key={product.id}
                     className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-colors ${newCuration.productIds.includes(product.id) ? 'border-brand-orange bg-brand-orange/5' : 'hover:bg-muted'}`}
                     onClick={() => toggleProduct(product.id)}
                   >
@@ -424,7 +486,7 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
                 <p className="text-sm text-muted-foreground">{viewingCuration.description}</p>
               )}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {products.filter(p => viewingCuration.productIds.includes(p.id)).map(product => (
+                {products.filter(p => viewingCuration.product_ids.includes(p.id)).map(product => (
                   <Card key={product.id} className="overflow-hidden">
                     <img src={product.image} alt={product.name} className="w-full aspect-square object-cover" />
                     <CardContent className="p-2">

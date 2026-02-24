@@ -124,7 +124,19 @@ export const BoutiqueProvider = ({ children }: { children: ReactNode }) => {
     const stored = localStorage.getItem('boutique_logged_in');
     return stored === 'true';
   });
-  const [profile , setProfile] = useState<any | null>(null)
+  const [profile , setProfileState] = useState<any | null>(() => {
+    const stored = localStorage.getItem("boutique_profile")
+    return stored ? JSON.parse(stored) : null;
+  } )
+  const setProfile = (data: any | null) => {
+    setProfileState(data);
+  
+    if (data) {
+      localStorage.setItem("boutique_profile", JSON.stringify(data));
+    } else {
+      localStorage.removeItem("boutique_profile");
+    }
+  };
   const [user, setUser] = useState<BoutiqueUser | null>(() => {
     const stored = localStorage.getItem('boutique_user');
     return stored ? JSON.parse(stored) : null;

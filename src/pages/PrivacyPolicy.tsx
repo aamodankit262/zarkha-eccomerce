@@ -7,7 +7,6 @@ import { useCms } from "@/hooks/useCms";
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
   const { data, loading, error } = useCms("privacy-policy");
-  console.log(data, 'cmss....')
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 

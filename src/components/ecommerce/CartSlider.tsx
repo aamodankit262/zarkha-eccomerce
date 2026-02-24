@@ -14,9 +14,7 @@ export const CartSlider = () => {
     getTotalPrice,
   } = useCart();
 
-  const [currentStep] = useState(0);
-  const steps = ["Cart", "Address & Shipping", "Payment"];
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isOpen) {

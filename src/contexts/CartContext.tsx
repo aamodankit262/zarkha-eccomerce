@@ -35,7 +35,7 @@ interface CartContextType {
 
   openCart: () => void;
   closeCart: () => void;
-fetchCart: (id: string) => Promise<void>;
+  fetchCart: (id: string) => Promise<void>;
   getTotalItems: () => number;
   getTotalPrice: () => number;
   updateQuantity: (
@@ -105,7 +105,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         cart_id: cartId,
         product_id: productId,
         item_id: variantId,
-        size : size,
+        size: size,
         quantity,
       });
 

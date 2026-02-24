@@ -9,35 +9,36 @@ import {
   Phone, Mail, User, Calendar, IndianRupee, FileText
 } from "lucide-react";
 import { useBoutique } from "@/contexts/BoutiqueContext";
+import { logger } from "@/helper/logger";
 
 const BoutiqueOrderDetail = () => {
   const navigate = useNavigate();
   const { orderId } = useParams();
   const { orders, isLoggedIn } = useBoutique();
-
+  
   if (!isLoggedIn) {
     navigate('/boutique/login');
     return null;
   }
-
+logger.log(orders,'orders')
   const order = orders.find(o => o.id === orderId);
 
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4">
-          <CardContent className="p-6 text-center">
-            <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Order Not Found</h2>
-            <p className="text-muted-foreground mb-4">The order you're looking for doesn't exist.</p>
-            <Button onClick={() => navigate('/boutique/dashboard')}>
-              Back to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // if (!order) {
+  //   return (
+  //     <div className="min-h-screen bg-background flex items-center justify-center">
+  //       <Card className="max-w-md w-full mx-4">
+  //         <CardContent className="p-6 text-center">
+  //           <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+  //           <h2 className="text-xl font-semibold mb-2">Order Not Found</h2>
+  //           <p className="text-muted-foreground mb-4">The order you're looking for doesn't exist.</p>
+  //           <Button onClick={() => navigate('/boutique/dashboard')}>
+  //             Back to Dashboard
+  //           </Button>
+  //         </CardContent>
+  //       </Card>
+  //     </div>
+  //   );
+  // }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -57,8 +58,8 @@ const BoutiqueOrderDetail = () => {
     }
   };
 
-  const totalCost = order.buyingPrice * order.quantity;
-  const totalRevenue = order.sellingPrice * order.quantity;
+  const totalCost = order?.buyingPrice * order?.quantity;
+  const totalRevenue = order?.sellingPrice * order?.quantity;
   const totalProfit = totalRevenue - totalCost;
 
   return (
@@ -71,7 +72,7 @@ const BoutiqueOrderDetail = () => {
           </Button>
           <div>
             <h1 className="text-lg md:text-xl font-bold text-warm-brown">Order Details</h1>
-            <p className="text-sm text-muted-foreground">{order.id}</p>
+            <p className="text-sm text-muted-foreground">{order?.id ?? "0"}</p>
           </div>
         </div>
       </header>
@@ -82,19 +83,19 @@ const BoutiqueOrderDetail = () => {
           <CardContent className="p-4 md:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                {getStatusIcon(order.status)}
+                {getStatusIcon(order?.status)}
                 <div>
-                  <p className="font-semibold text-lg capitalize">{order.status}</p>
+                  <p className="font-semibold text-lg capitalize">{order?.status}</p>
                   <p className="text-sm text-muted-foreground">
-                    {order.status === 'delivered' ? 'Order delivered successfully' :
-                     order.status === 'shipped' ? 'Order is on the way' :
-                     order.status === 'confirmed' ? 'Order confirmed by admin' :
+                    {order?.status === 'delivered' ? 'Order delivered successfully' :
+                     order?.status === 'shipped' ? 'Order is on the way' :
+                     order?.status === 'confirmed' ? 'Order confirmed by admin' :
                      'Awaiting confirmation'}
                   </p>
                 </div>
               </div>
-              <Badge className={getStatusColor(order.status)}>
-                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+              <Badge className={getStatusColor(order?.status)}>
+                {order?.status.charAt(0).toUpperCase() + order?.status.slice(1)}
               </Badge>
             </div>
           </CardContent>
@@ -113,33 +114,33 @@ const BoutiqueOrderDetail = () => {
                 <div className="h-3 w-3 rounded-full bg-green-500" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">Order Placed</p>
-                  <p className="text-xs text-muted-foreground">{order.orderDate}</p>
+                  <p className="text-xs text-muted-foreground">{order?.orderDate}</p>
                 </div>
               </div>
-              {order.status !== 'pending' && (
+              {order?.status !== 'pending' && (
                 <div className="flex items-center gap-3">
                   <div className="h-3 w-3 rounded-full bg-purple-500" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">Order Confirmed</p>
-                    <p className="text-xs text-muted-foreground">{order.orderDate}</p>
+                    <p className="text-xs text-muted-foreground">{order?.orderDate}</p>
                   </div>
                 </div>
               )}
-              {(order.status === 'shipped' || order.status === 'delivered') && (
+              {(order?.status === 'shipped' || order?.status === 'delivered') && (
                 <div className="flex items-center gap-3">
                   <div className="h-3 w-3 rounded-full bg-blue-500" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">Order Shipped</p>
-                    <p className="text-xs text-muted-foreground">{order.orderDate}</p>
+                    <p className="text-xs text-muted-foreground">{order?.orderDate}</p>
                   </div>
                 </div>
               )}
-              {order.status === 'delivered' && (
+              {order?.status === 'delivered' && (
                 <div className="flex items-center gap-3">
                   <div className="h-3 w-3 rounded-full bg-green-500" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">Order Delivered</p>
-                    <p className="text-xs text-muted-foreground">{order.orderDate}</p>
+                    <p className="text-xs text-muted-foreground">{order?.orderDate}</p>
                   </div>
                 </div>
               )}
@@ -160,23 +161,23 @@ const BoutiqueOrderDetail = () => {
                 <Package className="h-8 w-8 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-warm-brown mb-2">{order.productName}</h3>
+                <h3 className="font-semibold text-warm-brown mb-2">{order?.productName}</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-muted-foreground">Quantity</p>
-                    <p className="font-medium">{order.quantity} pcs</p>
+                    <p className="font-medium">{order?.quantity} pcs</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Buying Price</p>
-                    <p className="font-medium">₹{order.buyingPrice}</p>
+                    <p className="font-medium">₹{order?.buyingPrice}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Selling Price</p>
-                    <p className="font-medium text-brand-orange">₹{order.sellingPrice}</p>
+                    <p className="font-medium text-brand-orange">₹{order?.sellingPrice}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Profit/Piece</p>
-                    <p className="font-medium text-green-600">₹{order.sellingPrice - order.buyingPrice}</p>
+                    <p className="font-medium text-green-600">₹{order?.sellingPrice - order?.buyingPrice}</p>
                   </div>
                 </div>
               </div>
@@ -185,7 +186,7 @@ const BoutiqueOrderDetail = () => {
         </Card>
 
         {/* Customer Information */}
-        {order.customerInfo && (
+        {order?.customerInfo && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -197,15 +198,15 @@ const BoutiqueOrderDetail = () => {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <span>{order.customerInfo.name}</span>
+                    <span>{order?.customerInfo.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{order.customerInfo.phone}</span>
+                    <span>{order?.customerInfo.phone}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span>{order.customerInfo.email}</span>
+                    <span>{order?.customerInfo.email}</span>
                   </div>
                 </div>
               </div>
@@ -214,7 +215,7 @@ const BoutiqueOrderDetail = () => {
         )}
 
         {/* Shipping & Billing Address */}
-        {order.shippingAddress && (
+        {order?.shippingAddress && (
           <div className="grid md:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="pb-3">
@@ -226,16 +227,16 @@ const BoutiqueOrderDetail = () => {
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
                   <div className="text-sm">
-                    <p className="font-medium">{order.shippingAddress.name}</p>
-                    <p>{order.shippingAddress.address}</p>
-                    <p>{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}</p>
-                    <p className="mt-1">Phone: {order.shippingAddress.phone}</p>
+                    <p className="font-medium">{order?.shippingAddress.name}</p>
+                    <p>{order?.shippingAddress.address}</p>
+                    <p>{order?.shippingAddress.city}, {order?.shippingAddress.state} - {order?.shippingAddress.pincode}</p>
+                    <p className="mt-1">Phone: {order?.shippingAddress.phone}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {order.billingAddress && (
+            {order?.billingAddress && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
@@ -246,10 +247,10 @@ const BoutiqueOrderDetail = () => {
                   <div className="flex items-start gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
                     <div className="text-sm">
-                      <p className="font-medium">{order.billingAddress.name}</p>
-                      <p>{order.billingAddress.address}</p>
-                      <p>{order.billingAddress.city}, {order.billingAddress.state} - {order.billingAddress.pincode}</p>
-                      <p className="mt-1">Phone: {order.billingAddress.phone}</p>
+                      <p className="font-medium">{order?.billingAddress.name}</p>
+                      <p>{order?.billingAddress.address}</p>
+                      <p>{order?.billingAddress.city}, {order?.billingAddress.state} - {order?.billingAddress.pincode}</p>
+                      <p className="mt-1">Phone: {order?.billingAddress.phone}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -268,11 +269,11 @@ const BoutiqueOrderDetail = () => {
           <CardContent className="p-4 md:p-6 pt-0">
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Buying Price ({order.quantity} x ₹{order.buyingPrice})</span>
+                <span className="text-muted-foreground">Buying Price ({order?.quantity} x ₹{order?.buyingPrice})</span>
                 <span>₹{totalCost.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Selling Revenue ({order.quantity} x ₹{order.sellingPrice})</span>
+                <span className="text-muted-foreground">Selling Revenue ({order?.quantity} x ₹{order?.sellingPrice})</span>
                 <span>₹{totalRevenue.toLocaleString()}</span>
               </div>
               <Separator />
@@ -299,11 +300,11 @@ const BoutiqueOrderDetail = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-3 bg-muted rounded-lg text-center">
                 <p className="text-xs text-muted-foreground">Ordered Qty</p>
-                <p className="text-lg font-bold">{order.quantity} pcs</p>
+                <p className="text-lg font-bold">{order?.quantity} pcs</p>
               </div>
               <div className="p-3 bg-muted rounded-lg text-center">
                 <p className="text-xs text-muted-foreground">Unit Cost</p>
-                <p className="text-lg font-bold">₹{order.buyingPrice}</p>
+                <p className="text-lg font-bold">₹{order?.buyingPrice}</p>
               </div>
               <div className="p-3 bg-muted rounded-lg text-center">
                 <p className="text-xs text-muted-foreground">Total Investment</p>
@@ -311,15 +312,15 @@ const BoutiqueOrderDetail = () => {
               </div>
               <div className="p-3 bg-muted rounded-lg text-center">
                 <p className="text-xs text-muted-foreground">Stock Status</p>
-                <p className={`text-lg font-bold ${order.status === 'delivered' ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {order.status === 'delivered' ? 'In Stock' : 'In Transit'}
+                <p className={`text-lg font-bold ${order?.status === 'delivered' ? 'text-green-600' : 'text-yellow-600'}`}>
+                  {order?.status === 'delivered' ? 'In Stock' : 'In Transit'}
                 </p>
               </div>
             </div>
-            {order.isBulkOrder && (
+            {order?.isBulkOrder && (
               <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-700 font-medium">Bulk Order</p>
-                <p className="text-xs text-blue-600">This is a bulk stock purchase of {order.quantity} units for inventory.</p>
+                <p className="text-xs text-blue-600">This is a bulk stock purchase of {order?.quantity} units for inventory.</p>
               </div>
             )}
           </CardContent>

@@ -1,5 +1,6 @@
 interface Product {
   _id: string;
+  item_ids: string[];
   product_id: string;
   product_title: string;
   short_description: string;
@@ -46,6 +47,7 @@ export  const boutiqueProducts = (products: any[]) => products?.map((p:Product) 
     // const priceInfo = getProductPrice(p.product_id);
     return {
       id: p._id,
+      itemCodeId: p.item_ids?.[0],
       product_id: p.product_id,
       name: p.product_title,
       image: p.image,

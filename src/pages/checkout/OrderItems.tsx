@@ -1,5 +1,5 @@
-import { Edit } from "lucide-react";
-import { Button } from "@/components/ui/button";
+// import { Edit } from "lucide-react";
+// import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { NO_IMAGE } from "@/api/endpoints";
 
@@ -25,7 +25,7 @@ interface OrderItemsProps {
 const OrderItems = ({
   items,
   subtotal,
-  onEditCart,
+  // onEditCart,
 }: OrderItemsProps) => {
   const navigate = useNavigate();
   // console.log(items, 'items')

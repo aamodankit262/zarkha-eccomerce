@@ -64,11 +64,6 @@ export const paymentService = {
     const res = await apiClient.post<CreatePaymentOrderResponse>(
       API_ENDPOINTS.PAYMENT.CREATE_ORDER,
       params,
-      // {
-      //   headers: {
-      //     "Content-Type": "application/x-www-form-urlencoded",
-      //   },
-      // }
     );
 
     return res;

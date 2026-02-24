@@ -4,6 +4,7 @@ import { persist, createJSONStorage, devtools } from "zustand/middleware";
 import { UserInterface } from "@/types/authInterface";
 import { authService } from "@/services/authService";
 import { toast } from "sonner";
+import { logger } from "@/helper/logger";
 
 interface AuthState {
   isLogin: boolean;
@@ -64,22 +65,23 @@ export const useAuthStore = create<AuthState>()(
 
           try {
             const res = await authService.verifyOtp({ phone: mobile, otp });
-
+            // logger.log("OTP verification response logger", res);
             if (otp.length !== 4) {
               throw new Error("Invalid OTP");
             }
 
             set({
-              token: res.token ?? "dummy_token",
+              token: res.token ?? "N/A",
               isLogin: true,
-              userDetails : res?.user, 
+              userDetails: res?.user,
               otpSent: false,
             });
             toast.success(res?.message || "OTP verified successfully!");
           } catch (err: any) {
             set({
-              error: err?.message || "OTP verification failed",
+              error: err?.response.data.message || "OTP verification failed",
             });
+            // logger.error(err?.response.data.message, 'logger error')
             toast.error(err?.response?.data?.message || err?.message || "OTP verification failed");
             throw err;
           } finally {

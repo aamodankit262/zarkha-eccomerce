@@ -403,7 +403,6 @@ const Dashboard = () => {
         limit,
         search: searchQuery,
       });
-      console.log(res, "order list response...");
       const data: any = res;
       setOrders(data.body || []);
       setTotalPages(data.pagination?.totalPages ?? 1);
@@ -504,7 +503,6 @@ const Dashboard = () => {
 
 
   const handleTrackOrder = (orderId) => {
-    console.log(orderId, "orderId...");
     setSelectedOrderId(orderId);
     setCurrentView("track-order");
   };

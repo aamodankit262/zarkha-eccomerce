@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 interface OrderSuccessProps {
   isOpen: boolean;
   onClose: () => void;
+  orderId?:any
 }
 
 const OrderSuccess: React.FC<OrderSuccessProps> = ({ isOpen, onClose }) => {

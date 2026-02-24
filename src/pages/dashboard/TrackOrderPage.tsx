@@ -1,7 +1,6 @@
 import { NO_IMAGE } from "@/api/endpoints";
 import HeaderOtherPages from "@/components/common/HeaderOtherPages";
 import { useApi } from "@/hooks/useApi";
-import { formatDate } from "@/lib/utils";
 import { orderService } from "@/services/orderService";
 import { useAuthStore } from "@/store/authStore";
 import { ArrowLeft, Download } from "lucide-react";
@@ -46,7 +45,6 @@ const TrackOrderPage = ({ onBack, orderId }) => {
     setCurrentView("rate-product");
 
   };
-  console.log("Order Details:", orderResp);
   const orderDetails = orderResp?.body || {};
   const getShippingAddress = orderDetails.shipping_address || {};
   const getItems = orderDetails.items || [];
