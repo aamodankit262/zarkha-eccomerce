@@ -102,7 +102,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       };
 
       const res = await productService.getAll(payload);
-      console.log("Fetched Products:", res);
+      // console.log("Fetched Products:", res);
       const newProducts = res?.body || [];
       const totalPages = res?.total_pages || 1;
       set({

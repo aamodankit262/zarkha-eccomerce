@@ -12,14 +12,14 @@ import dayjs from "dayjs";
 const AffiliateCoupons = () => {
   const { affiliate } = useAffiliate();
   const { data: couponListData, request: getCouponList } = useApi(affiliateService.getCouponList);
-  console.log(affiliate?.affiliate_id, "Affiliate Data in Coupons Component");
+  // console.log(affiliate?.affiliate_id, "Affiliate Data in Coupons Component");
   useEffect(() => {
     getCouponList(affiliate?.affiliate_id);
   }, [])
   const coupons = couponListData?.body || [];
   const summary = couponListData?.summary ?? {};
 
-  console.log("Affiliate Coupons Data:", coupons);
+  // console.log("Affiliate Coupons Data:", coupons);
   // const coupons = [
   //   {
   //       id: 1,

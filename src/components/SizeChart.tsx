@@ -28,7 +28,7 @@ const SizeChartDialog = ({
   sizeChart,
   note,
 }: SizeChartDialogProps) => {
-  console.log("SizeChartDialog rendered with sizeChart:", sizeChart);
+  // console.log("SizeChartDialog rendered with sizeChart:", sizeChart);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">

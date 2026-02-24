@@ -51,7 +51,7 @@ const ProductListingPage = () => {
     filters,setFilters,page,setPage,fetchProducts,totalPages,productsList,filterByName,
     loading,
   } = useProductStore();
-  console.log('filters:', filters.sort, sortBy); 
+  // console.log('filters:', filters.sort, sortBy); 
   const pageTitle = useMemo(() => {
     if (loading) return "";
 

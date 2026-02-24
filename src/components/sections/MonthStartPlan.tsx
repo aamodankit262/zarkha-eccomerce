@@ -22,7 +22,7 @@ const categoryData = [
 
 const CategoryCard = ({ title, subtitle, image, link }) => {
   const navigate = useNavigate();
-  console.log(image, '.....')
+  // console.log(image, '.....')
   return (
     <div
       onClick={() => navigate(link)}

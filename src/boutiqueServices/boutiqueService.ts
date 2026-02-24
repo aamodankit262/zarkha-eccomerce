@@ -152,27 +152,148 @@ export interface earningListResponse {
 export interface CouponListParams {
   affiliate_id?: string;
 }
+export interface AddToCartPayload {
+  product_id: string;
+  item_id: string;
+  size?: string;
+  quantity: number;
+};
+export interface AddToCartResponse {
+  success: boolean;
+  message: string;
+  body: any | null,
+}
+export interface GetCartResponse {
+  success: boolean;
+  message: string;
+  body: {
+    items: any[],
+    total_price: number,
+  },
+}
+export interface CreatePaymentOrderPayload {
+  amount: number;      // in rupees
+  cart_id?: string;
+}
 
-const buildQuery = (params: Record<string, any>) =>
-  new URLSearchParams(
-    Object.entries(params).reduce((acc, [k, v]) => {
-      if (v !== undefined && v !== null) acc[k] = String(v);
-      return acc;
-    }, {} as Record<string, string>)
-  ).toString();
+// export interface CreatePaymentOrderPayload {
+//   items: {
+//     product_id: string;
+//     item_id: string;
+//     quantity: number;
+//     selling_price: number;
+//   }[];
+
+//   customer: {
+//     name: string;
+//     phone: string;
+//     email: string;
+//   };
+
+//   shipping_address: {
+//     first_name: string;
+//     last_name: string;
+//     address: string;
+//     city: string;
+//     state: string;
+//     pin_code: string;
+//     country: string;
+//     phone: string;
+//   };
+
+//   customer_notes: string;
+// }
+
+export interface CreatePaymentOrderResponse {
+  success: boolean;
+  message: string;
+  body: {
+    boutique_order_id: string;
+    order_id: string;
+    cart_id: string;
+    total_cost: number;
+    total_amount: number;
+    expected_profit: number;
+    razorpay_order_id: string;
+    razorpay_amount: number;
+    razorpay_currency: string;
+    key_id: string;
+  };
+}
+
+/* ------------------ Verify Payment ------------------ */
+export interface VerifyPaymentPayload {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+  items: {
+    product_id: string;
+    item_id: string;
+    quantity: number;
+    selling_price: number;
+  }[];
+
+  customer: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+
+  shipping_address: {
+    first_name: string;
+    last_name: string;
+    address: string;
+    city: string;
+    state: string;
+    pin_code: string;
+    country: string;
+    phone: string;
+  };
+
+  customer_notes: string;
+}
+
+export interface VerifyPaymentResponse {
+  success: boolean;
+  message: string;
+  body?: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    verified: boolean
+    order: {
+      order_id: string;
+      total_amount: number;
+      items_count: number;
+      payment_method: string;
+      order_status: string;
+      _id: string;
+      ordered_at: string;
+    };
+  };
+}
+export interface OrderListPayload {
+  page?: number;
+  limit?: number;
+  search?: string;
+  order_status?: string;
+  order_type?: string;
+};
+export interface CurationListPayload {
+  page?: number;
+  limit?: number;
+  search?: string;
+  order_status?: string;
+  order_type?: string;
+};
+export interface CurationPayload {
+  name?: string;
+  description: string;
+  product_ids: string[];
+};
 
 export const boutiqueService = {
-  /* ---------- Dashboard Stats ---------- */
-  dashboardStats: async () => {
-    return apiClient.post<BoutiqueDashboardStatsResponse>(
-      API_ENDPOINTS.BOUTIQUE.DASHBOARD_STATS
-    );
-  },
-  productCategoryList: async () => {
-    return apiClient.post<BoutiqueProductCategoryResponse>(
-      API_ENDPOINTS.BOUTIQUE.PRODUCT_CATEGORY_LIST
-    );
-  },
+
   productList: async (params: BoutiqueProductListParams) => {
     const payload = {
       page: params.page ?? 1,
@@ -202,27 +323,81 @@ export const boutiqueService = {
   updateProfile: async (data: updateProfilePayload) => {
     return apiClient.put(API_ENDPOINTS.BOUTIQUE.UPDATE_PROFILE, data)
   },
-  getSalesList: async (params?: SalesListParams) => {
-    const query = buildQuery({
-      status: params?.status ?? "completed",
-      period: params?.period ?? "this_month",
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 20,
-    })
-    return apiClient.get(`${API_ENDPOINTS.BOUTIQUE.SALES_LIST}?${query}`)
-  },
-  getEarningsList: async () => {
-    return apiClient.get(`${API_ENDPOINTS.BOUTIQUE.EARNINGS_LIST}`);
-  },
-
-  getCouponList: async (id?: string) => {
-    return apiClient.get(`${API_ENDPOINTS.BOUTIQUE.COUPON_LIST}?affiliate_id=${id}`);
-  },
   getSetPrice: async (productId: string, price: number) => {
     const payload = {
       product_id: productId,
       selling_price: price
     }
     return apiClient.post(API_ENDPOINTS.BOUTIQUE.SET_PRICE, payload);
-  }
+  },
+  addToCart: async (payload: AddToCartPayload) => {
+    return apiClient.post<AddToCartResponse>(API_ENDPOINTS.BOUTIQUE.ADD_TO_CART, payload);
+  },
+  getCart: async (id?: string) => {
+    return apiClient.post<GetCartResponse>(`${API_ENDPOINTS.BOUTIQUE.GET_CART}`);
+  },
+  /** CREATE RAZORPAY ORDER */
+  createPaymentOrder: async (
+    payload: CreatePaymentOrderPayload
+  ) => {
+    const res = await apiClient.post<CreatePaymentOrderResponse>(
+      API_ENDPOINTS.BOUTIQUE.CREATE_ORDER,
+      payload,
+    );
+
+    return res;
+  },
+
+  /** VERIFY RAZORPAY PAYMENT */
+  verifyPayment: async (
+    payload: VerifyPaymentPayload
+  ) => {
+
+    const res = await apiClient.post<VerifyPaymentResponse>(
+      API_ENDPOINTS.BOUTIQUE.VARIFY_ORDER,
+      payload,
+    );
+
+    return res;
+  },
+  /** ORDER LIST */
+  getOrderList: async (payload: OrderListPayload) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.BOUTIQUE.ORDER_LIST,
+      payload
+    );
+
+    return res;
+  },
+
+  /** VIEW ORDER DETAILS */
+  getOrderDetails: async (orderId: string) => {
+    const formData = new FormData();
+    formData.append("order_id", orderId);
+
+    const res = await apiClient.post(
+      API_ENDPOINTS.ORDERS.VIEW,
+      formData
+    );
+
+    return res;
+  },
+
+  // CURATIONS SERVICES
+  getCurationsList: async (payload: CurationListPayload) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.BOUTIQUE.CURATIONS_LIST,
+      payload
+    );
+
+    return res;
+  },
+  CurationsAdd: async (payload: CurationPayload) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.BOUTIQUE.CURATION_ADD,
+      payload
+    );
+
+    return res;
+  },
 };

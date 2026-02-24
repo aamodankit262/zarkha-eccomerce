@@ -50,7 +50,6 @@ const AffiliateDashboard = () => {
       fetchDashboard();
     }
   }, [isLoggedIn, navigate]);
-  console.log(dashBoardStats, 'dashboard')
   const data = dashBoardStats?.body
   // useEffect(() => {
   //   fetchDashboard();

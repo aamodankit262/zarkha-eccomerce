@@ -31,6 +31,7 @@ import { BoutiqueProvider } from "./contexts/BoutiqueContext";
 import { BoutiqueCartProvider } from "./contexts/BoutiqueCartContext";
 import PartnerLanding from "./pages/partner/PartnerLanding";
 import PartnerLogin from "./pages/partner/PartnerLogin";
+import BoutiqueCheckoutPage from "./pages/boutique/CheckoutPage";
 
 const Index = lazy(() => import("./pages/Index"));
 const ProductListingPage = lazy(() => import("./components/ecommerce/ProductListing"));
@@ -90,6 +91,7 @@ const AppContent = () => {
           <Route path="/boutique" element={<PartnerLanding />} />
           <Route path="/boutique/login" element={<PartnerLogin />} />
           <Route path="/boutique/dashboard" element={<BoutiqueDashboard />} />
+          <Route path="/boutique/checkout" element={<BoutiqueCheckoutPage />} />
           <Route path="/boutique/order/:orderId" element={<BoutiqueOrderDetail />} />
           <Route path="/boutique/payment" element={<BoutiquePayment />} />
           <Route path="/boutique/directory" element={<BoutiqueDirectory />} />

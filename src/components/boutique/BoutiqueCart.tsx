@@ -6,12 +6,18 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { 
+import {
   ShoppingCart, Plus, Minus, Trash2, X, Package, MapPin, User
 } from "lucide-react";
-import { useBoutiqueCart } from "@/contexts/BoutiqueCartContext";
+import { BoutiqueCartItem, useBoutiqueCart } from "@/contexts/BoutiqueCartContext";
 import { useBoutique } from "@/contexts/BoutiqueContext";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
+import { NO_IMAGE } from "@/api/endpoints";
+import { boutiqueProducts } from "@/data/product";
+import { useNavigate } from "react-router-dom";
+import { boutiqueService } from "@/boutiqueServices/boutiqueService";
+import { toast } from "sonner";
+import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
 
 interface BoutiqueCartProps {
   isOpen: boolean;
@@ -19,10 +25,11 @@ interface BoutiqueCartProps {
 }
 
 const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const { placeBulkOrder } = useBoutique();
   const {
     items,
+    fetchCart,
     customerInfo,
     shippingAddress,
     billingAddress,
@@ -38,46 +45,209 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
     getTotalItems,
     getTotalCost,
     getExpectedRevenue,
-    getExpectedProfit
+    getExpectedProfit,
+    totalPrice,
   } = useBoutiqueCart();
+  // const navigate = useNavigate();
+  const { Razorpay } = useRazorpay();
 
-  const handlePlaceOrder = () => {
-    if (items.length === 0) {
-      toast({ title: "Error", description: "Cart is empty", variant: "destructive" });
+  // const handlePlaceOrder = () => {
+  //   if (items.length === 0) {
+  //     toast({ title: "Error", description: "Cart is empty", variant: "destructive" });
+  //     return;
+  //   }
+
+  //   if (items.some(p => !p.sellingPrice)) {
+  //     toast({ title: "Error", description: "Please set selling price for all products", variant: "destructive" });
+  //     return;
+  //   }
+  //   if (!customerInfo.name || !customerInfo.phone) {
+  //     toast({ title: "Error", description: "Please fill customer information", variant: "destructive" });
+  //     return;
+  //   }
+  //   if (!shippingAddress.address || !shippingAddress.city || !shippingAddress.pincode) {
+  //     toast({ title: "Error", description: "Please fill shipping address", variant: "destructive" });
+  //     return;
+  //   }
+
+  //   const orderItems = items?.map(p => ({
+  //     productId: p.id,
+  //     productName: p.name,
+  //     productImage: p.image,
+  //     quantity: p.quantity,
+  //     buyingPrice: p.adminPrice,
+  //     sellingPrice: p.sellingPrice,
+  //     customerInfo,
+  //     shippingAddress,
+  //     billingAddress: sameAsShipping ? shippingAddress : billingAddress,
+  //     isBulkOrder: true
+  //   }));
+
+  //   placeBulkOrder(orderItems);
+  //   toast({ title: "Order Placed!", description: `${items.length} products ordered successfully.` });
+  //   clearCart();
+  //   onClose();
+  //   navigate('/boutique/checkout')
+
+  // };
+  const cartItems = items?.map((i: any) => {
+    return {
+      id: i.product_id,
+      itemCodeId: i.item_id,
+      itemCode: i.item_code,
+      name: i.product_title,
+      image: i.image,
+      colors: i?.color, // FIXED
+      size: i?.size, // FIXED
+      quantity: i?.quantity, // FIXED
+      adminPrice: i?.price, // FIXED
+      sellingPrice: i?.sellingPrice
+
+    }
+  })
+  const handlePlaceOrder = async () => {
+    if (!items.length) {
+      toast.error("Cart is empty");
       return;
     }
-    if (items.some(p => !p.sellingPrice)) {
-      toast({ title: "Error", description: "Please set selling price for all products", variant: "destructive" });
-      return;
-    }
+
     if (!customerInfo.name || !customerInfo.phone) {
-      toast({ title: "Error", description: "Please fill customer information", variant: "destructive" });
+      toast.error("Customer details required");
       return;
     }
+
     if (!shippingAddress.address || !shippingAddress.city || !shippingAddress.pincode) {
-      toast({ title: "Error", description: "Please fill shipping address", variant: "destructive" });
+      toast.error("Shipping address required");
       return;
     }
 
-    const orderItems = items.map(p => ({
-      productId: p.id,
-      productName: p.name,
-      productImage: p.image,
-      quantity: p.quantity,
-      buyingPrice: p.adminPrice,
-      sellingPrice: p.sellingPrice,
-      customerInfo,
-      shippingAddress,
-      billingAddress: sameAsShipping ? shippingAddress : billingAddress,
-      isBulkOrder: true
-    }));
+    try {
+      const payload = {
+        amount: totalPrice,
+        //   cart_id: cartId,
 
-    placeBulkOrder(orderItems);
-    toast({ title: "Order Placed!", description: `${items.length} products ordered successfully.` });
-    clearCart();
-    onClose();
+      };
+      
+      const res = await boutiqueService.createPaymentOrder(payload);
+
+      if (!res.success) {
+        toast.error(res.message);
+        return;
+      }
+
+      const { razorpay_order_id, key_id, razorpay_amount, razorpay_currency } = res.body;
+      const options: RazorpayOrderOptions = {
+        key: key_id,
+        amount: razorpay_amount,
+        currency: "INR",
+        name: "Zarkha",
+        description: "Boutique Order Payment",
+        order_id : razorpay_order_id,
+
+        handler: async (response) => {
+          try {
+            const payload = {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              items: cartItems?.map((item) => ({
+                product_id: item.id,
+                item_id: item.itemCodeId,
+                quantity: item.quantity,
+                selling_price: item.sellingPrice ?? 0,
+              })),
+              // total_amount: totalPrice,
+              customer: {
+                name: customerInfo.name,
+                phone: customerInfo.phone,
+                email: customerInfo.email,
+              },
+
+              shipping_address: {
+                first_name: shippingAddress.name?.split(" ")[0] || "",
+                last_name: shippingAddress.name?.split(" ")[1] || shippingAddress.name?.split(" ")[0],
+                address: shippingAddress.address,
+                city: shippingAddress.city,
+                state: shippingAddress.state,
+                pin_code: shippingAddress.pincode,
+                country: "India",
+                phone: shippingAddress.phone,
+              },
+
+              customer_notes: "Bulk boutique order",
+            };
+
+            const verifyRes = await boutiqueService.verifyPayment(payload);
+
+            if (verifyRes?.success) {
+              const { order } = verifyRes.body;
+
+              // setOrderDetail(order);
+              // setOrderId(order?.order_id);
+              // placeBulkOrder(order)
+              toast.success(verifyRes.message || "Payment successful");
+              // setShowSuccessModal(true);
+
+              await fetchCart(); 
+            } else {
+              toast.error(verifyRes.message || "Payment verification failed");
+            }
+          } catch (err) {
+            toast.error("Payment verification error");
+          }
+        },
+
+        prefill: {
+          name: customerInfo.name,
+          contact: customerInfo.phone,
+        },
+
+        theme: { color: "#ed8936" },
+
+        modal: {
+          ondismiss: () => toast.info("Payment cancelled"),
+        },
+      };
+
+      // const options : RazorpayOrderOptions = new window.Razorpay({
+      //   key: key_id,
+      //   amount,
+      //   currency: "INR",
+      //   name: "Zarkha",
+      //   description: "Boutique Order Payment",
+      //   order_id,
+
+      //   handler: async (response: any) => {
+      //     const verifyRes = await boutiqueService.verifyPayment({
+      //       razorpay_order_id: response.razorpay_order_id,
+      //       razorpay_payment_id: response.razorpay_payment_id,
+      //       razorpay_signature: response.razorpay_signature,
+      //     });
+
+      //     if (verifyRes.success) {
+      //       toast.success("Payment successful");
+      //       clearCart();
+      //       onClose();
+      //     } else {
+      //       toast.error("Payment verification failed");
+      //     }
+      //   },
+
+      //   prefill: {
+      //     name: customerInfo.name,
+      //     contact: customerInfo.phone,
+      //   },
+
+      //   theme: { color: "#ed8936" },
+      // });
+      const razorpay = new Razorpay(options);
+
+      razorpay.open();
+
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Payment failed");
+    }
   };
-
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:max-w-xl p-0">
@@ -104,10 +274,10 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                     <Trash2 className="h-4 w-4 mr-1" /> Clear All
                   </Button>
                 </div>
-                {items.map((item) => (
+                {cartItems?.map((item) => (
                   <Card key={item.id} className="p-3">
                     <div className="flex gap-3">
-                      <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
+                      <img src={item?.image || NO_IMAGE} alt={item.name} className="w-16 h-16 object-cover rounded" />
                       <div className="flex-1 space-y-2">
                         <div className="flex items-start justify-between">
                           <div>
@@ -119,16 +289,16 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                           </Button>
                         </div>
                         <div className="flex gap-2 items-center">
-                          <Input 
+                          {/* <Input 
                             type="number"
                             placeholder="Selling ₹"
                             value={item.sellingPrice || ""}
                             onChange={(e) => updateSellingPrice(item.id, parseFloat(e.target.value) || 0)}
                             className="h-8 w-24 text-sm"
-                          />
+                          /> */}
                           <div className="flex items-center gap-1">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="icon"
                               className="h-7 w-7"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -136,8 +306,8 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                               <Minus className="h-3 w-3" />
                             </Button>
                             <span className="w-6 text-center text-sm">{item.quantity}</span>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="icon"
                               className="h-7 w-7"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
@@ -146,11 +316,11 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                             </Button>
                           </div>
                         </div>
-                        {item.sellingPrice > 0 && (
+                        {/* {item.sellingPrice > 0 && (
                           <p className="text-xs text-green-600">
                             Profit: ₹{((item.sellingPrice - item.adminPrice) * item.quantity).toLocaleString()}
                           </p>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </Card>
@@ -168,21 +338,21 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                     <User className="h-4 w-4" /> Customer Information
                   </Label>
                   <div className="grid grid-cols-2 gap-3">
-                    <Input 
+                    <Input
                       placeholder="Customer Name *"
                       value={customerInfo.name}
-                      onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                      onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       placeholder="Phone *"
                       value={customerInfo.phone}
-                      onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                      onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       type="email"
                       placeholder="Email"
                       value={customerInfo.email}
-                      onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                      onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })}
                       className="col-span-2"
                     />
                   </div>
@@ -196,36 +366,36 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                     <MapPin className="h-4 w-4" /> Shipping Address
                   </Label>
                   <div className="grid grid-cols-2 gap-3">
-                    <Input 
+                    <Input
                       placeholder="Recipient Name *"
                       value={shippingAddress.name}
-                      onChange={(e) => setShippingAddress({...shippingAddress, name: e.target.value})}
+                      onChange={(e) => setShippingAddress({ ...shippingAddress, name: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       placeholder="Phone *"
                       value={shippingAddress.phone}
-                      onChange={(e) => setShippingAddress({...shippingAddress, phone: e.target.value})}
+                      onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       placeholder="Address *"
                       value={shippingAddress.address}
-                      onChange={(e) => setShippingAddress({...shippingAddress, address: e.target.value})}
+                      onChange={(e) => setShippingAddress({ ...shippingAddress, address: e.target.value })}
                       className="col-span-2"
                     />
-                    <Input 
+                    <Input
                       placeholder="City *"
                       value={shippingAddress.city}
-                      onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
+                      onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       placeholder="State *"
                       value={shippingAddress.state}
-                      onChange={(e) => setShippingAddress({...shippingAddress, state: e.target.value})}
+                      onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
                     />
-                    <Input 
+                    <Input
                       placeholder="Pincode *"
                       value={shippingAddress.pincode}
-                      onChange={(e) => setShippingAddress({...shippingAddress, pincode: e.target.value})}
+                      onChange={(e) => setShippingAddress({ ...shippingAddress, pincode: e.target.value })}
                     />
                   </div>
                 </div>
@@ -235,46 +405,46 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                 {/* Billing Address */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Checkbox 
+                    <Checkbox
                       id="sameAsShippingCart"
                       checked={sameAsShipping}
                       onCheckedChange={(checked) => setSameAsShipping(checked as boolean)}
                     />
                     <Label htmlFor="sameAsShippingCart" className="text-sm">Billing same as shipping</Label>
                   </div>
-                  
+
                   {!sameAsShipping && (
                     <div className="grid grid-cols-2 gap-3">
-                      <Input 
+                      <Input
                         placeholder="Name *"
                         value={billingAddress.name}
-                        onChange={(e) => setBillingAddress({...billingAddress, name: e.target.value})}
+                        onChange={(e) => setBillingAddress({ ...billingAddress, name: e.target.value })}
                       />
-                      <Input 
+                      <Input
                         placeholder="Phone *"
                         value={billingAddress.phone}
-                        onChange={(e) => setBillingAddress({...billingAddress, phone: e.target.value})}
+                        onChange={(e) => setBillingAddress({ ...billingAddress, phone: e.target.value })}
                       />
-                      <Input 
+                      <Input
                         placeholder="Address *"
                         value={billingAddress.address}
-                        onChange={(e) => setBillingAddress({...billingAddress, address: e.target.value})}
+                        onChange={(e) => setBillingAddress({ ...billingAddress, address: e.target.value })}
                         className="col-span-2"
                       />
-                      <Input 
+                      <Input
                         placeholder="City *"
                         value={billingAddress.city}
-                        onChange={(e) => setBillingAddress({...billingAddress, city: e.target.value})}
+                        onChange={(e) => setBillingAddress({ ...billingAddress, city: e.target.value })}
                       />
-                      <Input 
+                      <Input
                         placeholder="State *"
                         value={billingAddress.state}
-                        onChange={(e) => setBillingAddress({...billingAddress, state: e.target.value})}
+                        onChange={(e) => setBillingAddress({ ...billingAddress, state: e.target.value })}
                       />
-                      <Input 
+                      <Input
                         placeholder="Pincode *"
                         value={billingAddress.pincode}
-                        onChange={(e) => setBillingAddress({...billingAddress, pincode: e.target.value})}
+                        onChange={(e) => setBillingAddress({ ...billingAddress, pincode: e.target.value })}
                       />
                     </div>
                   )}
@@ -296,16 +466,17 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                     <Separator />
                     <div className="flex justify-between text-sm">
                       <span>Total Cost:</span>
-                      <span className="font-semibold">₹{getTotalCost().toLocaleString()}</span>
+                      <span className="font-semibold">₹{totalPrice ?? 0}</span>
+                      {/* <span className="font-semibold">₹{getTotalCost().toLocaleString()}</span> */}
                     </div>
-                    <div className="flex justify-between text-sm text-green-600">
+                    {/* <div className="flex justify-between text-sm text-green-600">
                       <span>Expected Revenue:</span>
                       <span className="font-semibold">₹{getExpectedRevenue().toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm text-green-700 font-medium">
                       <span>Expected Profit:</span>
                       <span>₹{getExpectedProfit().toLocaleString()}</span>
-                    </div>
+                    </div> */}
                   </CardContent>
                 </Card>
               </>

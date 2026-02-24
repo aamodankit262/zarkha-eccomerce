@@ -1,16 +1,21 @@
+import { AddToCartPayload, boutiqueService } from '@/boutiqueServices/boutiqueService';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { toast } from 'sonner';
 
 export interface BoutiqueCartItem {
-  id: string;
-  name: string;
-  image: string;
-  category: string;
-  adminPrice: number;
+  id?: string;
+  name?: string;
+  image?: string;
+  category?: string;
+  adminPrice?: number;
   mrp: number;
   discount: number;
   quantity: number;
-  sellingPrice: number;
+  sellingPrice?: number;
   stock: number;
+  itemCodeId: string;
+  profit: number;
+  size?: string;
 }
 
 interface CustomerInfo {
@@ -34,7 +39,13 @@ interface BoutiqueCartContextType {
   shippingAddress: Address;
   billingAddress: Address;
   sameAsShipping: boolean;
-  addItem: (item: Omit<BoutiqueCartItem, 'quantity' | 'sellingPrice'>) => void;
+  addItem: (payload: {
+    productId: string;
+    variantId: string;
+    size: string;
+    quantity?: number;
+  }) => Promise<void>;
+  // addItem: (item: Omit<BoutiqueCartItem, 'quantity' | 'sellingPrice'>) => void;
   updateQuantity: (id: string, quantity: number) => void;
   updateSellingPrice: (id: string, price: number) => void;
   removeItem: (id: string) => void;
@@ -47,6 +58,9 @@ interface BoutiqueCartContextType {
   getTotalCost: () => number;
   getExpectedRevenue: () => number;
   getExpectedProfit: () => number;
+  fetchCart: (id?: string) => Promise<void>;
+
+  totalPrice: number
 }
 
 const BoutiqueCartContext = createContext<BoutiqueCartContextType | undefined>(undefined);
@@ -60,7 +74,8 @@ export const useBoutiqueCart = () => {
 };
 
 export const BoutiqueCartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<BoutiqueCartItem[]>([]);
+  const [items, setItems] = useState<any[]>([]);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: '',
     phone: '',
@@ -83,34 +98,66 @@ export const BoutiqueCartProvider = ({ children }: { children: ReactNode }) => {
     pincode: ''
   });
   const [sameAsShipping, setSameAsShipping] = useState(true);
-
-  const addItem = (item: Omit<BoutiqueCartItem, 'quantity' | 'sellingPrice'>) => {
-    const existing = items.find(i => i.id === item.id);
-    if (existing) {
-      updateQuantity(item.id, existing.quantity + 1);
-    } else {
-      setItems(prev => [...prev, { ...item, quantity: 1, sellingPrice: 0 }]);
+  const fetchCart = async (id?: string) => {
+    try {
+      const cart = await boutiqueService.getCart(id);
+      setItems(cart?.body?.items || []);
+      setTotalPrice(cart?.body?.total_price || 0);
+    } catch (err) {
+      console.error("Failed to fetch cart", err);
     }
   };
+
+  const addItem = async ({
+    productId,
+    variantId,
+    size,
+    quantity = 1,
+  }) => {
+    try {
+      const res = await boutiqueService.addToCart({
+        product_id: productId,
+        item_id: variantId,
+        size: size || '',
+        quantity,
+      });
+      if (res.success) {
+        // setItems(prev => [...prev, item]);
+        fetchCart();
+        // setItems(prev => [...prev, {...item, quantity: res?.body?.quantity || 1}]);
+      }
+    } catch (err: any) {
+      console.error("Add to cart failed", err);
+      toast.error(err?.response?.data?.message || err?.message || "Add to cart failed");
+    }
+  };
+  // const addItem = (item: Omit<BoutiqueCartItem, 'quantity' | 'sellingPrice'>) => {
+  //   const existing = items.find(i => i.id === item.id);
+  //   if (existing) {
+  //     updateQuantity(item.id, existing.quantity + 1);
+  //   } else {
+  //     setItems(prev => [...prev, { ...item, quantity: 1, sellingPrice: 0 }]);
+  //   }
+  // };
 
   const updateQuantity = (id: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(id);
       return;
     }
-    setItems(prev => prev.map(item => 
-      item.id === id ? { ...item, quantity } : item
+    setItems(prev => prev.map(item =>
+      item.product_id === id ? { ...item, quantity } : item
     ));
   };
 
   const updateSellingPrice = (id: string, price: number) => {
-    setItems(prev => prev.map(item => 
+    setItems(prev => prev.map(item =>
       item.id === id ? { ...item, sellingPrice: price } : item
     ));
   };
 
   const removeItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+    setItems(prev => prev.filter(item => item.product_id !== id));
   };
 
   const clearCart = () => {
@@ -129,6 +176,8 @@ export const BoutiqueCartProvider = ({ children }: { children: ReactNode }) => {
   return (
     <BoutiqueCartContext.Provider value={{
       items,
+      totalPrice,
+      fetchCart,
       customerInfo,
       shippingAddress,
       billingAddress,

@@ -69,12 +69,12 @@ const AffiliateSales = () => {
   useEffect(() => {
     getSalesList({ page, limit, period });
   }, [page, period])
-  console.log("Sales List Data:", salesListData);
+  // console.log("Sales List Data:", salesListData);
   const getbodyData = salesListData?.body || {};
   const salesData = getbodyData?.recent_sales || [];
   const salesSummary = getbodyData?.summary || {};
   const pagination = salesListData?.pagination || {};
-  console.log("Pagination Info:", pagination);
+  // console.log("Pagination Info:", pagination);
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed": return "bg-green-100 text-green-700";

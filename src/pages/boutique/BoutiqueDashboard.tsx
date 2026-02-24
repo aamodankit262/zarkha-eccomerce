@@ -36,25 +36,13 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { boutiqueProducts } from "@/data/product";
 import dayjs from "dayjs";
 import Pagination from "@/components/ecommerce/Pagination";
-import { useMegaMenuStores } from "@/store/megaMenuStore";
 import { industryService } from "@/services/industryService";
-
-const SUBCATEGORIES: Record<string, string[]> = {
-  "Kurta Sets": ["Cotton Kurta", "Silk Kurta", "Embroidered Kurta", "Printed Kurta"],
-  "Anarkalis": ["Floor Length", "Short Anarkali", "Net Anarkali", "Georgette Anarkali"],
-  "Lehengas": ["Bridal Lehenga", "Party Wear", "A-Line Lehenga", "Circular Lehenga"],
-  "Sarees": ["Banarasi", "Silk Saree", "Cotton Saree", "Chiffon Saree"],
-  "Palazzo Sets": ["Printed Palazzo", "Plain Palazzo", "Embroidered Palazzo"],
-  "Salwar Suits": ["Patiala", "Churidar", "Straight Suit", "Pakistani Suit"],
-  "Gowns": ["Party Gown", "Evening Gown", "Indo-Western Gown"],
-};
 
 const BoutiqueDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isLoggedIn, user, orders, sales, logout, placeOrder, profile, setProfile, toggleProductDisplay } = useBoutique();
-  const { data, request: fetchProfile, loading } = useApi(boutiqueService.getProfile);
-  const { addItem, getTotalItems } = useBoutiqueCart();
+  const { isLoggedIn, user, orders, sales, logout, placeOrder, profile, toggleProductDisplay } = useBoutique();
+  const { addItem, getTotalItems, items, fetchCart } = useBoutiqueCart();
 
   const [activeTab, setActiveTab] = useState("products");
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,14 +61,6 @@ const BoutiqueDashboard = () => {
   const [stockFilter, setStockFilter] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
-  // const {
-  //   industries,
-  //   categories,
-  //   fetchIndustries,
-  //   fetchCategories,
-  // } = useMegaMenuStores();
-
-
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [page, setPage] = useState(1);
   const limit = 20;
@@ -89,9 +69,14 @@ const BoutiqueDashboard = () => {
     request: fetchProducts,
   } = useApi(boutiqueService.productList);
   // Order Filters
+  const { data: orderRes, request: fetchOrders } = useApi(boutiqueService.getOrderList);
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [orderTypeFilter, setOrderTypeFilter] = useState("all");
+  const [orderPage, setOrderPage] = useState(1);
+  const orderLimit = 10;
+  const debouncedOrderSearch = useDebounce(orderSearchQuery, 500);
+
 
   // Customer Info for single order
   const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "", email: "" });
@@ -105,29 +90,50 @@ const BoutiqueDashboard = () => {
       navigate('/boutique/login');
     }
   }, [isLoggedIn, navigate]);
+
+  // useEffect(() => {
+  //   if (isLoggedIn) {
+  //     fetchCart()
+  //   }
+  // }, [isLoggedIn]);
+
   useEffect(() => {
-    if (isLoggedIn) {
-      fetchProfile();
+    if (isLoggedIn && activeTab === "orders") {
+      fetchOrders({
+        page: orderPage,
+        limit: orderLimit,
+        search: debouncedOrderSearch,
+        order_status: orderStatusFilter,
+        order_type: orderTypeFilter,
+      });
     }
-  }, [isLoggedIn]);
+  }, [
+    activeTab,  // 👈 add this
+    orderPage,
+    debouncedOrderSearch,
+    orderStatusFilter,
+    orderTypeFilter,
+    isLoggedIn
+  ]);
+  const orderBody = orderRes?.body;
+  const pagination = orderRes?.pagination
+
   useEffect(() => {
-    if (data?.body) {
-      const b = data.body;
-      setProfile(b);
+    if (showFilters && activeTab === "products") {
+      fetchCategories();
     }
-  }, [profile]);
-  useEffect(() => {
-    fetchCategories()
-  }, [showFilters])
+  }, [showFilters, activeTab]);
+
   useEffect(() => {
     if (categoryFilter !== "all") fetchSubCategories(categoryFilter);
   }, [categoryFilter]);
+
   useEffect(() => {
     setPage(1);
   }, [categoryFilter, subcategoryFilter, debouncedSearch, discountFilter, stockFilter]);
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && activeTab === 'products') {
       fetchProducts({
         page,
         limit,
@@ -140,24 +146,17 @@ const BoutiqueDashboard = () => {
         stock_status: stockFilter !== "all" ? stockFilter : undefined,
       });
     }
-  }, [page, categoryFilter, subcategoryFilter, debouncedSearch, discountFilter, stockFilter, isLoggedIn]);
+  }, [page,
+    categoryFilter,
+    subcategoryFilter,
+    debouncedSearch,
+    discountFilter,
+    stockFilter,
+    isLoggedIn,
+    activeTab,
+  ]);
   const body = productRes?.body || [];
   const products = boutiqueProducts(body) || [];
-  // const products = [
-  //   { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', subcategory: 'Silk Kurta', adminPrice: 1800, mrp: 2500, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 50, discount: 28 },
-  //   { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', subcategory: 'Floor Length', adminPrice: 1200, mrp: 1800, image: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png', stock: 35, discount: 33 },
-  //   { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', subcategory: 'Bridal Lehenga', adminPrice: 4500, mrp: 6500, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 20, discount: 31 },
-  //   { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', subcategory: 'Banarasi', adminPrice: 3200, mrp: 4500, image: '/lovable-uploads/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', stock: 25, discount: 29 },
-  //   { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', subcategory: 'Printed Palazzo', adminPrice: 1500, mrp: 2200, image: '/lovable-uploads/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', stock: 40, discount: 32 },
-  //   { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', subcategory: 'Straight Suit', adminPrice: 2000, mrp: 2800, image: '/lovable-uploads/15ff49d2-e060-4344-956a-c6030caf0a58.png', stock: 30, discount: 29 },
-  //   { id: '7', name: 'Bridal Lehenga Set', category: 'Lehengas', subcategory: 'Bridal Lehenga', adminPrice: 8500, mrp: 12000, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', stock: 8, discount: 29 },
-  //   { id: '8', name: 'Party Wear Gown', category: 'Gowns', subcategory: 'Party Gown', adminPrice: 3500, mrp: 5000, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', stock: 0, discount: 30 }
-  // ];
-
-  // const categories = [...new Set(products?.map(p => p.category))];
-  // console.log(categories,  'categories')
-
-  // const availableSubcategories = categoryFilter !== "all" ? (SUBCATEGORIES[categoryFilter] || []) : [];
 
   const handleLogout = () => {
     logout();
@@ -179,7 +178,6 @@ const BoutiqueDashboard = () => {
     }
     try {
       const response: any = await boutiqueService.getSetPrice(selectedProduct.id, parseFloat(boutiquePrice));
-      console.log("Set Price Response:", response);
       const { success, message, body } = response;
       if (success) {
         // updateProductPrice(selectedProduct.id, parseFloat(body?.selling_price || boutiquePrice));
@@ -207,19 +205,15 @@ const BoutiqueDashboard = () => {
       toast({ title: "Out of Stock", description: "This product is currently unavailable.", variant: "destructive" });
       return;
     }
+
     addItem({
-      id: product.id,
-      name: product.name,
-      image: product.image,
-      category: product.category,
-      adminPrice: product.adminPrice,
-      mrp: product.mrp,
-      discount: product.discount,
-      stock: product.stock
-    });
+      productId: product.id,
+      variantId: product.itemCodeId,
+      size: product.size,
+      quantity: 1,
+    })
     toast({ title: "Added to Cart!", description: `${product.name} added to bulk order cart.` });
   };
-
   const handleDownloadImage = (product: any) => {
     const link = document.createElement('a');
     link.href = product.image;
@@ -292,42 +286,7 @@ const BoutiqueDashboard = () => {
     setSelectedProduct(null);
   };
 
-  // const filteredProducts = products.filter(p => {
-  //   const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase());
-  //   const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
-  //   const matchesSubcategory = subcategoryFilter === "all" || p.subcategory === subcategoryFilter;
-  //   const matchesPrice = p.adminPrice >= priceRange[0] && p.adminPrice <= priceRange[1];
-  //   const matchesDiscount = discountFilter === "all" ||
-  //     (discountFilter === "10" && p.discount >= 10) ||
-  //     (discountFilter === "20" && p.discount >= 20) ||
-  //     (discountFilter === "30" && p.discount >= 30);
-  //   const matchesStock = stockFilter === "all" ||
-  //     (stockFilter === "in_stock" && p.stock > 0) ||
-  //     (stockFilter === "low_stock" && p.stock > 0 && p.stock <= 10) ||
-  //     (stockFilter === "out_of_stock" && p.stock === 0);
-  //   return matchesSearch && matchesCategory && matchesSubcategory && matchesPrice && matchesDiscount && matchesStock;
-  // });
 
-  // const sortedProducts = [...filteredProducts].sort((a, b) => {
-  //   switch (sortBy) {
-  //     case "price-low": return a.adminPrice - b.adminPrice;
-  //     case "price-high": return b.adminPrice - a.adminPrice;
-  //     case "discount": return b.discount - a.discount;
-  //     case "stock": return b.stock - a.stock;
-  //     default: return 0;
-  //   }
-  // });
-
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.productName.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-      order.id.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-      (order.customerInfo?.name.toLowerCase().includes(orderSearchQuery.toLowerCase()));
-    const matchesStatus = orderStatusFilter === "all" || order.status === orderStatusFilter;
-    const matchesType = orderTypeFilter === "all" ||
-      (orderTypeFilter === "bulk" && order.isBulkOrder) ||
-      (orderTypeFilter === "single" && !order.isBulkOrder);
-    return matchesSearch && matchesStatus && matchesType;
-  });
 
   const totalSales = sales.reduce((acc, sale) => acc + (sale.sellingPrice * sale.quantity), 0);
   const totalProfit = sales.reduce((acc, sale) => acc + sale.profit, 0);
@@ -358,13 +317,6 @@ const BoutiqueDashboard = () => {
       {/* Header */}
       <header className="border-b border-border bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 md:py-4 flex items-center justify-between">
-          {/* <div className="flex items-center gap-2 min-w-0">
-            <Store className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-brand-orange flex-shrink-0" />
-            <div className="min-w-0">
-              <span className="text-sm sm:text-lg md:text-xl font-bold text-warm-brown truncate block">{user?.shopName}</span>
-              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{user?.category}</p>
-            </div>
-          </div> */}
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-2">
               {/* <ShoppingBag className="h-6 w-6 text-primary" />
@@ -378,7 +330,7 @@ const BoutiqueDashboard = () => {
               />
             </Link>
 
-            <Badge variant="secondary" className="hidden sm:flex">{profile?.store_name || "Boutique Partner"}</Badge>
+            <Badge variant="secondary" className="hidden sm:flex">{profile?.store_name ? profile?.store_name : "Boutique Partner"}</Badge>
             {/* <Badge variant="secondary" className="hidden sm:flex">Boutique Partner</Badge> */}
           </div>
           <div className="flex items-center gap-2">
@@ -632,7 +584,7 @@ const BoutiqueDashboard = () => {
                       <Card key={product.id} className="overflow-hidden">
                         <div className="aspect-square relative group">
                           <Link to={`/product/${product?.id}`}>
-                          <img src={product.image || NO_IMAGE} alt={product.name} className="w-full h-full object-cover" />
+                            <img src={product.image || NO_IMAGE} alt={product.name} className="w-full h-full object-cover" />
                           </Link>
                           <Badge className="absolute top-2 right-2 bg-warm-brown">{product.category}</Badge>
                           <Badge className="absolute top-2 left-2 bg-green-600">
@@ -657,7 +609,7 @@ const BoutiqueDashboard = () => {
                         </div>
                         <CardContent className="p-2 sm:p-3 md:p-4">
                           <Link to={`/product/${product?.id}`} >
-                          <h3 className="font-semibold text-warm-brown mb-1 text-xs sm:text-sm md:text-base line-clamp-2">{product.name}</h3>
+                            <h3 className="font-semibold text-warm-brown mb-1 text-xs sm:text-sm md:text-base line-clamp-2">{product.name}</h3>
                           </Link>
                           <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{product?.subcategory ?? "No Subcategory"}</p>
                           <div className="flex items-center justify-between mb-1 sm:mb-2">
@@ -701,7 +653,9 @@ const BoutiqueDashboard = () => {
                               onClick={() => handleAddToCart(product)}
                               disabled={product.stock === 0}
                             >
-                              <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" /> <span className="hidden sm:inline">Add to Cart</span><span className="sm:hidden">Cart</span>
+                              <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" />
+                              <span className="hidden sm:inline">Add to Cart</span>
+                              <span className="sm:hidden">Cart</span>
                             </Button>
                           </div>
                           {priceInfo && (
@@ -742,7 +696,7 @@ const BoutiqueDashboard = () => {
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">Order History</CardTitle>
-                    <Badge variant="outline">{filteredOrders.length} orders</Badge>
+                    <Badge variant="outline">{orderBody?.length} orders</Badge>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
@@ -774,11 +728,14 @@ const BoutiqueDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {filteredOrders.map((order) => (
-                    <div key={order.id} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer" onClick={() => navigate(`/boutique/order/${order.id}`)}>
+                  {orderBody?.length === 0 && (
+                    <p className="text-center text-muted-foreground">No orders available</p>
+                  )}
+                  {orderBody?.length > 0 && orderBody?.map((order) => (
+                    <div key={order._id} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer" onClick={() => navigate(`/boutique/order/${order.order_id}`)}>
                       <div className="flex gap-3 flex-1">
-                        {order.productImage ? (
-                          <img src={order.productImage} alt={order.productName} className="w-16 h-16 object-cover rounded" />
+                        {order.product_image ? (
+                          <img src={order.product_image || NO_IMAGE} alt={order.product_name} className="w-16 h-16 object-cover rounded" />
                         ) : (
                           <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
                             <Package className="h-6 w-6 text-muted-foreground" />
@@ -787,32 +744,40 @@ const BoutiqueDashboard = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             {getStatusIcon(order.status)}
-                            <span className="font-semibold text-sm">{order.productName}</span>
-                            {order.isBulkOrder && <Badge variant="outline" className="text-xs">Bulk</Badge>}
+                            <span className="font-semibold text-sm">{order.product_name}</span>
+                            {order.order_type === 'bulk' && <Badge variant="outline" className="text-xs">Bulk</Badge>}
                           </div>
-                          <p className="text-xs text-muted-foreground mb-2">Order ID: {order.id}</p>
+                          <p className="text-xs text-muted-foreground mb-2">Order ID: {order.order_id}</p>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                             <div><p className="text-muted-foreground">Quantity</p><p className="font-medium">{order.quantity} pcs</p></div>
-                            <div><p className="text-muted-foreground">Buying</p><p className="font-medium">₹{order.buyingPrice}</p></div>
-                            <div><p className="text-muted-foreground">Selling</p><p className="font-medium text-brand-orange">₹{order.sellingPrice}</p></div>
-                            <div><p className="text-muted-foreground">Profit</p><p className="font-medium text-green-600">₹{(order.sellingPrice - order.buyingPrice) * order.quantity}</p></div>
+                            <div><p className="text-muted-foreground">Buying</p><p className="font-medium">₹{order.buying}</p></div>
+                            {/* <div><p className="text-muted-foreground">Selling</p><p className="font-medium text-brand-orange">₹{order.selling}</p></div> */}
+                            {/* <div><p className="text-muted-foreground">Profit</p><p className="font-medium text-green-600">₹{order.profit ?? 0}</p></div> */}
                           </div>
-                          {order.customerInfo && (
+                          {order.customer_name && (
                             <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
-                              <span>Customer: {order.customerInfo.name}</span>
+                              <span>Customer: {order.customer_name}</span>
                             </div>
                           )}
                         </div>
                       </div>
                       <div className="flex sm:flex-col items-center justify-between sm:justify-start gap-2">
                         <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'} className="capitalize">{order.status}</Badge>
-                        <span className="text-xs text-muted-foreground">{order.orderDate}</span>
+                        <span className="text-xs text-muted-foreground">{order.order_date}</span>
                         <ChevronRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
                       </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
+              {pagination?.totalPages > 1 && (
+                <Pagination
+                  currentPage={pagination?.currentPage}
+                  totalPages={pagination?.totalPages}
+                  onPageChange={setOrderPage}
+                // onPageChange={(page) => setPage(page)}
+                />
+              )}
             </Card>
           </TabsContent>
 

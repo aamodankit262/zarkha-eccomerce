@@ -12,7 +12,7 @@ const bottomWearImages = [
 ];
 
 const ImageCard = ({ image }) => {
-  console.log(image , 'imagecard')
+  // console.log(image , 'imagecard')
   return (
     <div className="rounded-2xl overflow-hidden cursor-pointer group h-80 lg:h-96 relative">
       <img 
