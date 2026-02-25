@@ -51,45 +51,7 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
   // const navigate = useNavigate();
   const { Razorpay } = useRazorpay();
 
-  // const handlePlaceOrder = () => {
-  //   if (items.length === 0) {
-  //     toast({ title: "Error", description: "Cart is empty", variant: "destructive" });
-  //     return;
-  //   }
-
-  //   if (items.some(p => !p.sellingPrice)) {
-  //     toast({ title: "Error", description: "Please set selling price for all products", variant: "destructive" });
-  //     return;
-  //   }
-  //   if (!customerInfo.name || !customerInfo.phone) {
-  //     toast({ title: "Error", description: "Please fill customer information", variant: "destructive" });
-  //     return;
-  //   }
-  //   if (!shippingAddress.address || !shippingAddress.city || !shippingAddress.pincode) {
-  //     toast({ title: "Error", description: "Please fill shipping address", variant: "destructive" });
-  //     return;
-  //   }
-
-  //   const orderItems = items?.map(p => ({
-  //     productId: p.id,
-  //     productName: p.name,
-  //     productImage: p.image,
-  //     quantity: p.quantity,
-  //     buyingPrice: p.adminPrice,
-  //     sellingPrice: p.sellingPrice,
-  //     customerInfo,
-  //     shippingAddress,
-  //     billingAddress: sameAsShipping ? shippingAddress : billingAddress,
-  //     isBulkOrder: true
-  //   }));
-
-  //   placeBulkOrder(orderItems);
-  //   toast({ title: "Order Placed!", description: `${items.length} products ordered successfully.` });
-  //   clearCart();
-  //   onClose();
-  //   navigate('/boutique/checkout')
-
-  // };
+ 
   const cartItems = items?.map((i: any) => {
     return {
       id: i.product_id,
@@ -105,6 +67,27 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
 
     }
   })
+  // const handleQuantityChange = (
+  //   productId: string,
+  //   variantId: string,
+  //   change: number
+  // ) => {
+  //   const item = cartItems.find(
+  //     (i) =>
+  //       i.id === productId &&
+  //       i.itemCodeId === variantId
+  //   );
+
+  //   if (!item) return;
+
+  //   const newQty = item.quantity + change;
+
+  //   if (newQty <= 0) {
+  //     removeItem(productId);
+  //   } else {
+  //     updateQuantity(productId, variantId, newQty);
+  //   }
+  // };
   const handlePlaceOrder = async () => {
     if (!items.length) {
       toast.error("Cart is empty");
@@ -270,7 +253,10 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold">Products</Label>
-                  <Button variant="ghost" size="sm" onClick={clearCart} className="text-destructive">
+                  <Button variant="ghost" 
+                  size="sm" 
+                  onClick={() => clearCart(true)} 
+                  className="text-destructive">
                     <Trash2 className="h-4 w-4 mr-1" /> Clear All
                   </Button>
                 </div>
@@ -284,7 +270,7 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                             <p className="font-medium text-sm line-clamp-1">{item.name}</p>
                             <p className="text-xs text-muted-foreground">Buying: ₹{item.adminPrice}</p>
                           </div>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeItem(item.id)}>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeItem(item.id, item.itemCodeId, false)}>
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
@@ -301,7 +287,9 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                               variant="outline"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.id, item.itemCodeId, item.quantity - 1)}
+                              // onClick={() => handleQuantityChange(item.id, item.itemCodeId, 1)}
+
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
@@ -310,7 +298,9 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                               variant="outline"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.id, item.itemCodeId, item.quantity + 1)}
+                              // onClick={() => handleQuantityChange(item.id, item.itemCodeId, -1)}
+
                             >
                               <Plus className="h-3 w-3" />
                             </Button>

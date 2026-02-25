@@ -1,4 +1,5 @@
-import { AddToCartPayload, boutiqueService } from '@/boutiqueServices/boutiqueService';
+import { AddToCartPayload, boutiqueService, CartRemove, CartUpdate } from '@/boutiqueServices/boutiqueService';
+import { logger } from '@/helper/logger';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 
@@ -46,10 +47,18 @@ interface BoutiqueCartContextType {
     quantity?: number;
   }) => Promise<void>;
   // addItem: (item: Omit<BoutiqueCartItem, 'quantity' | 'sellingPrice'>) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  updateQuantity: (
+    productId: string,
+    itemId: string,
+    quantity: number,
+  ) => void;
   updateSellingPrice: (id: string, price: number) => void;
-  removeItem: (id: string) => void;
-  clearCart: () => void;
+  removeItem: (
+    productId: string,
+    itemId: string,
+    clear: boolean,
+  ) => void;
+  clearCart: (clear:boolean) => void;
   setCustomerInfo: (info: CustomerInfo) => void;
   setShippingAddress: (address: Address) => void;
   setBillingAddress: (address: Address) => void;
@@ -127,7 +136,7 @@ export const BoutiqueCartProvider = ({ children }: { children: ReactNode }) => {
         // setItems(prev => [...prev, {...item, quantity: res?.body?.quantity || 1}]);
       }
     } catch (err: any) {
-      console.error("Add to cart failed", err);
+      logger.error("Add to cart failed", err);
       toast.error(err?.response?.data?.message || err?.message || "Add to cart failed");
     }
   };
@@ -140,14 +149,30 @@ export const BoutiqueCartProvider = ({ children }: { children: ReactNode }) => {
   //   }
   // };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = async (productId: string, itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(id);
+      removeItem(productId, itemId, false);
       return;
     }
-    setItems(prev => prev.map(item =>
-      item.product_id === id ? { ...item, quantity } : item
-    ));
+
+    try {
+      const payload: CartUpdate = {
+        product_id: productId,
+        item_id: itemId,
+        quantity
+      }
+      const res = await boutiqueService.cartUpdate(payload)
+      logger.log(res, 'updateCart');
+      setItems(prev => prev.map(item =>
+        item.product_id === productId
+          && item.itemCodeId === itemId
+          ? { ...item, quantity }
+          : item
+      ));
+      await fetchCart();
+    } catch (error) {
+      logger.error('update cart faile', error.response.data)
+    }
   };
 
   const updateSellingPrice = (id: string, price: number) => {
@@ -156,16 +181,48 @@ export const BoutiqueCartProvider = ({ children }: { children: ReactNode }) => {
     ));
   };
 
-  const removeItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.product_id !== id));
+  const removeItem = async (productId: string, itemId: string, clear?: false) => {
+    // setItems(prev => prev.filter(item => item.product_id !== productId));
+    try {
+      const payload: CartRemove = {
+        product_id: productId,
+        item_id: itemId,
+        clear,
+      }
+      const res = await boutiqueService.cartRemove(payload)
+      logger.log(res, 'CartRemove');
+      setItems(prev => prev.filter(item =>
+        !(
+          item.product_id === productId &&
+          item.item_id === itemId
+        )
+      ));
+      await fetchCart();
+    } catch (error) {
+      logger.error('update cart faile', error.response.data)
+    }
   };
 
-  const clearCart = () => {
-    setItems([]);
-    setCustomerInfo({ name: '', phone: '', email: '' });
-    setShippingAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '' });
-    setBillingAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '' });
-    setSameAsShipping(true);
+  const clearCart = async (clear = true) => {
+
+    try {
+      const payload: CartRemove = {
+        clear,
+      }
+      const res:any = await boutiqueService.cartRemove(payload)
+      // logger.log(res, 'Cartclear');
+      toast.success(res?.message|| "Cart clear Successfully")
+      setItems([]);
+      setCustomerInfo({ name: '', phone: '', email: '' });
+      setShippingAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '' });
+      setBillingAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '' });
+      setSameAsShipping(true);
+      await fetchCart();
+    } catch (err) {
+      // logger.error('update cart faile', error)
+      toast.error(err?.response?.data?.message || err?.message || "Add to cart failed");
+
+    }
   };
 
   const getTotalItems = () => items.reduce((total, item) => total + item.quantity, 0);
