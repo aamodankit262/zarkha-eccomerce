@@ -32,6 +32,10 @@ import { BoutiqueCartProvider } from "./contexts/BoutiqueCartContext";
 import PartnerLanding from "./pages/partner/PartnerLanding";
 import PartnerLogin from "./pages/partner/PartnerLogin";
 import BoutiqueCheckoutPage from "./pages/boutique/CheckoutPage";
+import { ResellerProvider } from "./contexts/contexts/ResellerContext";
+import { ResellerCartProvider } from "./contexts/contexts/ResellerCartContext";
+import ResellerLogin from "./pages/reseller/ResellerLogin";
+import ResellerDashboard from "./pages/reseller/ResellerDashboard";
 
 const Index = lazy(() => import("./pages/Index"));
 const ProductListingPage = lazy(() => import("./components/ecommerce/ProductListing"));
@@ -81,7 +85,7 @@ const AppContent = () => {
           <Route path="/size-guide" element={<SizeGuide />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/invoice" element={<TaxInvoice />} />
-          
+
           {/* partner route */}
           <Route path="/partner" element={<PartnerLanding />} />
           <Route path="/partner/login" element={<PartnerLogin />} />
@@ -97,6 +101,10 @@ const AppContent = () => {
           <Route path="/boutique/directory" element={<BoutiqueDirectory />} />
           <Route path="/boutique/store/:boutiqueId" element={<BoutiqueStorefront />} />
           <Route path="/shop/:boutiqueId" element={<BoutiqueBrandPage />} />
+          <Route path="/reseller" element={<PartnerLanding />} />
+          <Route path="/reseller/login" element={<ResellerLogin />} />
+          <Route path="/reseller/dashboard" element={<ResellerDashboard />} />
+
 
           {/* 🔐 Protected Routes */}
           <Route element={<ProtectedRoute />}>
@@ -120,15 +128,19 @@ const App = () => (
     <AffiliateProvider>
       <BoutiqueProvider>
         <BoutiqueCartProvider>
-          <CartProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppContent />
-              </BrowserRouter>
-            </TooltipProvider>
-          </CartProvider>
+          <ResellerProvider>
+            <ResellerCartProvider>
+              <CartProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <AppContent />
+                  </BrowserRouter>
+                </TooltipProvider>
+              </CartProvider>
+            </ResellerCartProvider>
+          </ResellerProvider>
         </BoutiqueCartProvider>
       </BoutiqueProvider>
     </AffiliateProvider>

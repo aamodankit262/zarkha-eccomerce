@@ -39,6 +39,17 @@ const PartnerLanding = () => {
       color: 'bg-brand-orange',
       link: '/partner/login?type=boutique',
       gradient: 'from-brand-orange/20 to-brand-orange/5'
+    },
+    {
+      id: 'reseller',
+      title: 'Reseller Partner',
+      description: 'Buy products at wholesale prices and resell to your customers',
+      icon: ShoppingBag,
+      features: ['Wholesale pricing', 'Set your margins', 'Inventory management', 'Quick payouts'],
+      cta: 'Start Reselling',
+      color: 'bg-warm-brown',
+      link: '/reseller/login',
+      gradient: 'from-warm-brown/20 to-warm-brown/5'
     }
   ];
 
@@ -188,7 +199,7 @@ const PartnerLanding = () => {
       {/* Partner Types */}
       <section className="py-10 sm:py-16 relative z-20 -mt-6 sm:-mt-8">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
             {partnerTypes.map((type) => (
               <Card
                 key={type.id}

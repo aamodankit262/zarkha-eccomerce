@@ -68,25 +68,6 @@ const PartnerLogin = () => {
 
   const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
 
-  // const affiliateCategories = [
-  //   "Fashion Influencer",
-  //   "Lifestyle Blogger",
-  //   "Social Media Creator",
-  //   "YouTube Reviewer",
-  //   "Website Owner",
-  //   "Email Marketer",
-  //   "Other"
-  // ];
-
-  // const boutiqueCategories = [
-  //   "Women Ethnic Wear",
-  //   "Men Ethnic Wear",
-  //   "Kids Ethnic Wear",
-  //   "Bridal Collection",
-  //   "Festive Wear",
-  //   "Designer Boutique",
-  //   "Multi-Category Store"
-  // ];
 
   useEffect(() => {
     if (affiliateLoggedIn && partnerType === 'affiliate') {
@@ -256,6 +237,19 @@ const PartnerLogin = () => {
               <p className="text-xs sm:text-sm text-muted-foreground">Wholesale pricing, set your own margins</p>
             </div>
             <CheckCircle className="h-5 w-5 text-brand-orange opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+          </button>
+          <button
+            onClick={() => { setShowTypeSelector(false); window.location.href = '/reseller/login'; }}
+            className="flex items-center gap-3 sm:gap-4 p-4 border-2 rounded-xl hover:border-warm-brown hover:bg-warm-brown/5 transition-all text-left group"
+          >
+            <div className="w-12 h-12 bg-warm-brown/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Store className="h-5 w-5 sm:h-6 sm:w-6 text-warm-brown" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-sm sm:text-base">Reseller Partner</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Buy wholesale, resell to your customers</p>
+            </div>
+            <CheckCircle className="h-5 w-5 text-warm-brown opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
           </button>
         </div>
       </DialogContent>

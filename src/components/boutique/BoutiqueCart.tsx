@@ -269,6 +269,7 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                           <div>
                             <p className="font-medium text-sm line-clamp-1">{item.name}</p>
                             <p className="text-xs text-muted-foreground">Buying: ₹{item.adminPrice}</p>
+                            <p className="text-xs text-muted-foreground">Size: ₹{item.size}</p>
                           </div>
                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeItem(item.id, item.itemCodeId, false)}>
                             <X className="h-4 w-4" />

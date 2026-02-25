@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,8 @@ import {
 import { useBoutique, type BoutiqueOrder } from "@/contexts/BoutiqueContext";
 import { useBoutiqueCart } from "@/contexts/BoutiqueCartContext";
 import { useToast } from "@/hooks/use-toast";
+import { useApi } from "@/hooks/useApi";
+import { industryService } from "@/services/industryService";
 
 interface Product {
   id: string;
@@ -57,6 +59,7 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [subcategoryFilter, setSubCategoryFilter] = useState("all");
 
   // Reorder dialog state
   const [showReorderDialog, setShowReorderDialog] = useState(false);
@@ -68,9 +71,16 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
   const [addProductId, setAddProductId] = useState("");
   const [addQty, setAddQty] = useState(5);
   const [addSellingPrice, setAddSellingPrice] = useState("");
+  const { data: categories, request: fetchCategories } = useApi(industryService.getCat);
+  const { data: subcategories, request: fetchSubCategories } = useApi(industryService.getSubCat);
+  // const categories = [...new Set(products.map(p => p.category))];
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-  const categories = [...new Set(products.map(p => p.category))];
-
+  useEffect(() => {
+    if (categoryFilter !== "all") fetchSubCategories(categoryFilter);
+  }, [categoryFilter])
   // Build inventory from orders (purchases from Zarkha)
   const inventory: InventoryItem[] = useMemo(() => {
     const inventoryMap = new Map<string, InventoryItem>();
@@ -109,7 +119,7 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
     });
 
     sales.forEach(sale => {
-      const item = Array.from(inventoryMap.values()).find(i => 
+      const item = Array.from(inventoryMap.values()).find(i =>
         i.orders.some(o => o.id === sale.orderId)
       );
       if (item) {
@@ -237,6 +247,12 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
         discount: product.discount,
         stock: product.stock,
       });
+      // addItem({
+      //   productId: product.id,
+      //   variantId: product.itemCodeId,
+      //   size: product.size,
+      //   quantity: 1,
+      // })
     });
 
     toast({
@@ -372,9 +388,13 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
                 </Select>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                   <SelectTrigger className="w-[140px]"><SelectValue placeholder="Category" /></SelectTrigger>
+                  {/* <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories?.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                  </SelectContent> */}
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                    {categories?.map((cat: any) => <SelectItem key={cat.id} value={cat.id}>{cat?.category_name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -387,8 +407,8 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
               <Warehouse className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
               <p className="font-medium text-muted-foreground">No inventory found</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {inventory.length === 0 
-                  ? "Purchase products from Zarkha to build your inventory" 
+                {inventory.length === 0
+                  ? "Purchase products from Zarkha to build your inventory"
                   : "Try adjusting your filters"}
               </p>
               {inventory.length === 0 && (
@@ -400,8 +420,8 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
           ) : (
             <div className="space-y-4">
               {filteredInventory.map(item => {
-                const stockPercentage = item.totalPurchased > 0 
-                  ? Math.round((item.currentStock / item.totalPurchased) * 100) 
+                const stockPercentage = item.totalPurchased > 0
+                  ? Math.round((item.currentStock / item.totalPurchased) * 100)
                   : 0;
                 const potentialProfit = item.currentStock * (item.sellingPrice - item.avgBuyingPrice);
                 const pendingOrders = item.orders.filter(o => o.status !== 'delivered');
@@ -434,8 +454,8 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
                             <span className="text-muted-foreground">Stock Level</span>
                             <span className="font-medium">{item.currentStock} / {item.totalPurchased} units ({stockPercentage}%)</span>
                           </div>
-                          <Progress 
-                            value={stockPercentage} 
+                          <Progress
+                            value={stockPercentage}
                             className={`h-2 ${stockPercentage <= 20 ? '[&>div]:bg-red-500' : stockPercentage <= 50 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-green-500'}`}
                           />
                         </div>
@@ -525,11 +545,11 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
                 <Label>Reorder Quantity</Label>
                 <div className="flex items-center gap-3">
                   <Button variant="outline" size="icon" onClick={() => setReorderQty(Math.max(1, reorderQty - 5))}>-5</Button>
-                  <Input 
-                    type="number" 
-                    value={reorderQty} 
-                    onChange={e => setReorderQty(Math.max(1, parseInt(e.target.value) || 1))} 
-                    className="w-24 text-center" 
+                  <Input
+                    type="number"
+                    value={reorderQty}
+                    onChange={e => setReorderQty(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-24 text-center"
                   />
                   <Button variant="outline" size="icon" onClick={() => setReorderQty(reorderQty + 5)}>+5</Button>
                 </div>
@@ -578,6 +598,26 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label>Select Category from Zarkha</Label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories?.map((cat: any) => <SelectItem key={cat.id} value={cat.id}>{cat?.category_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Select Sub-Category from Zarkha</Label>
+              <Select value={subcategoryFilter} onValueChange={setSubCategoryFilter} disabled={categoryFilter === "all"}>
+                <SelectTrigger><SelectValue placeholder={categoryFilter === "all" ? "Select category first" : "All Subcategories"} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Subcategories</SelectItem>
+                  {subcategories?.map(sub => <SelectItem key={sub?.id} value={sub.id}>{sub?.subcategory_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Select Product from Zarkha</Label>
               <Select value={addProductId} onValueChange={setAddProductId}>
                 <SelectTrigger><SelectValue placeholder="Choose a product..." /></SelectTrigger>
@@ -617,19 +657,19 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Quantity</Label>
-                <Input 
-                  type="number" 
-                  value={addQty} 
-                  onChange={e => setAddQty(Math.max(1, parseInt(e.target.value) || 1))} 
+                <Input
+                  type="number"
+                  value={addQty}
+                  onChange={e => setAddQty(Math.max(1, parseInt(e.target.value) || 1))}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Your Selling Price (₹)</Label>
-                <Input 
-                  type="number" 
-                  placeholder="e.g. 2499" 
-                  value={addSellingPrice} 
-                  onChange={e => setAddSellingPrice(e.target.value)} 
+                <Input
+                  type="number"
+                  placeholder="e.g. 2499"
+                  value={addSellingPrice}
+                  onChange={e => setAddSellingPrice(e.target.value)}
                 />
               </div>
             </div>
