@@ -1,6 +1,7 @@
 interface Product {
   _id: string;
   item_ids: string[];
+  size: string[];
   product_id: string;
   product_title: string;
   short_description: string;
@@ -60,6 +61,7 @@ export  const boutiqueProducts = (products: any[]) => products?.map((p:Product) 
       stock: p.stock || 0,
       profit: p?.profit || 0,
       lastUpdated: p.selling_price_updated_at || "N/A",
+      size : p?.size,
 
     }
   })

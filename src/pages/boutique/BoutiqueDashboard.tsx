@@ -52,7 +52,8 @@ const BoutiqueDashboard = () => {
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showPriceDialog, setShowPriceDialog] = useState(false);
   const [showCart, setShowCart] = useState(false);
-
+  // const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({});
   // Product Filters
   const [categoryFilter, setCategoryFilter] = useState<any>("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
@@ -108,7 +109,7 @@ const BoutiqueDashboard = () => {
       });
     }
   }, [
-    activeTab,  // 👈 add this
+    activeTab,
     orderPage,
     debouncedOrderSearch,
     orderStatusFilter,
@@ -200,12 +201,19 @@ const BoutiqueDashboard = () => {
     }
   };
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: any, size) => {
+    if (!selectedSizes) {
+      toast({
+        title: 'Select Size',
+        description: "Please select a size",
+        variant: "destructive"
+      })
+    };
     if (product.stock === 0) {
       toast({ title: "Out of Stock", description: "This product is currently unavailable.", variant: "destructive" });
       return;
     }
-
+    
     addItem({
       productId: product.id,
       variantId: product.itemCodeId,
@@ -457,7 +465,7 @@ const BoutiqueDashboard = () => {
               <CardHeader className="pb-3">
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col sm:flex-row gap-3 justify-between">
-                    <CardTitle className="text-lg">Product Catalog</CardTitle>
+                    <CardTitle className="text-lg">Product catalogue</CardTitle>
                     <p className="text-sm text-muted-foreground">{products?.length} products</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
@@ -577,7 +585,7 @@ const BoutiqueDashboard = () => {
                   {products.length === 0 ? (
                     <p className="col-span-full text-center text-muted-foreground">No products available</p>
                   ) : null}
-                  {products.map((product) => {
+                  {products?.map((product: any) => {
                     // const priceInfo = getProductPrice(product.id);
                     const priceInfo = product.sellingPrice > 0;
                     return (
@@ -587,17 +595,17 @@ const BoutiqueDashboard = () => {
                             <img src={product.image || NO_IMAGE} alt={product.name} className="w-full h-full object-cover" />
                           </Link>
                           <Badge className="absolute top-2 right-2 bg-warm-brown">{product.category}</Badge>
-                          <Badge className="absolute top-2 left-2 bg-green-600">
+                          {/* <Badge className="absolute top-2 left-2 bg-green-600">
                             <Percent className="h-3 w-3 mr-1" />{product.discount ?? 0}% off
-                          </Badge>
+                          </Badge> */}
                           {product.stock === 0 && (
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                               <Badge variant="destructive">Out of Stock</Badge>
                             </div>
                           )}
-                          {product.stock > 0 && product.stock <= 10 && (
+                          {/* {product.stock > 0 && product.stock <= 10 && (
                             <Badge className="absolute bottom-2 left-2 bg-yellow-500">Only {product.stock} left</Badge>
-                          )}
+                          )} */}
                           <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="secondary" size="icon" className="h-8 w-8" onClick={() => handleDownloadImage(product)}>
                               <Image className="h-4 w-4" />
@@ -613,11 +621,20 @@ const BoutiqueDashboard = () => {
                           </Link>
                           <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{product?.subcategory ?? "No Subcategory"}</p>
                           <div className="flex items-center justify-between mb-1 sm:mb-2">
+                            {/* <div className="flex gap-1.5 mb-2">
+                              {product?.size?.map((color, index) => (
+                                <div
+                                  key={index}
+                                  className="w-3.5 h-3.5 rounded-full border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
+                                  style={{ backgroundColor: color }}
+                                />
+                              ))}
+                            </div> */}
                             <div>
                               <p className="text-[10px] sm:text-xs text-muted-foreground">Your Price</p>
                               <p className="text-sm sm:text-lg font-bold text-brand-orange">₹{product?.adminPrice ?? 0}</p>
                             </div>
-                            <Badge variant="outline" className="text-[10px] sm:text-xs">Stock: {product?.stock ?? 0}</Badge>
+                            {/* <Badge variant="outline" className="text-[10px] sm:text-xs">Stock: {product?.stock ?? 0}</Badge> */}
                           </div>
                           {priceInfo ? (
                             <div className="bg-green-50 border border-green-200 rounded-lg p-2 mb-3">
@@ -642,16 +659,50 @@ const BoutiqueDashboard = () => {
                               <p className="text-xs text-yellow-700">Set selling price to show on brand page</p>
                             </div>
                           )}
+                          <div className="mb-2">
+                            <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">
+                              Select Size
+                            </p>
+
+                            <div className="flex flex-wrap gap-1.5">
+                              {/* {console.log(product?.size, 'product size')} */}
+                              {product?.size?.map((size: string, index: number) => (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  // onClick={() => setSelectedSize(index)}
+                                  onClick={() =>
+                                    setSelectedSizes((prev) => ({
+                                      ...prev,
+                                      [product.id]: size,
+                                    }))
+                                  }
+                                  className={`min-w-[32px] px-2 py-1 text-[10px] sm:text-xs font-semibold rounded-md border transition-all
+          ${selectedSizes[product.id] === size
+                                      ? "bg-brand-orange text-white border-brand-orange"
+                                      : "bg-white text-gray-700 border-gray-300 hover:border-brand-orange hover:text-brand-orange"
+                                    }
+        `}
+                                >
+                                  {size.toUpperCase()}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                           <div className="flex gap-1 sm:gap-2 mb-1 sm:mb-2">
                             <Button variant={priceInfo ? "outline" : "brand"} size="sm" className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-3" onClick={() => handleUpdatePrice(product)}>
                               <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" /> <span className="hidden sm:inline">{priceInfo ? "Update Price" : "Set Price"}</span><span className="sm:hidden">{priceInfo ? "Price" : "Set"}</span>
                             </Button>
+
                             <Button
                               variant="brand"
                               size="sm"
                               className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-3"
-                              onClick={() => handleAddToCart(product)}
-                              disabled={product.stock === 0}
+                              // onClick={() => handleAddToCart(product)}
+                              onClick={() =>
+                                handleAddToCart(product, selectedSizes[product.id])
+                              }
+                              disabled={!selectedSizes[product.id] || product.stock === 0}
                             >
                               <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" />
                               <span className="hidden sm:inline">Add to Cart</span>

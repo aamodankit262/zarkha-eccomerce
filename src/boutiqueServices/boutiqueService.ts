@@ -20,15 +20,25 @@ export interface BoutiqueProductCategory {
 }
 export interface BoutiqueProduct {
   _id: string;
+  item_ids: string[];
+  size: string[];
   product_id: string;
-  share_link: string;
-  name: string;
-  images?: any[];
-  mrp?: number;
-  msp?: number;
-  rating?: number;
-  earning_per_sale?: number;
-  commission_percentage?: number;
+  product_title: string;
+  short_description: string;
+  category: string;
+  subcategory: string;
+  category_id: string;
+  image: string;
+  stock: number| null;
+  design_code: string;
+  base_cost_price: number | any;
+  category_percentage: number | any;
+  boutique_cost_price: number | any;
+  selling_price: number | any;
+  profit:  number |any;
+  mrp: any;
+  discount: number | any;
+  selling_price_updated_at:  string | any;
 }
 
 export interface BoutiqueProductCategoryResponse {
