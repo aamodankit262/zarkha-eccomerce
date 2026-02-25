@@ -163,6 +163,17 @@ export interface AddToCartResponse {
   message: string;
   body: any | null,
 }
+export interface CartUpdate {
+  product_id: string;
+  item_id: string;
+  size?: string;
+  quantity: number,
+}
+export interface CartRemove {
+  product_id?: string;
+  item_id?: string;
+  clear?: boolean
+}
 export interface GetCartResponse {
   success: boolean;
   message: string;
@@ -176,33 +187,6 @@ export interface CreatePaymentOrderPayload {
   cart_id?: string;
 }
 
-// export interface CreatePaymentOrderPayload {
-//   items: {
-//     product_id: string;
-//     item_id: string;
-//     quantity: number;
-//     selling_price: number;
-//   }[];
-
-//   customer: {
-//     name: string;
-//     phone: string;
-//     email: string;
-//   };
-
-//   shipping_address: {
-//     first_name: string;
-//     last_name: string;
-//     address: string;
-//     city: string;
-//     state: string;
-//     pin_code: string;
-//     country: string;
-//     phone: string;
-//   };
-
-//   customer_notes: string;
-// }
 
 export interface CreatePaymentOrderResponse {
   success: boolean;
@@ -336,6 +320,13 @@ export const boutiqueService = {
   getCart: async (id?: string) => {
     return apiClient.post<GetCartResponse>(`${API_ENDPOINTS.BOUTIQUE.GET_CART}`);
   },
+  cartUpdate: async (payload: CartUpdate) => {
+    return apiClient.post(API_ENDPOINTS.BOUTIQUE.UPDATE_CART, payload)
+  },
+  cartRemove: async (payload: CartRemove) => {
+    return apiClient.post(API_ENDPOINTS.BOUTIQUE.CLEAR_CART, payload)
+  },
+
   /** CREATE RAZORPAY ORDER */
   createPaymentOrder: async (
     payload: CreatePaymentOrderPayload

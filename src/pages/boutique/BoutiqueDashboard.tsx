@@ -91,11 +91,11 @@ const BoutiqueDashboard = () => {
     }
   }, [isLoggedIn, navigate]);
 
-  // useEffect(() => {
-  //   if (isLoggedIn) {
-  //     fetchCart()
-  //   }
-  // }, [isLoggedIn]);
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchCart()
+    }
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (isLoggedIn && activeTab === "orders") {
