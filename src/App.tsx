@@ -36,6 +36,7 @@ import { ResellerProvider } from "./contexts/contexts/ResellerContext";
 import { ResellerCartProvider } from "./contexts/contexts/ResellerCartContext";
 import ResellerLogin from "./pages/reseller/ResellerLogin";
 import ResellerDashboard from "./pages/reseller/ResellerDashboard";
+import BoutiqueProductDetails from "./pages/boutique/BoutiqueProductDetails";
 
 const Index = lazy(() => import("./pages/Index"));
 const ProductListingPage = lazy(() => import("./components/ecommerce/ProductListing"));
@@ -93,6 +94,7 @@ const AppContent = () => {
           <Route path="/affiliate/login" element={<PartnerLogin />} />
           <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
           <Route path="/boutique" element={<PartnerLanding />} />
+          <Route path="/boutique/:id" element={<BoutiqueProductDetails/>} />
           <Route path="/boutique/login" element={<PartnerLogin />} />
           <Route path="/boutique/dashboard" element={<BoutiqueDashboard />} />
           <Route path="/boutique/checkout" element={<BoutiqueCheckoutPage />} />

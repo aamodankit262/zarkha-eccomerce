@@ -29,16 +29,16 @@ export interface BoutiqueProduct {
   subcategory: string;
   category_id: string;
   image: string;
-  stock: number| null;
+  stock: number | null;
   design_code: string;
   base_cost_price: number | any;
   category_percentage: number | any;
   boutique_cost_price: number | any;
   selling_price: number | any;
-  profit:  number |any;
+  profit: number | any;
   mrp: any;
   discount: number | any;
-  selling_price_updated_at:  string | any;
+  selling_price_updated_at: string | any;
 }
 
 export interface BoutiqueProductCategoryResponse {
@@ -285,6 +285,18 @@ export interface CurationPayload {
   description: string;
   product_ids: string[];
 };
+export interface CurationUpdatePayload {
+  _id?: string;
+  name?: string;
+  description: string;
+  product_ids: string[];
+};
+export interface salesPayload {
+  period?: string;
+  start_date?: string;
+  end_date: string;
+  target_amount: number;
+};
 
 export const boutiqueService = {
 
@@ -305,7 +317,23 @@ export const boutiqueService = {
       payload
     );
   },
-
+  getProductDetails: async ({
+    productId,
+    itemId,
+    affiliateId,
+  }: {
+    productId: string;
+    itemId?: string;
+    affiliateId?: string;
+  }): Promise<any> => {
+    return await apiClient.post<any>(
+      API_ENDPOINTS.BOUTIQUE.PRODUCT_DETAILS,
+      {
+        product_id: productId,
+        item_id: itemId,
+      }
+    );
+  },
   boutiqueCategoryList: async () => {
     return apiClient.get(API_ENDPOINTS.BOUTIQUE.CategoryList);
   },
@@ -373,12 +401,9 @@ export const boutiqueService = {
 
   /** VIEW ORDER DETAILS */
   getOrderDetails: async (orderId: string) => {
-    const formData = new FormData();
-    formData.append("order_id", orderId);
-
     const res = await apiClient.post(
-      API_ENDPOINTS.ORDERS.VIEW,
-      formData
+      API_ENDPOINTS.BOUTIQUE.ORDER_DETAILS,
+      { order_id: orderId }
     );
 
     return res;
@@ -396,6 +421,40 @@ export const boutiqueService = {
   CurationsAdd: async (payload: CurationPayload) => {
     const res = await apiClient.post(
       API_ENDPOINTS.BOUTIQUE.CURATION_ADD,
+      payload
+    );
+
+    return res;
+  },
+  CurationsDelete: async (id: string) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.BOUTIQUE.CURATIONS_DELETE,
+      { _id: id }
+    );
+
+    return res;
+  },
+  CurationsUpdate: async (payload: CurationUpdatePayload) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.BOUTIQUE.CURATIONS_UPDATE,
+      payload
+    );
+
+    return res;
+  },
+  CurationsDetails: async (id: string) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.BOUTIQUE.CURATIONS_DETAILS,
+      {
+        _id: id
+      }
+    );
+
+    return res;
+  },
+  getAnalyticsSales: async (payload: salesPayload) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.BOUTIQUE.ANALYTICS_sales,
       payload
     );
 

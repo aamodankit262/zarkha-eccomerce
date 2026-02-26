@@ -23,6 +23,11 @@ import dayjs from "dayjs";
 import { useBoutique } from "@/contexts/BoutiqueContext";
 import { NO_IMAGE } from "@/api/endpoints";
 import Pagination from "../ecommerce/Pagination";
+import { useProductFilters } from "@/hooks/useProductFilters";
+import { boutiqueProducts } from "@/data/product";
+import ProductFilters from "./ProductFilters";
+import { industryService } from "@/services/industryService";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export interface Curation {
   _id: string;
@@ -65,15 +70,46 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
   const { toast } = useToast();
   const { isLoggedIn } = useBoutique();
 
-  const [curations, setCurations] = useState<Curation[]>(() => {
-    const stored = localStorage.getItem('boutique_curations');
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [curations, setCurations] = useState<Curation[]>([]);
+  // const [curations, setCurations] = useState<Curation[]>(() => {
+  //   const stored = localStorage.getItem('boutique_curations');
+  //   return stored ? JSON.parse(stored) : [];
+  // });
+  // api hooks
   const { data: curationRes, request: fetchCurationList } = useApi(boutiqueService.getCurationsList)
+  const { data: detailsRes, request: fetchCurationDetails } = useApi(boutiqueService.CurationsDetails)
+  const {
+    data: productRes,
+    request: fetchProducts,
+  } = useApi(boutiqueService.productList);
+  const { data: categories, request: fetchCategories } = useApi(industryService.getCat);
+  const { data: subcategories, request: fetchSubCategories } = useApi(industryService.getSubCat);
+
+  const {
+    apiParams,
+    clearFilters,
+    priceRange,
+    setPriceRange,
+    categoryFilter,
+    setCategoryFilter,
+    subcategoryFilter,
+    setSubcategoryFilter,
+    discountFilter,
+    setDiscountFilter,
+    stockFilter,
+    setStockFilter,
+    page,
+    search,
+    setSearch,
+    setPage
+  } = useProductFilters();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingCuration, setEditingCuration] = useState<Curation | null>(null);
   const [newCuration, setNewCuration] = useState({ name: '', description: '', productIds: [] as string[] });
   const [viewingCuration, setViewingCuration] = useState<Curation | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  // const debouncedSearch = useDebounce(searchQuery, 500);
+  // const debouncedPrice = useDebounce(priceRange, 500);
 
   // Product selection filters
   const [selectionSearch, setSelectionSearch] = useState("");
@@ -84,17 +120,15 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
   const [orderPage, setOrderPage] = useState(1);
   const orderLimit = 10;
 
-  const categories = [...new Set(products.map(p => p.category))];
-  const availableSubcategories = selectionCategory !== "all" ? (SUBCATEGORIES[selectionCategory] || []) : [];
+  const filteredSelectionProducts = boutiqueProducts(productRes?.body) || [];
 
-  const filteredSelectionProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(selectionSearch.toLowerCase()) ||
-      p.category.toLowerCase().includes(selectionSearch.toLowerCase());
-    const matchesCategory = selectionCategory === "all" || p.category === selectionCategory;
-    const matchesSubcategory = selectionSubcategory === "all" || p.subcategory === selectionSubcategory;
-    const matchesPrice = p.adminPrice >= selectionPriceRange[0] && p.adminPrice <= selectionPriceRange[1];
-    return matchesSearch && matchesCategory && matchesSubcategory && matchesPrice;
-  });
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchProducts(apiParams);
+    }
+  }, [apiParams, isLoggedIn,]);
+
+
   useEffect(() => {
     if (isLoggedIn) {
       fetchCurationList({
@@ -105,10 +139,26 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
   }, [isLoggedIn, orderPage]);
 
   useEffect(() => {
+    if (detailsRes) {
+      setViewingCuration(detailsRes?.body)
+    }
+  }, [detailsRes]);
+
+
+  useEffect(() => {
     if (!curationRes?.body) return;
-    setCurations(body);
-  }, [curationRes])
-  const body = curationRes?.body || []
+    setCurations(curationRes.body);
+  }, [curationRes]);
+
+  useEffect(() => {
+    if (showSelectionFilters) {
+      fetchCategories();
+    }
+  }, [showSelectionFilters]);
+
+  useEffect(() => {
+    if (categoryFilter !== "all") fetchSubCategories(categoryFilter);
+  }, [categoryFilter]);
   const pagination = curationRes?.pagination
   // logger.log('curationList,' , body)
   const clearSelectionFilters = () => {
@@ -118,78 +168,92 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
     setSelectionPriceRange([0, 15000]);
   };
 
-  // const saveCurations = (updated: Curation[]) => {
-  //   setCurations(updated);
-  //   localStorage.setItem('boutique_curations', JSON.stringify(updated));
-  // };
-
+  
   const handleCreate = async () => {
     if (!newCuration.name) {
       toast({ title: "Error", description: "Please enter a curation name", variant: "destructive" });
       return;
     }
+
     if (newCuration.productIds.length === 0) {
       toast({ title: "Error", description: "Select at least one product", variant: "destructive" });
       return;
     }
-    // const curation: Curation = {
-    //   _id: `CUR${Date.now()}`,
-    //   name: newCuration.name,
-    //   description: newCuration.description,
-    //   product_ids: newCuration.productIds,
-    //   // product_count: newCuration.productIds,
-    //   // product_details: newCuration.pr,
-    //   created_at: new Date().toISOString().split('T')[0],
-    //   coverImage: products.find(p => p.id === newCuration.productIds[0])?.image
-    // };
 
     try {
       const payload = {
         name: newCuration.name,
         description: newCuration.description,
         product_ids: newCuration.productIds,
-      }
-      const res: any = await boutiqueService.CurationsAdd(payload)
-      logger.log('curation add', res);
-      const { success, message, body } = res
-      if (success) {
-        setCurations([...curations, body]);
-        toast({
-          title: `${message}` || "Curation Created!",
-          description: `"${newCuration.name}" with ${newCuration.productIds.length} products.`
+      };
+
+      let res;
+
+      if (editingCuration) {
+        // ✅ UPDATE API
+        res = await boutiqueService.CurationsUpdate({
+          _id: editingCuration._id,
+          ...payload,
         });
+      } else {
+        // ✅ CREATE API
+        res = await boutiqueService.CurationsAdd(payload);
       }
-    } catch (error) {
+
+      const { success, message, body } = res;
+
+      if (success) {
+        toast({ title: message });
+
+        // Refresh list from API
+        fetchCurationList({
+          page: orderPage,
+          limit: orderLimit,
+        });
+
+        setShowCreateDialog(false);
+        setEditingCuration(null);
+        setNewCuration({ name: "", description: "", productIds: [] });
+      }
+    } catch (error: any) {
       toast({
-        title: "Error!",
-        description: error.response.data.error || error.response.data.message
+        title: "Error",
+        description: error?.response?.data?.message || "Something went wrong",
+        variant: "destructive",
       });
     }
-
-    if (editingCuration) {
-      // saveCurations(curations?.map(c => c._id === editingCuration._id ? { ...curation, _id: editingCuration._id, createdAt: editingCuration.created_at } : c));
-      toast({ title: "Curation Updated!", description: `"${newCuration.name}" has been updated.` });
-    } else {
-      // saveCurations([...curations, curation]);
-      toast({ title: "Curation Created!", description: `"${newCuration.name}" with ${newCuration.productIds.length} products.` });
-    }
-
-    setShowCreateDialog(false);
-    setEditingCuration(null);
-    setNewCuration({ name: '', description: '', productIds: [] });
-    clearSelectionFilters();
   };
 
-  const handleEdit = (curation: Curation) => {
+  const handleEdit = async (curation: Curation) => {
     setEditingCuration(curation);
     setNewCuration({ name: curation.name, description: curation.description, productIds: curation.product_ids });
     clearSelectionFilters();
     setShowCreateDialog(true);
   };
 
-  const handleDelete = (id: string) => {
-    // saveCurations(curations.filter(c => c._id !== id));
-    toast({ title: "Deleted", description: "Curation removed." });
+  const handleDelete = async (id: string) => {
+    try {
+      const res: any = await boutiqueService.CurationsDelete(id);
+
+      if (res.success) {
+        toast({
+          title: "Deleted",
+          description: res.message || "Curation removed successfully",
+        });
+
+        // Refresh list
+        fetchCurationList({
+          page: orderPage,
+          limit: orderLimit,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Delete failed",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleProduct = (productId: string) => {
@@ -272,7 +336,7 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
               <Layers className="h-5 w-5 text-brand-orange" />
-              My Curations
+              {/* My Curations */}
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Create custom product catalogues</p>
           </div>
@@ -321,7 +385,16 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
                     )}
                     <p className="text-xs text-muted-foreground">Created: {dayjs(curation.created_at).format('DD/MM/YYYY')}</p>
                     <div className="flex gap-1 pt-1">
-                      <Button variant="outline" size="sm" className="flex-1" onClick={() => setViewingCuration(curation)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        // onClick={() => setViewingCuration(curation)}
+                        onClick={() => {
+                          setViewingCuration(curation);
+                          fetchCurationDetails(curation._id); // 👈 send id
+                        }}
+                      >
                         <Eye className="h-3 w-3 mr-1" /> View
                       </Button>
                       <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleEdit(curation)}>
@@ -385,7 +458,11 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
                   <Button variant="ghost" size="sm" onClick={() => setShowSelectionFilters(!showSelectionFilters)}>
                     <Filter className="h-4 w-4 mr-1" /> Filters
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setNewCuration(prev => ({ ...prev, productIds: prev.productIds.length === filteredSelectionProducts.length ? [] : filteredSelectionProducts.map(p => p.id) }))}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setNewCuration(prev => ({ ...prev, productIds: prev.productIds.length === filteredSelectionProducts?.length ? [] : filteredSelectionProducts?.map(p => p.id) }))}
+                  >
                     {newCuration.productIds.length === filteredSelectionProducts.length ? 'Deselect All' : 'Select All'}
                   </Button>
                 </div>
@@ -394,56 +471,71 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
+                {/* <Input
                   placeholder="Search products..."
                   value={selectionSearch}
                   onChange={(e) => setSelectionSearch(e.target.value)}
                   className="pl-9"
-                />
+                /> */}
+                <Input
+                  placeholder="Search products..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9" />
               </div>
 
               {/* Filters */}
               {showSelectionFilters && (
-                <div className="bg-muted/50 p-3 rounded-lg space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Filters</span>
-                    <Button variant="ghost" size="sm" onClick={clearSelectionFilters}>
-                      <X className="h-3 w-3 mr-1" /> Clear
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Category</Label>
-                      <Select value={selectionCategory} onValueChange={(v) => { setSelectionCategory(v); setSelectionSubcategory("all"); }}>
-                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="All" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Subcategory</Label>
-                      <Select value={selectionSubcategory} onValueChange={setSelectionSubcategory} disabled={selectionCategory === "all"}>
-                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder={selectionCategory === "all" ? "Select category" : "All"} /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Subcategories</SelectItem>
-                          {availableSubcategories.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Price: ₹{selectionPriceRange[0]} - ₹{selectionPriceRange[1]}</Label>
-                      <Slider value={selectionPriceRange} onValueChange={setSelectionPriceRange} min={0} max={15000} step={100} className="mt-1" />
-                    </div>
-                  </div>
-                </div>
+                <ProductFilters
+                  priceRange={priceRange}
+                  setPriceRange={setPriceRange}
+                  categoryFilter={categoryFilter}
+                  categories={categories}
+                  subcategories={subcategories}
+                  setSubcategoryFilter={setSubcategoryFilter}
+                  setCategoryFilter={setCategoryFilter}
+                  clearFilters={clearFilters}
+                />
+                // <div className="bg-muted/50 p-3 rounded-lg space-y-3">
+                //   <div className="flex items-center justify-between">
+                //     <span className="text-sm font-medium">Filters</span>
+                //     <Button variant="ghost" size="sm" onClick={clearSelectionFilters}>
+                //       <X className="h-3 w-3 mr-1" /> Clear
+                //     </Button>
+                //   </div>
+                //   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                //     <div className="space-y-1">
+                //       <Label className="text-xs">Category</Label>
+                //       <Select value={selectionCategory} onValueChange={(v) => { setSelectionCategory(v); setSelectionSubcategory("all"); }}>
+                //         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="All" /></SelectTrigger>
+                //         <SelectContent>
+                //           <SelectItem value="all">All Categories</SelectItem>
+                //           {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                //         </SelectContent>
+                //       </Select>
+                //     </div>
+                //     <div className="space-y-1">
+                //       <Label className="text-xs">Subcategory</Label>
+                //       <Select value={selectionSubcategory} onValueChange={setSelectionSubcategory} disabled={selectionCategory === "all"}>
+                //         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder={selectionCategory === "all" ? "Select category" : "All"} /></SelectTrigger>
+                //         <SelectContent>
+                //           <SelectItem value="all">All Subcategories</SelectItem>
+                //           {availableSubcategories.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
+                //         </SelectContent>
+                //       </Select>
+                //     </div>
+                //     <div className="space-y-1">
+                //       <Label className="text-xs">Price: ₹{selectionPriceRange[0]} - ₹{selectionPriceRange[1]}</Label>
+                //       <Slider value={selectionPriceRange} onValueChange={setSelectionPriceRange} min={0} max={15000} step={100} className="mt-1" />
+                //     </div>
+                //   </div>
+                // </div>
               )}
 
               <p className="text-xs text-muted-foreground">{filteredSelectionProducts.length} products shown</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
-                {filteredSelectionProducts.map(product => (
+                {filteredSelectionProducts?.map(product => (
                   <div
                     key={product.id}
                     className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-colors ${newCuration.productIds.includes(product.id) ? 'border-brand-orange bg-brand-orange/5' : 'hover:bg-muted'}`}
@@ -466,6 +558,14 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
               </Button>
             </div>
           </div>
+          {productRes?.total_pages > 1 && (
+            <Pagination
+              currentPage={productRes?.current_page}
+              totalPages={productRes?.total_pages}
+              onPageChange={setPage}
+            // onPageChange={(page) => setPage(page)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
@@ -486,7 +586,18 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
                 <p className="text-sm text-muted-foreground">{viewingCuration.description}</p>
               )}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {products.filter(p => viewingCuration.product_ids.includes(p.id)).map(product => (
+                {viewingCuration?.product_details?.map((product: any) => (
+                  <Card key={product._id} className="overflow-hidden">
+                    <img src={product.image} alt={product?.product_title} className="w-full aspect-square object-cover" />
+                    <CardContent className="p-2">
+                      <p className="text-xs font-medium truncate">{product.product_title}</p>
+                      <p className="text-xs text-muted-foreground">{product.category}</p>
+                      <p className="text-xs text-brand-orange font-bold">₹{product.boutique_cost_price}</p>
+                      {/* <p className="text-xs text-muted-foreground">Stock: {product.stock > 0 ? product.stock : 'Out'}</p> */}
+                    </CardContent>
+                  </Card>
+                ))}
+                {/* {products.filter(p => viewingCuration.product_ids.includes(p.id)).map(product => (
                   <Card key={product.id} className="overflow-hidden">
                     <img src={product.image} alt={product.name} className="w-full aspect-square object-cover" />
                     <CardContent className="p-2">
@@ -496,7 +607,7 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
                       <p className="text-xs text-muted-foreground">Stock: {product.stock > 0 ? product.stock : 'Out'}</p>
                     </CardContent>
                   </Card>
-                ))}
+                ))} */}
               </div>
             </>
           )}

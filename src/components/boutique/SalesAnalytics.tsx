@@ -2,26 +2,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  TrendingUp, TrendingDown, IndianRupee, ShoppingCart, Package, 
-  Users, Calendar, ArrowUpRight, ArrowDownRight, BarChart3, 
+import {
+  TrendingUp, TrendingDown, IndianRupee, ShoppingCart, Package,
+  Users, Calendar, ArrowUpRight, ArrowDownRight, BarChart3,
   PieChart, LineChart, Target
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, Legend
 } from "recharts";
+import { useApi } from "@/hooks/useApi";
+import { boutiqueService } from "@/boutiqueServices/boutiqueService";
+import { useBoutique } from "@/contexts/BoutiqueContext";
+import { logger } from "@/helper/logger";
 
-const salesData = [
-  { month: 'Jan', sales: 45000, orders: 32, profit: 12500 },
-  { month: 'Feb', sales: 52000, orders: 38, profit: 14200 },
-  { month: 'Mar', sales: 48000, orders: 35, profit: 13100 },
-  { month: 'Apr', sales: 61000, orders: 45, profit: 16800 },
-  { month: 'May', sales: 55000, orders: 40, profit: 15200 },
-  { month: 'Jun', sales: 67000, orders: 52, profit: 18500 },
-  { month: 'Jul', sales: 72000, orders: 58, profit: 20100 },
-];
+// const salesData = ;
+// const salesData = [
+//   { month: 'Jan', sales: 45000, orders: 32, profit: 12500 },
+//   { month: 'Feb', sales: 52000, orders: 38, profit: 14200 },
+//   { month: 'Mar', sales: 48000, orders: 35, profit: 13100 },
+//   { month: 'Apr', sales: 61000, orders: 45, profit: 16800 },
+//   { month: 'May', sales: 55000, orders: 40, profit: 15200 },
+//   { month: 'Jun', sales: 67000, orders: 52, profit: 18500 },
+//   { month: 'Jul', sales: 72000, orders: 58, profit: 20100 },
+// ];
 
 const categoryData = [
   { name: 'Lehengas', value: 35, color: '#FF6B35' },
@@ -41,21 +46,43 @@ const topProducts = [
 
 const SalesAnalytics = () => {
   const [timeRange, setTimeRange] = useState("7d");
+  const { data, request } = useApi(boutiqueService.getAnalyticsSales)
+  const { isLoggedIn } = useBoutique()
+  useEffect(() => {
+    if (isLoggedIn) {
 
-  const stats = {
-    totalSales: 400000,
-    salesGrowth: 15.2,
-    totalOrders: 285,
-    ordersGrowth: 8.5,
-    totalProfit: 110400,
-    profitGrowth: 12.3,
-    avgOrderValue: 1404,
-    aovGrowth: 6.2,
-    totalCustomers: 198,
-    customersGrowth: 22.1,
-    conversionRate: 3.8,
-    conversionGrowth: 0.5
-  };
+      request();
+    }
+  }, [isLoggedIn])
+
+  const salesBody = data?.body;
+  const stats = salesBody?.kpis;
+  const salesData = salesBody?.sales_profit_trend || [];
+  // const salesData = salesBody?.sales_profit_trend?.map(item => ({
+  //   month: item.date,
+  //   sales: item.sales,
+  //   profit: item.profit
+  // })) || [];
+  const orderTrend = salesBody?.orders_trend || [];
+  const categoryData = salesBody?.sales_by_category || [];
+  const topProducts = salesBody?.top_selling_products || [];
+  const insights = salesBody?.quick_insights;
+  // const orderTre
+  logger.log(stats, 'sales body');
+  // const stats = {
+  //   totalSales: 400000,
+  //   salesGrowth: 15.2,
+  //   totalOrders: 285,
+  //   ordersGrowth: 8.5,
+  //   totalProfit: 110400,
+  //   profitGrowth: 12.3,
+  //   avgOrderValue: 1404,
+  //   aovGrowth: 6.2,
+  //   totalCustomers: 198,
+  //   customersGrowth: 22.1,
+  //   conversionRate: 3.8,
+  //   conversionGrowth: 0.5
+  // };
 
   return (
     <div className="space-y-6">
@@ -82,14 +109,14 @@ const SalesAnalytics = () => {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
+            {/* <div className="flex items-center justify-between mb-2">
               <IndianRupee className="h-4 w-4 text-muted-foreground" />
               <Badge variant={stats.salesGrowth >= 0 ? "default" : "destructive"} className="text-xs">
                 {stats.salesGrowth >= 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
                 {Math.abs(stats.salesGrowth)}%
               </Badge>
-            </div>
-            <p className="text-2xl font-bold">₹{(stats.totalSales / 1000).toFixed(0)}K</p>
+            </div> */}
+            <p className="text-2xl font-bold">₹{((stats?.total_sales ?? 0) / 1000).toFixed(0)}K</p>
             <p className="text-xs text-muted-foreground">Total Sales</p>
           </CardContent>
         </Card>
@@ -98,12 +125,12 @@ const SalesAnalytics = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-              <Badge variant={stats.ordersGrowth >= 0 ? "default" : "destructive"} className="text-xs">
+              {/* <Badge variant={stats?.ordersGrowth >= 0 ? "default" : "destructive"} className="text-xs">
                 {stats.ordersGrowth >= 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
                 {Math.abs(stats.ordersGrowth)}%
-              </Badge>
+              </Badge> */}
             </div>
-            <p className="text-2xl font-bold">{stats.totalOrders}</p>
+            <p className="text-2xl font-bold">{stats?.total_orders}</p>
             <p className="text-xs text-muted-foreground">Total Orders</p>
           </CardContent>
         </Card>
@@ -112,12 +139,12 @@ const SalesAnalytics = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              <Badge variant={stats.profitGrowth >= 0 ? "default" : "destructive"} className="text-xs">
+              {/* <Badge variant={stats.profitGrowth >= 0 ? "default" : "destructive"} className="text-xs">
                 {stats.profitGrowth >= 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
                 {Math.abs(stats.profitGrowth)}%
-              </Badge>
+              </Badge> */}
             </div>
-            <p className="text-2xl font-bold">₹{(stats.totalProfit / 1000).toFixed(0)}K</p>
+            <p className="text-2xl font-bold">₹{(stats?.total_profit / 1000).toFixed(0)}K</p>
             <p className="text-xs text-muted-foreground">Total Profit</p>
           </CardContent>
         </Card>
@@ -126,12 +153,12 @@ const SalesAnalytics = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <Package className="h-4 w-4 text-muted-foreground" />
-              <Badge variant={stats.aovGrowth >= 0 ? "default" : "destructive"} className="text-xs">
+              {/* <Badge variant={stats.aovGrowth >= 0 ? "default" : "destructive"} className="text-xs">
                 {stats.aovGrowth >= 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
                 {Math.abs(stats.aovGrowth)}%
-              </Badge>
+              </Badge> */}
             </div>
-            <p className="text-2xl font-bold">₹{stats.avgOrderValue}</p>
+            <p className="text-2xl font-bold">₹{stats?.avg_order_value}</p>
             <p className="text-xs text-muted-foreground">Avg. Order Value</p>
           </CardContent>
         </Card>
@@ -140,12 +167,12 @@ const SalesAnalytics = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <Users className="h-4 w-4 text-muted-foreground" />
-              <Badge variant={stats.customersGrowth >= 0 ? "default" : "destructive"} className="text-xs">
+              {/* <Badge variant={stats.customersGrowth >= 0 ? "default" : "destructive"} className="text-xs">
                 {stats.customersGrowth >= 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
                 {Math.abs(stats.customersGrowth)}%
-              </Badge>
+              </Badge> */}
             </div>
-            <p className="text-2xl font-bold">{stats.totalCustomers}</p>
+            <p className="text-2xl font-bold">{stats?.customers}</p>
             <p className="text-xs text-muted-foreground">Customers</p>
           </CardContent>
         </Card>
@@ -154,12 +181,12 @@ const SalesAnalytics = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <Target className="h-4 w-4 text-muted-foreground" />
-              <Badge variant={stats.conversionGrowth >= 0 ? "default" : "destructive"} className="text-xs">
+              {/* <Badge variant={stats.conversionGrowth >= 0 ? "default" : "destructive"} className="text-xs">
                 {stats.conversionGrowth >= 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
                 {Math.abs(stats.conversionGrowth)}%
-              </Badge>
+              </Badge> */}
             </div>
-            <p className="text-2xl font-bold">{stats.conversionRate}%</p>
+            <p className="text-2xl font-bold">{stats?.conversion_rate}%</p>
             <p className="text-xs text-muted-foreground">Conversion Rate</p>
           </CardContent>
         </Card>
@@ -182,25 +209,25 @@ const SalesAnalytics = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={salesData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" fontSize={12} />
-                  <YAxis fontSize={12} tickFormatter={(value) => `₹${value/1000}K`} />
-                  <Tooltip 
+                  <XAxis dataKey="date" fontSize={12} />
+                  <YAxis fontSize={12} tickFormatter={(value) => `₹${value / 1000}K`} />
+                  <Tooltip
                     formatter={(value: number) => [`₹${value.toLocaleString()}`, '']}
                     labelStyle={{ color: '#333' }}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="sales" 
-                    stroke="#FF6B35" 
-                    fill="#FF6B35" 
+                  <Area
+                    type="monotone"
+                    dataKey="sales"
+                    stroke="#FF6B35"
+                    fill="#FF6B35"
                     fillOpacity={0.2}
                     name="Sales"
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="profit" 
-                    stroke="#4CAF50" 
-                    fill="#4CAF50" 
+                  <Area
+                    type="monotone"
+                    dataKey="profit"
+                    stroke="#4CAF50"
+                    fill="#4CAF50"
                     fillOpacity={0.2}
                     name="Profit"
                   />
@@ -230,10 +257,11 @@ const SalesAnalytics = () => {
                     outerRadius={80}
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ name, value }) => `${value}%`}
+                    // label={({ name, category_name }) => `${value}%`}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                   >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {categoryData?.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry?.color} />
                     ))}
                   </Pie>
                   <Legend />
@@ -258,7 +286,7 @@ const SalesAnalytics = () => {
           <CardContent>
             <div className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salesData}>
+                <BarChart data={orderTrend}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" fontSize={12} />
                   <YAxis fontSize={12} />
@@ -292,7 +320,7 @@ const SalesAnalytics = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-sm">₹{(product.revenue/1000).toFixed(1)}K</p>
+                    <p className="font-semibold text-sm">₹{(product.revenue / 1000).toFixed(1)}K</p>
                     <div className="flex items-center gap-1 text-xs">
                       {product.growth >= 0 ? (
                         <TrendingUp className="h-3 w-3 text-green-500" />
@@ -323,31 +351,35 @@ const SalesAnalytics = () => {
                 <TrendingUp className="h-4 w-4 text-green-600" />
                 <span className="text-sm font-medium text-green-800">Best Day</span>
               </div>
-              <p className="text-lg font-bold text-green-900">Saturday</p>
-              <p className="text-xs text-green-700">32% of weekly sales</p>
+              <p className="text-lg font-bold text-green-900">
+                {insights?.best_day?.day || "—"}
+              </p>
+              <p className="text-xs text-green-700">
+                {insights?.best_day?.percentage ?? 0}% of sales
+              </p>
             </div>
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Package className="h-4 w-4 text-blue-600" />
                 <span className="text-sm font-medium text-blue-800">Top Category</span>
               </div>
-              <p className="text-lg font-bold text-blue-900">Lehengas</p>
-              <p className="text-xs text-blue-700">35% of total sales</p>
+              <p className="text-lg font-bold text-blue-900">{insights?.top_category?.category_name}</p>
+              <p className="text-xs text-blue-700">{insights?.top_category?.percentage ?? 0}% of total sales</p>
             </div>
             <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="h-4 w-4 text-purple-600" />
                 <span className="text-sm font-medium text-purple-800">Repeat Customers</span>
               </div>
-              <p className="text-lg font-bold text-purple-900">42%</p>
+              <p className="text-lg font-bold text-purple-900">{insights?.repeat_customers?.percentage ?? 0}%</p>
               <p className="text-xs text-purple-700">Return within 90 days</p>
             </div>
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">  
               <div className="flex items-center gap-2 mb-2">
                 <Target className="h-4 w-4 text-orange-600" />
                 <span className="text-sm font-medium text-orange-800">Monthly Target</span>
               </div>
-              <p className="text-lg font-bold text-orange-900">78%</p>
+              <p className="text-lg font-bold text-orange-900">{insights?.monthly_target?.percentage ?? 0}%</p>
               <p className="text-xs text-orange-700">₹56K more to goal</p>
             </div>
           </div>

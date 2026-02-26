@@ -394,7 +394,7 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                 <Separator />
 
                 {/* Billing Address */}
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="sameAsShippingCart"
@@ -441,7 +441,7 @@ const BoutiqueCart = ({ isOpen, onClose }: BoutiqueCartProps) => {
                   )}
                 </div>
 
-                <Separator />
+                <Separator /> */}
 
                 {/* Order Summary */}
                 <Card className="bg-muted">
