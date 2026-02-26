@@ -591,7 +591,7 @@ const BoutiqueDashboard = () => {
                     return (
                       <Card key={product.id} className="overflow-hidden">
                         <div className="aspect-square relative group">
-                          <Link to={`/product/${product?.id}`}>
+                          <Link to={`/boutique/${product?.id}`}>
                             <img src={product.image || NO_IMAGE} alt={product.name} className="w-full h-full object-cover" />
                           </Link>
                           <Badge className="absolute top-2 right-2 bg-warm-brown">{product.category}</Badge>
@@ -616,7 +616,7 @@ const BoutiqueDashboard = () => {
                           </div>
                         </div>
                         <CardContent className="p-2 sm:p-3 md:p-4">
-                          <Link to={`/product/${product?.id}`} >
+                          <Link to={`/boutique/${product?.id}`} >
                             <h3 className="font-semibold text-warm-brown mb-1 text-xs sm:text-sm md:text-base line-clamp-2">{product.name}</h3>
                           </Link>
                           <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{product?.subcategory ?? "No Subcategory"}</p>

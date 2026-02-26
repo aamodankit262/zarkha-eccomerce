@@ -107,9 +107,16 @@ export const API_ENDPOINTS = {
     CREATE_ORDER: "/api/web/boutique/order/create",
     VARIFY_ORDER: "/api/web/boutique/order/verify",
     ORDER_LIST: "/api/web/boutique/orders/list",
+    ORDER_DETAILS: "/api/web/boutique/order/details",
     CURATION_ADD : "/api/web/boutique/curation/add",
     CURATIONS_LIST: "/api/web/boutique/curations/list",
+    CURATIONS_DETAILS: "/api/web/boutique/curation/view",
+    CURATIONS_UPDATE: "/api/web/boutique/curation/update",
+    CURATIONS_DELETE: "/api/web/boutique/curation/delete",
     PRODUCT_LIST: "/api/web/boutique/products/list",
+    PRODUCT_DETAILS: "/api/web/boutique/products/details",
+    SUPPORT_LIST: "/api/web/boutique/products/list",
+    ANALYTICS_sales: "/api/web/boutique/analytics/sales",
    
   }
 };

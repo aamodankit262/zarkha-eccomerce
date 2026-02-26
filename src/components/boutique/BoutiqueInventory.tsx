@@ -237,16 +237,16 @@ const BoutiqueInventory = ({ products }: BoutiqueInventoryProps) => {
     lowItems.forEach(item => {
       const product = products.find(p => p.id === item.productId);
       if (!product) return;
-      addItem({
-        id: product.id,
-        name: product.name,
-        image: product.image,
-        category: product.category,
-        adminPrice: product.adminPrice,
-        mrp: product.mrp,
-        discount: product.discount,
-        stock: product.stock,
-      });
+      // addItem({
+      //   id: product.id,
+      //   name: product.name,
+      //   image: product.image,
+      //   category: product.category,
+      //   adminPrice: product.adminPrice,
+      //   mrp: product.mrp,
+      //   discount: product.discount,
+      //   stock: product.stock,
+      // });
       // addItem({
       //   productId: product.id,
       //   variantId: product.itemCodeId,
