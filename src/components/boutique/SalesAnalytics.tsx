@@ -18,7 +18,7 @@ import { useBoutique } from "@/contexts/BoutiqueContext";
 import { logger } from "@/helper/logger";
 
 // const salesData = ;
-// const salesData = [
+// const   = [
 //   { month: 'Jan', sales: 45000, orders: 32, profit: 12500 },
 //   { month: 'Feb', sales: 52000, orders: 38, profit: 14200 },
 //   { month: 'Mar', sales: 48000, orders: 35, profit: 13100 },
@@ -45,27 +45,53 @@ const topProducts = [
 ];
 
 const SalesAnalytics = () => {
-  const [timeRange, setTimeRange] = useState("7d");
+  const [timeRange, setTimeRange] = useState("last_7_days");
   const { data, request } = useApi(boutiqueService.getAnalyticsSales)
-  const { isLoggedIn } = useBoutique()
+  const { isLoggedIn } = useBoutique();
   useEffect(() => {
     if (isLoggedIn) {
 
-      request();
+      request({
+        period: timeRange
+      });
     }
-  }, [isLoggedIn])
+  }, [isLoggedIn, timeRange])
 
   const salesBody = data?.body;
   const stats = salesBody?.kpis;
-  const salesData = salesBody?.sales_profit_trend || [];
-  // const salesData = salesBody?.sales_profit_trend?.map(item => ({
-  //   month: item.date,
-  //   sales: item.sales,
-  //   profit: item.profit
-  // })) || [];
-  const orderTrend = salesBody?.orders_trend || [];
-  const categoryData = salesBody?.sales_by_category || [];
-  const topProducts = salesBody?.top_selling_products || [];
+  // const salesData = salesBody?.sales_profit_trend || [];
+  const salesData =
+    salesBody?.sales_profit_trend?.map((item) => ({
+      month: item.label,        // use label from API
+      sales: item.sales,
+      profit: item.profit,
+      orders: item.orders,
+    })) || [];
+  // const orderTrend = salesBody?.orders_trend || [];
+  const orderTrend =
+    salesBody?.orders_trend?.map((item) => ({
+      month: item.label,
+      orders: item.orders,
+    })) || [];
+
+  // const categoryData = salesBody?.sales_by_category || [];
+  const categoryData =
+    salesBody?.sales_by_category?.map((item) => ({
+      name: item.category_name,
+      value: item.amount,
+      percentage: item.percentage,
+    })) || [];
+
+  // const topProducts = salesBody?.top_selling_products || [];
+  const topProducts =
+    salesBody?.top_selling_products?.map((item) => ({
+      id: item.product_id,
+      name: item.product_title,
+      sales: item.quantity_sold,
+      revenue: item.revenue,
+      growth: item.change_percent,
+    })) || [];
+
   const insights = salesBody?.quick_insights;
   // const orderTre
   logger.log(stats, 'sales body');
@@ -97,10 +123,14 @@ const SalesAnalytics = () => {
             <SelectValue placeholder="Time Range" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="7d">Last 7 Days</SelectItem>
+            {/* <SelectItem value="7d">Last 7 Days</SelectItem>
             <SelectItem value="30d">Last 30 Days</SelectItem>
             <SelectItem value="90d">Last 90 Days</SelectItem>
-            <SelectItem value="12m">Last 12 Months</SelectItem>
+            <SelectItem value="12m">Last 12 Months</SelectItem> */}
+            <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+            <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+            <SelectItem value="last_90_days">Last 90 Days</SelectItem>
+            <SelectItem value="last_12_months">Last 12 Months</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -144,7 +174,7 @@ const SalesAnalytics = () => {
                 {Math.abs(stats.profitGrowth)}%
               </Badge> */}
             </div>
-            <p className="text-2xl font-bold">₹{(stats?.total_profit / 1000).toFixed(0)}K</p>
+            <p className="text-2xl font-bold">₹{((stats?.total_profit ?? 0) / 1000).toFixed(0)}K</p>
             <p className="text-xs text-muted-foreground">Total Profit</p>
           </CardContent>
         </Card>
@@ -186,7 +216,7 @@ const SalesAnalytics = () => {
                 {Math.abs(stats.conversionGrowth)}%
               </Badge> */}
             </div>
-            <p className="text-2xl font-bold">{stats?.conversion_rate}%</p>
+            <p className="text-2xl font-bold">{stats?.conversion_rate ?? 0}%</p>
             <p className="text-xs text-muted-foreground">Conversion Rate</p>
           </CardContent>
         </Card>
@@ -209,7 +239,7 @@ const SalesAnalytics = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={salesData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" fontSize={12} />
+                  <XAxis dataKey="month" fontSize={12} />
                   <YAxis fontSize={12} tickFormatter={(value) => `₹${value / 1000}K`} />
                   <Tooltip
                     formatter={(value: number) => [`₹${value.toLocaleString()}`, '']}
@@ -257,7 +287,7 @@ const SalesAnalytics = () => {
                     outerRadius={80}
                     paddingAngle={2}
                     dataKey="value"
-                    // label={({ name, category_name }) => `${value}%`}
+                    // label={({ name, value }) => `${value}%`}
                     label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                   >
                     {categoryData?.map((entry, index) => (
@@ -265,7 +295,8 @@ const SalesAnalytics = () => {
                     ))}
                   </Pie>
                   <Legend />
-                  <Tooltip formatter={(value) => [`${value}%`, 'Share']} />
+                  {/* <Tooltip formatter={(value) => [`${value}%`, 'Share']} /> */}
+                  <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
                 </RechartsPieChart>
               </ResponsiveContainer>
             </div>
@@ -308,7 +339,7 @@ const SalesAnalytics = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {topProducts.map((product, idx) => (
+              {topProducts?.map((product, idx) => (
                 <div key={idx} className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-brand-orange/10 flex items-center justify-center text-sm font-bold text-brand-orange">
@@ -372,15 +403,16 @@ const SalesAnalytics = () => {
                 <span className="text-sm font-medium text-purple-800">Repeat Customers</span>
               </div>
               <p className="text-lg font-bold text-purple-900">{insights?.repeat_customers?.percentage ?? 0}%</p>
-              <p className="text-xs text-purple-700">Return within 90 days</p>
+              <p className="text-xs text-purple-700">Total : {insights?.repeat_customers?.count ?? 0}</p>
+              {/* <p className="text-xs text-purple-700">Return within 90 days</p> */}
             </div>
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">  
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="h-4 w-4 text-orange-600" />
                 <span className="text-sm font-medium text-orange-800">Monthly Target</span>
               </div>
               <p className="text-lg font-bold text-orange-900">{insights?.monthly_target?.percentage ?? 0}%</p>
-              <p className="text-xs text-orange-700">₹56K more to goal</p>
+              <p className="text-xs text-orange-700">₹{(insights?.monthly_target?.remaining ?? 0) / 1000}K more to goal</p>
             </div>
           </div>
         </CardContent>

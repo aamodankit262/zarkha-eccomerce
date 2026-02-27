@@ -145,3 +145,67 @@ export interface Address {
   country: string;
   isDefault?: boolean;
 }
+
+export interface supportListResponse {
+  success: boolean
+  message: string
+  summary: SupportSummary
+  page: number
+  limit: number
+  total: number
+  total_pages: number
+  body: SupportBody[]
+}
+
+export interface SupportSummary {
+  total_tickets: number
+  open: number
+  in_progress: number
+  resolved: number
+  closed: number
+}
+
+export interface SupportBody {
+  _id: string
+  ticket_id: string
+  title: string
+  subject: string
+  description: string
+  status: string
+  priority: string
+  category: string
+  category_label: string
+  order_id: string
+  date: string
+  createdAt: string
+  updatedAt: string
+  responses_count: number
+}
+export interface SupportCatRes {
+  success: boolean
+  message: string
+  body: SupportCatBody
+}
+
+export interface SupportCatBody {
+  categories: SupportCat[]
+  priorities: SupportCat[]
+}
+
+export interface SupportCat {
+  value: string
+  label: string
+}
+
+export interface SupportCatPriority {
+  value: string
+  label: string
+}
+
+export interface CreateSupportPayload {
+  category: string;
+  order_id?: string;
+  subject: string;
+  description: string;
+  priority: string;
+}

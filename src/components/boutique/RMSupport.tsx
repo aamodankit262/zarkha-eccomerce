@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,10 @@ import {
   Phone, Mail, MessageSquare, CheckCircle2, Clock, AlertCircle,
   Calendar, User, Building
 } from "lucide-react";
+import { useApi } from "@/hooks/useApi";
+import { boutiqueService } from "@/boutiqueServices/boutiqueService";
+import { useBoutique } from "@/contexts/BoutiqueContext";
+import { logger } from "@/helper/logger";
 
 interface RMTask {
   id: string;
@@ -18,6 +22,26 @@ interface RMTask {
 }
 
 const RMSupport = () => {
+  const { data: SupportListRes, request: getSupportList } = useApi(boutiqueService.getSupportList)
+  const { data: detailsRes, request: fetchCurationDetails } = useApi(boutiqueService.CurationsDetails)
+  const {
+    data: productRes,
+    request: fetchProducts,
+  } = useApi(boutiqueService.productList);
+  const {isLoggedIn} = useBoutique();
+  // const { data: categories, request: fetchCategories } = useApi(industryService.getCat);
+  // const { data: subcategories, request: fetchSubCategories } = useApi(industryService.getSubCat);
+  useEffect(() => {
+    if (isLoggedIn) {
+      getSupportList({
+        status: "open",
+        search: "",
+        page: 1,
+        limit: 20,
+      });
+    }
+  }, [isLoggedIn]);
+  logger.log(SupportListRes, 'SupportListRes');
   const rmManager = {
     id: 'rm001',
     name: 'Rahul Mehta',

@@ -1,5 +1,6 @@
 import { apiClient } from "@/api/client";
 import { API_ENDPOINTS } from "@/api/endpoints";
+import { CreateSupportPayload, supportListResponse } from "@/types";
 
 /* -------- Dashboard Stats -------- */
 export interface BoutiqueDashboardStatsResponse {
@@ -297,7 +298,12 @@ export interface salesPayload {
   end_date: string;
   target_amount: number;
 };
-
+export interface supportListPayload {
+  status: string;
+  search: string;
+  page: number;
+  limit: number;
+}
 export const boutiqueService = {
 
   productList: async (params: BoutiqueProductListParams) => {
@@ -460,4 +466,39 @@ export const boutiqueService = {
 
     return res;
   },
+
+  // SUPPORT TICKET SERVICES 
+  
+  getSupportCat : async () => {
+    return apiClient.get<any>(API_ENDPOINTS.BOUTIQUE.SUPPORT_CATEGORIES);
+  },
+  getSupportList: async (payload: supportListPayload) => {
+    const formData = new FormData();
+
+    formData.append("status", payload.status);
+    formData.append("search", payload.search || "");
+    formData.append("page", String(payload.page));
+    formData.append("limit", String(payload.limit));
+    
+    const res = await apiClient.post<supportListResponse>(
+      API_ENDPOINTS.BOUTIQUE.SUPPORT_LIST, formData
+    );
+    return res;
+  },
+  getSupportCreate: async (payload: CreateSupportPayload ) => {
+    const formData = new FormData();
+
+    formData.append("category", payload.category );
+    formData.append("subject", payload.subject );
+    formData.append("description", payload.description);
+    formData.append("priority", payload.priority);
+    if (payload.order_id) {
+      formData.append("order_id", payload.order_id);
+    }
+    
+    const res = await apiClient.post<supportListResponse>(
+      API_ENDPOINTS.BOUTIQUE.SUPPORT_CREATE, formData
+    );
+    return res;
+  }
 };
