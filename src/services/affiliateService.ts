@@ -43,8 +43,13 @@ export interface AffiliateProductResponse {
 export interface AffiliateProductListParams {
   search?: string;
   category_id?: string;
+  subcategory_id?: string;
+  min_price?: number;
+  max_price?: number;
+  stock_status?: string;
   page?: number;
   limit?: number;
+  discount?: any;
 }
 export interface SalesListParams {
   status?: "completed" | "pending";
@@ -150,8 +155,14 @@ export const affiliateService = {
     if (params.category_id && params.category_id !== "all") {
       formData.append("category_id", params.category_id);
     }
+    if (params.subcategory_id && params.subcategory_id !== "all") {
+      formData.append("subcategory_id", params.subcategory_id);
+    }
     formData.append("page", String(params.page ?? 1));
     formData.append("limit", String(params.limit ?? 10));
+    formData.append("min_price", String(params.min_price ?? ""));
+    formData.append("max_price", String(params.max_price ?? ""));
+
     return apiClient.post<AffiliateProductResponse>(
       API_ENDPOINTS.AFFILIATE.PRODUCT_LIST, formData
     );

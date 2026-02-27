@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,11 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Ticket, Plus, Search, Package, Clock, CheckCircle2, 
+import {
+  Ticket, Plus, Search, Package, Clock, CheckCircle2,
   AlertCircle, MessageSquare, Calendar
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useApi } from "@/hooks/useApi";
+import { boutiqueService } from "@/boutiqueServices/boutiqueService";
+import { useBoutique } from "@/contexts/BoutiqueContext";
+import { logger } from "@/helper/logger";
+import { SupportBody, SupportCat, supportListResponse } from "@/types";
+import dayjs from "dayjs";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface SupportTicket {
   id: string;
@@ -30,8 +37,11 @@ const TicketSystem = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("order");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  
+  const [page, setPage] = useState(1);
+  const limit = 30;
+
   const [newTicket, setNewTicket] = useState({
     subject: "",
     description: "",
@@ -39,45 +49,77 @@ const TicketSystem = () => {
     orderId: "",
     priority: "medium"
   });
+  const [tickets, setTickets] = useState<SupportBody[]>([]);
+  // const [tickets, setTickets] = useState<SupportTicket[]>([
+  //   {
+  //     id: 'TKT001',
+  //     subject: 'Order delayed beyond expected date',
+  //     description: 'My order ORD002 was supposed to arrive on Jan 20 but still not delivered.',
+  //     category: 'order_delay',
+  //     orderId: 'ORD002',
+  //     status: 'in_progress',
+  //     priority: 'high',
+  //     createdAt: '2024-01-22',
+  //     updatedAt: '2024-01-23',
+  //     responses: 2
+  //   },
+  //   {
+  //     id: 'TKT002',
+  //     subject: 'Wrong size received',
+  //     description: 'Ordered XL size but received M size kurta set.',
+  //     category: 'wrong_item',
+  //     orderId: 'ORD001',
+  //     status: 'resolved',
+  //     priority: 'medium',
+  //     createdAt: '2024-01-18',
+  //     updatedAt: '2024-01-20',
+  //     responses: 4
+  //   },
+  //   {
+  //     id: 'TKT003',
+  //     subject: 'Refund not processed',
+  //     description: 'Return was accepted 10 days ago but refund not credited yet.',
+  //     category: 'refund',
+  //     orderId: 'ORD003',
+  //     status: 'open',
+  //     priority: 'high',
+  //     createdAt: '2024-01-25',
+  //     updatedAt: '2024-01-25',
+  //     responses: 0
+  //   }
+  // ]);
+  // apis hooks
+  // const { data: detailsRes, request: fetchCurationDetails } = useApi(boutiqueService.CurationsDetails)
+  const { data: SupportListRes, request: getSupportList } = useApi(boutiqueService.getSupportList);
+  const { isLoggedIn } = useBoutique();
+  const { data: categoryRes, request: fetchCategories } = useApi(boutiqueService.getSupportCat);
 
-  const [tickets, setTickets] = useState<SupportTicket[]>([
-    {
-      id: 'TKT001',
-      subject: 'Order delayed beyond expected date',
-      description: 'My order ORD002 was supposed to arrive on Jan 20 but still not delivered.',
-      category: 'order_delay',
-      orderId: 'ORD002',
-      status: 'in_progress',
-      priority: 'high',
-      createdAt: '2024-01-22',
-      updatedAt: '2024-01-23',
-      responses: 2
-    },
-    {
-      id: 'TKT002',
-      subject: 'Wrong size received',
-      description: 'Ordered XL size but received M size kurta set.',
-      category: 'wrong_item',
-      orderId: 'ORD001',
-      status: 'resolved',
-      priority: 'medium',
-      createdAt: '2024-01-18',
-      updatedAt: '2024-01-20',
-      responses: 4
-    },
-    {
-      id: 'TKT003',
-      subject: 'Refund not processed',
-      description: 'Return was accepted 10 days ago but refund not credited yet.',
-      category: 'refund',
-      orderId: 'ORD003',
-      status: 'open',
-      priority: 'high',
-      createdAt: '2024-01-25',
-      updatedAt: '2024-01-25',
-      responses: 0
+  const debouncedSearch = useDebounce(searchQuery, 500);
+  useEffect(() => {
+    if (isLoggedIn) {
+      getSupportList({
+        status: statusFilter,
+        search: debouncedSearch,
+        page,
+        limit,
+      });
     }
-  ]);
+  }, [isLoggedIn, debouncedSearch, statusFilter]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchCategories();
+    }
+  }, [isLoggedIn]);
+  const categories = categoryRes?.body?.categories;
+  useEffect(() => {
+    if (!SupportListRes?.body) return;
+    setTickets(SupportListRes.body);
+  }, [SupportListRes]);
+
+  // logger.log(tickets, 'SupportListRes');
+  // const tickets = SupportListRes?.body;
+  const getSummary = SupportListRes?.summary || {};
 
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
@@ -92,12 +134,12 @@ const TicketSystem = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'resolved': 
-      case 'closed': 
+      case 'resolved':
+      case 'closed':
         return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      case 'in_progress': 
+      case 'in_progress':
         return <Clock className="h-4 w-4 text-blue-500" />;
-      default: 
+      default:
         return <AlertCircle className="h-4 w-4 text-yellow-500" />;
     }
   };
@@ -119,37 +161,61 @@ const TicketSystem = () => {
     }
   };
 
-  const handleCreateTicket = () => {
+  const handleCreateTicket = async () => {
     if (!newTicket.subject || !newTicket.description || !newTicket.category) {
-      toast({ title: "Error", description: "Please fill all required fields", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Please fill all required fields",
+        variant: "destructive",
+      });
       return;
     }
-
-    const ticket: SupportTicket = {
-      id: `TKT${String(tickets.length + 1).padStart(3, '0')}`,
-      subject: newTicket.subject,
-      description: newTicket.description,
-      category: newTicket.category as SupportTicket['category'],
-      orderId: newTicket.orderId || undefined,
-      status: 'open',
-      priority: newTicket.priority as SupportTicket['priority'],
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-      responses: 0
-    };
-
-    setTickets([ticket, ...tickets]);
-    setNewTicket({ subject: "", description: "", category: "", orderId: "", priority: "medium" });
-    setShowCreateDialog(false);
-    toast({ title: "Ticket Created", description: `Ticket ${ticket.id} has been created successfully.` });
+  
+    try {
+      const payload = {
+        category: newTicket.category,
+        order_id: newTicket.orderId || undefined,
+        subject: newTicket.subject,
+        description: newTicket.description,
+        priority: newTicket.priority,
+      };
+  
+      const res:any = await boutiqueService.getSupportCreate(payload);
+  
+      if (res.success) {
+        toast({
+          title: "Ticket Created",
+          description: `Ticket ${res.body?.ticket_id} created successfully`,
+        });
+  
+        // refresh list properly
+        getSupportList({
+          status: statusFilter,
+          search: debouncedSearch,
+          page,
+          limit,
+        });
+  
+        setShowCreateDialog(false);
+        setNewTicket({
+          subject: "",
+          description: "",
+          category: "",
+          orderId: "",
+          priority: "medium",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error?.response?.data?.message || "Something went wrong",
+        variant: "destructive",
+      });
+    }
   };
 
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          ticket.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+
 
   const openTickets = tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length;
 
@@ -164,7 +230,7 @@ const TicketSystem = () => {
                 <Ticket className="h-5 w-5 text-brand-orange" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{tickets.length}</p>
+                <p className="text-2xl font-bold">{getSummary?.total_tickets ?? 0}</p>
                 <p className="text-xs text-muted-foreground">Total Tickets</p>
               </div>
             </div>
@@ -177,7 +243,7 @@ const TicketSystem = () => {
                 <AlertCircle className="h-5 w-5 text-yellow-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{openTickets}</p>
+                <p className="text-2xl font-bold">{getSummary.open ?? openTickets}</p>
                 <p className="text-xs text-muted-foreground">Open</p>
               </div>
             </div>
@@ -190,7 +256,8 @@ const TicketSystem = () => {
                 <Clock className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'in_progress').length}</p>
+                {/* <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'in_progress').length}</p> */}
+                <p className="text-2xl font-bold">{getSummary?.in_progress ?? 0}</p>
                 <p className="text-xs text-muted-foreground">In Progress</p>
               </div>
             </div>
@@ -203,7 +270,8 @@ const TicketSystem = () => {
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'resolved').length}</p>
+                {/* <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'resolved').length}</p> */}
+                <p className="text-2xl font-bold">{getSummary?.in_progress ?? 0}</p>
                 <p className="text-xs text-muted-foreground">Resolved</p>
               </div>
             </div>
@@ -229,47 +297,56 @@ const TicketSystem = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>Category *</Label>
-                    <Select value={newTicket.category} onValueChange={(v) => setNewTicket({...newTicket, category: v})}>
+                    {/* <Select value={selectedCategory} onValueChange={setSelectedCategory}> */}
+                    <Select
+                      value={newTicket.category}
+                      onValueChange={(value) =>
+                        setNewTicket({ ...newTicket, category: value })
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select issue type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="order_delay">Order Delay</SelectItem>
+                        {/* <SelectItem value="order_delay">Order Delay</SelectItem>
                         <SelectItem value="wrong_item">Wrong Item Received</SelectItem>
                         <SelectItem value="refund">Refund Issue</SelectItem>
                         <SelectItem value="damaged">Damaged Item</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="other">Other</SelectItem> */}
+                        {categories?.map((cat: SupportCat) => (
+                          <SelectItem key={cat?.value} value={cat?.value}>{cat?.label}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Order ID (optional)</Label>
-                    <Input 
+                    <Input
                       placeholder="e.g., ORD001"
                       value={newTicket.orderId}
-                      onChange={(e) => setNewTicket({...newTicket, orderId: e.target.value})}
+                      onChange={(e) => setNewTicket({ ...newTicket, orderId: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Subject *</Label>
-                    <Input 
+                    <Input
                       placeholder="Brief description of the issue"
                       value={newTicket.subject}
-                      onChange={(e) => setNewTicket({...newTicket, subject: e.target.value})}
+                      onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Description *</Label>
-                    <Textarea 
+                    <Textarea
                       placeholder="Provide details about your issue..."
                       value={newTicket.description}
-                      onChange={(e) => setNewTicket({...newTicket, description: e.target.value})}
+                      onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
                       rows={4}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Priority</Label>
-                    <Select value={newTicket.priority} onValueChange={(v) => setNewTicket({...newTicket, priority: v})}>
+                    <Select value={newTicket.priority} onValueChange={(v) => setNewTicket({ ...newTicket, priority: v })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -293,7 +370,7 @@ const TicketSystem = () => {
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
+              <Input
                 placeholder="Search tickets..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -316,14 +393,14 @@ const TicketSystem = () => {
 
           {/* Tickets */}
           <div className="space-y-4">
-            {filteredTickets.length === 0 ? (
+            {tickets?.length === 0 ? (
               <div className="text-center py-8">
                 <Ticket className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
                 <p className="text-muted-foreground">No tickets found</p>
               </div>
             ) : (
-              filteredTickets.map((ticket) => (
-                <div key={ticket.id} className="flex gap-3 p-4 border rounded-lg hover:shadow-sm transition-shadow">
+              tickets?.map((ticket) => (
+                <div key={ticket._id} className="flex gap-3 p-4 border rounded-lg hover:shadow-sm transition-shadow">
                   <div className="mt-1">{getStatusIcon(ticket.status)}</div>
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
@@ -333,23 +410,23 @@ const TicketSystem = () => {
                         {getPriorityBadge(ticket.priority)}
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{ticket.description}</p>
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{ticket?.description}</p>
                     <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                      <span className="font-medium text-foreground">{ticket.id}</span>
-                      <Badge variant="outline" className="text-xs">{getCategoryLabel(ticket.category)}</Badge>
-                      {ticket.orderId && (
+                      <span className="font-medium text-foreground">{ticket?._id}</span>
+                      <Badge variant="outline" className="text-xs">{getCategoryLabel(ticket?.category)}</Badge>
+                      {ticket.order_id && (
                         <span className="flex items-center gap-1">
                           <Package className="h-3 w-3" />
-                          {ticket.orderId}
+                          {ticket.order_id}
                         </span>
                       )}
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {ticket.createdAt}
+                        {dayjs(ticket.createdAt).format('DD MMM YYYY')}
                       </span>
                       <span className="flex items-center gap-1">
                         <MessageSquare className="h-3 w-3" />
-                        {ticket.responses} responses
+                        {ticket.responses_count ?? 0} responses
                       </span>
                     </div>
                   </div>

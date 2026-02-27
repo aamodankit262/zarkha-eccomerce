@@ -112,10 +112,10 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
   // const debouncedPrice = useDebounce(priceRange, 500);
 
   // Product selection filters
-  const [selectionSearch, setSelectionSearch] = useState("");
-  const [selectionCategory, setSelectionCategory] = useState("all");
-  const [selectionSubcategory, setSelectionSubcategory] = useState("all");
-  const [selectionPriceRange, setSelectionPriceRange] = useState([0, 15000]);
+  // const [selectionSearch, setSelectionSearch] = useState("");
+  // const [selectionCategory, setSelectionCategory] = useState("all");
+  // const [selectionSubcategory, setSelectionSubcategory] = useState("all");
+  // const [selectionPriceRange, setSelectionPriceRange] = useState([0, 15000]);
   const [showSelectionFilters, setShowSelectionFilters] = useState(false);
   const [orderPage, setOrderPage] = useState(1);
   const orderLimit = 10;
@@ -161,12 +161,12 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
   }, [categoryFilter]);
   const pagination = curationRes?.pagination
   // logger.log('curationList,' , body)
-  const clearSelectionFilters = () => {
-    setSelectionSearch("");
-    setSelectionCategory("all");
-    setSelectionSubcategory("all");
-    setSelectionPriceRange([0, 15000]);
-  };
+  // const clearSelectionFilters = () => {
+  //   setSelectionSearch("");
+  //   setSelectionCategory("all");
+  //   setSelectionSubcategory("all");
+  //   setSelectionPriceRange([0, 15000]);
+  // };
 
   
   const handleCreate = async () => {
@@ -227,7 +227,7 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
   const handleEdit = async (curation: Curation) => {
     setEditingCuration(curation);
     setNewCuration({ name: curation.name, description: curation.description, productIds: curation.product_ids });
-    clearSelectionFilters();
+    // clearSelectionFilters();
     setShowCreateDialog(true);
   };
 
@@ -340,7 +340,7 @@ const BoutiqueCurations = ({ products }: BoutiqueCurationsProps) => {
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Create custom product catalogues</p>
           </div>
-          <Button variant="brand" size="sm" onClick={() => { setEditingCuration(null); setNewCuration({ name: '', description: '', productIds: [] }); clearSelectionFilters(); setShowCreateDialog(true); }}>
+          <Button variant="brand" size="sm" onClick={() => { setEditingCuration(null); setNewCuration({ name: '', description: '', productIds: [] }); clearFilters(); setShowCreateDialog(true); }}>
             <Plus className="h-4 w-4 mr-1" /> New Curation
           </Button>
         </div>

@@ -115,7 +115,10 @@ export const API_ENDPOINTS = {
     CURATIONS_DELETE: "/api/web/boutique/curation/delete",
     PRODUCT_LIST: "/api/web/boutique/products/list",
     PRODUCT_DETAILS: "/api/web/boutique/products/details",
-    SUPPORT_LIST: "/api/web/boutique/products/list",
+    SUPPORT_CATEGORIES: "/api/web/boutique/support-ticket/categories",
+    SUPPORT_CREATE: "/api/web/boutique/support-ticket/create",
+    SUPPORT_LIST: "/api/web/boutique/support-ticket/list",
+    SUPPORT_VIEW: "/api/web/boutique/support-ticket/view",
     ANALYTICS_sales: "/api/web/boutique/analytics/sales",
    
   }
