@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/client";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import { CreateSupportPayload, supportListResponse } from "@/types";
+import { AddInventoryPayload, CreateSupportPayload, InventoryListPayload, InventoryListResponse, supportListResponse, SupportViewResponse } from "@/types";
 
 /* -------- Dashboard Stats -------- */
 export interface BoutiqueDashboardStatsResponse {
@@ -500,5 +500,35 @@ export const boutiqueService = {
       API_ENDPOINTS.BOUTIQUE.SUPPORT_CREATE, formData
     );
     return res;
-  }
+  },
+  getSupportView: async (id: string) => {
+    const res = await apiClient.post<SupportViewResponse>(
+      API_ENDPOINTS.BOUTIQUE.SUPPORT_VIEW,
+      { ticket_id: id }
+    );
+    return res;
+  },
+  // INVENTORY SERVICES
+  getInventoryList: async (payload: InventoryListPayload) => {
+    const res = await apiClient.post<InventoryListResponse>(
+      API_ENDPOINTS.BOUTIQUE.INVENTORY_LIST,
+      payload
+    );
+    return res;
+
+  },
+  addInventory: async (payload: AddInventoryPayload) => {
+    const res = await apiClient.post(
+      API_ENDPOINTS.BOUTIQUE.INVENTORY_ADD,
+      payload
+    );
+    return res;
+  },
+  // BRAND PAGE API
+  brandPage: async (partnerId : string) => {
+    const res = await apiClient.get(
+      `${API_ENDPOINTS.BOUTIQUE.BRAND_PAGE}/${partnerId} `
+    );
+    return res;
+  },
 };

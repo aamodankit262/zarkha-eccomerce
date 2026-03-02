@@ -209,3 +209,79 @@ export interface CreateSupportPayload {
   description: string;
   priority: string;
 }
+export interface SupportViewResponse {
+  success: boolean
+  message: string
+  body: Body
+}
+
+export interface SupportViewBody {
+  _id: string
+  ticket_id: string
+  category: string
+  order_id: string
+  subject: string
+  description: string
+  priority: string
+  status: string
+  admin_notes: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AddInventoryPayload {
+  product_id: string;
+  quantity: number;
+  selling_price: number;
+}
+export interface InventoryListPayload {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  category_id?: string;
+}
+export interface InventoryListResponse {
+  success: boolean
+  message: string
+  summary: InventorySummary
+  total_count: number
+  current_page: number
+  total_pages: number
+  body: InventoryBody[]
+}
+
+export interface InventorySummary {
+  stock_value: number
+  purchased_pcs: number
+  sold_pcs: number
+  invested: number
+  total_products: number
+  total_units: number
+  out_of_stock_count: number
+}
+
+export interface InventoryBody {
+  _id: string
+  product_id: string
+  product_title: string
+  category: string
+  category_id: string
+  image: string
+  quantity: number
+  selling_price: number
+  cost_price: number
+  stock_value: number
+  stock_status: string
+  stock_display: string
+  invested: number
+  potential_profit: number
+  bought_pcs: number
+  bought_at_per_pc: number
+  sold_pcs: number
+  sold_at_per_pc: any
+  units_in_transit: number
+  orders_in_transit: number
+  purchase_history: any[]
+}
+
