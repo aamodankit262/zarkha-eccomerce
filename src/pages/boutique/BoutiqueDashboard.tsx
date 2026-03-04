@@ -619,7 +619,9 @@ const BoutiqueDashboard = () => {
                           <Link to={`/boutique/${product?.id}`} >
                             <h3 className="font-semibold text-warm-brown mb-1 text-xs sm:text-sm md:text-base line-clamp-2">{product.name}</h3>
                           </Link>
+                          {product?.subcategory  && (
                           <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{product?.subcategory ?? "No Subcategory"}</p>
+                          )}
                           <div className="flex items-center justify-between mb-1 sm:mb-2">
                             {/* <div className="flex gap-1.5 mb-2">
                               {product?.size?.map((color, index) => (
@@ -892,13 +894,13 @@ const BoutiqueDashboard = () => {
                   </div>
                 </div>
                 <div className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
+                  {/* <div className="flex items-center gap-3 mb-3">
                     <div className="p-2 bg-green-100 rounded-lg"><TrendingUp className="h-5 w-5 text-green-600" /></div>
                     <div>
                       <p className="font-medium">Page Views</p>
                       <p className="text-sm text-muted-foreground">1,234 this month</p>
                     </div>
-                  </div>
+                  </div> */}
                   <Button variant="outline" className="w-full" onClick={() => setActiveTab("analytics")}>
                     <BarChart3 className="h-4 w-4 mr-2" /> View Analytics
                   </Button>

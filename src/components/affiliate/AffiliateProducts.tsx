@@ -4,12 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Copy, Search, ExternalLink, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { useApi } from "@/hooks/useApi";
-import { AffiliateProduct, affiliateService } from "@/services/affiliateService";
+import {
+  AffiliateProduct,
+  affiliateService,
+} from "@/services/affiliateService";
 import { useDebounce } from "@/hooks/useDebounce";
 import Pagination from "../ecommerce/Pagination";
 import { NO_IMAGE } from "@/api/endpoints";
@@ -24,49 +33,46 @@ interface PaginationProps {
 }
 
 const AffiliateProducts = () => {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  // const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<any>("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
   const [priceRange, setPriceRange] = useState([0, 10000]);
-  const [discountFilter, setDiscountFilter] = useState("all");
+  // const [discountFilter, setDiscountFilter] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
-  const [stockFilter, setStockFilter] = useState("all");
-  const debouncedSearch = useDebounce(searchQuery, 500)
+  // const [stockFilter, setStockFilter] = useState("all");
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [page, setPage] = useState(1);
   const limit = 30;
-  // const [products, setProducts] = useState<AffiliateProduct[]>([]);
-  const { data: categories, request: fetchCategories } = useApi(industryService.getCat);
-  const { data: subcategories, request: fetchSubCategories } = useApi(industryService.getSubCat);
-  // const { data, request, loading } = useApi(
-  //   affiliateService.productCategoryList
-  // );
+  const { data: categories, request: fetchCategories } = useApi(
+    industryService.getCat,
+  );
+  const { data: subcategories, request: fetchSubCategories } = useApi(
+    industryService.getSubCat,
+  );
+
   const {
     data: productRes,
     request: fetchProducts,
     loading: productLoading,
   } = useApi(affiliateService.productList);
 
-  // useEffect(() => {
-  //   request();
-  // }, []);
   useEffect(() => {
     fetchProducts({
-      // search: debouncedSearch,
-      // category_id: categoryFilter,
-      // page,
-      // limit,
       page,
       limit,
       category_id: categoryFilter === "all" ? undefined : categoryFilter,
-      subcategory_id: subcategoryFilter === "all" ? undefined : subcategoryFilter,
+      subcategory_id:
+        subcategoryFilter === "all" ? undefined : subcategoryFilter,
       search: debouncedSearch || undefined,
       min_price: priceRange[0] > 0 ? priceRange[0] : undefined,
       max_price: priceRange[1] < 10000 ? priceRange[1] : undefined,
     });
-  }, [debouncedSearch, , 
-    page, 
+  }, [
+    debouncedSearch,
+    ,
+    page,
     categoryFilter,
     subcategoryFilter,
     debouncedSearch,
@@ -97,18 +103,6 @@ const AffiliateProducts = () => {
   };
 
   const products = productRes?.body || [];
-  // const categories = data?.body
-  // categories.unshift({ id: "all", name: "All Products" })
-  // const categories = useMemo(() => {
-  //   if (!data?.body) return [];
-
-  //   return [
-  //     { _id: "all", name: "All Products" },
-  //     ...data.body,
-  //   ];
-  // }, [data]);
-
-  // const filteredProducts = products;
 
   const copyProductLink = (productId: string) => {
     const link = `${window.location.origin}/product/${productId}`;
@@ -125,7 +119,6 @@ const AffiliateProducts = () => {
   }
   return (
     <div className="space-y-6">
-
       {/* <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Products</h2>
@@ -159,7 +152,9 @@ const AffiliateProducts = () => {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row gap-3 justify-between">
             <CardTitle className="text-lg">Product catalogue</CardTitle>
-            <p className="text-sm text-muted-foreground">{products?.length} products</p>
+            <p className="text-sm text-muted-foreground">
+              {products?.length} products
+            </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -168,10 +163,15 @@ const AffiliateProducts = () => {
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9" />
+                className="pl-9"
+              />
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={() => setShowFilters(!showFilters)}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowFilters(!showFilters)}
+              >
                 <Filter className="h-4 w-4" />
               </Button>
             </div>
@@ -190,27 +190,55 @@ const AffiliateProducts = () => {
                 <div className="space-y-2">
                   <Label>Category</Label>
                   {/* <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setSubcategoryFilter("all"); }}> */}
-                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
+                  <Select
+                    value={categoryFilter}
+                    onValueChange={setCategoryFilter}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Categories</SelectItem>
-                      {categories?.map((cat: any) => <SelectItem key={cat.id} value={cat.id}>{cat?.category_name}</SelectItem>)}
+                      {categories?.map((cat: any) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat?.category_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Subcategory</Label>
-                  <Select value={subcategoryFilter} onValueChange={setSubcategoryFilter} disabled={categoryFilter === "all"}>
-                    <SelectTrigger><SelectValue placeholder={categoryFilter === "all" ? "Select category first" : "All Subcategories"} /></SelectTrigger>
+                  <Select
+                    value={subcategoryFilter}
+                    onValueChange={setSubcategoryFilter}
+                    disabled={categoryFilter === "all"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={
+                          categoryFilter === "all"
+                            ? "Select category first"
+                            : "All Subcategories"
+                        }
+                      />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Subcategories</SelectItem>
-                      {subcategories?.map(sub => <SelectItem key={sub?.id} value={sub.id}>{sub?.subcategory_name}</SelectItem>)}
+                      {subcategories?.map((sub) => (
+                        <SelectItem key={sub?.id} value={sub.id}>
+                          {sub?.subcategory_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Price: ₹{priceRange[0]} - ₹{priceRange[1]}</Label>
-                  <Slider value={priceRange}
+                  <Label>
+                    Price: ₹{priceRange[0]} - ₹{priceRange[1]}
+                  </Label>
+                  <Slider
+                    value={priceRange}
                     onValueChange={setPriceRange}
                     onValueCommit={(value) => {
                       fetchProducts({
@@ -218,13 +246,13 @@ const AffiliateProducts = () => {
                         limit,
                         min_price: value[0],
                         max_price: value[1],
-
-                      })
+                      });
                     }}
                     min={0}
                     max={10000}
                     step={100}
-                    className="mt-2" />
+                    className="mt-2"
+                  />
                 </div>
                 {/* <div className="space-y-2">
                   <Label>Discount</Label>
@@ -274,21 +302,39 @@ const AffiliateProducts = () => {
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {products?.map((product) => (
-          <Card key={product._id} className="overflow-hidden hover:shadow-lg transition-shadow">
+          <Card
+            key={product._id}
+            className="overflow-hidden hover:shadow-lg transition-shadow"
+          >
             <div className="aspect-square relative bg-secondary">
               <img
                 src={product.images?.[0]?.url || NO_IMAGE}
                 alt={product.images?.[0]?.alt || product.name}
                 className="w-full h-full object-cover"
               />
+              {product?.category_name && (
+              <Badge className="absolute top-2 right-2 bg-warm-brown">
+                {product?.category_name}
+              </Badge>
+              )}
+
               {/* <Badge className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-green-600 text-xs sm:text-sm">
                 {product.commission_percentage}% Commission
               </Badge> */}
             </div>
             <CardContent className="p-3 sm:p-4">
-              <h3 className="font-semibold text-foreground mb-1 text-sm sm:text-base line-clamp-1">{product.name}</h3>
+              <h3 className="font-semibold text-foreground mb-1 text-sm sm:text-base line-clamp-1">
+                {product.name}
+              </h3>
+              {product?.subcategory_name && (
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">
+                  {product?.subcategory_name}
+                </p>
+              )}
               <div className="flex items-center justify-between mb-2 sm:mb-3">
-                <span className="text-base sm:text-lg font-bold text-primary">₹{product.msp}</span>
+                <span className="text-base sm:text-lg font-bold text-primary">
+                  ₹{product.msp}
+                </span>
                 {/* <span className="text-xs sm:text-sm text-muted-foreground">⭐ {product.rating}</span> */}
               </div>
               {/* <div className="bg-secondary/50 rounded-lg p-2 mb-2 sm:mb-3">
@@ -307,7 +353,11 @@ const AffiliateProducts = () => {
                   <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   Copy Link
                 </Button>
-                <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90 text-xs sm:text-sm" asChild>
+                <Button
+                  size="sm"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-xs sm:text-sm"
+                  asChild
+                >
                   <Link
                     // to={product?.product._id}
                     to={`/product/${product._id}`}
@@ -320,12 +370,13 @@ const AffiliateProducts = () => {
             </CardContent>
           </Card>
         ))}
-
       </div>
 
       {products.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No products found matching your criteria</p>
+          <p className="text-muted-foreground">
+            No products found matching your criteria
+          </p>
         </div>
       )}
       {productRes?.pagination.totalPages > 1 && (
@@ -333,7 +384,7 @@ const AffiliateProducts = () => {
           currentPage={productRes?.pagination.currentPage}
           totalPages={productRes?.pagination.totalPages}
           onPageChange={setPage}
-        // onPageChange={(page) => setPage(page)}
+          // onPageChange={(page) => setPage(page)}
         />
       )}
     </div>
