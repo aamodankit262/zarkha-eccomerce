@@ -430,7 +430,7 @@ const TicketSystem = () => {
                       </span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm">View</Button>
+                  {/* <Button variant="ghost" size="sm">View</Button> */}
                 </div>
               ))
             )}
