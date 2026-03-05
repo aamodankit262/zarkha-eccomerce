@@ -53,7 +53,8 @@ const BoutiqueDashboard = () => {
   const [showPriceDialog, setShowPriceDialog] = useState(false);
   const [showCart, setShowCart] = useState(false);
   // const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({});
+  // const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({});
+  const [selectedSizes, setSelectedSizes] = useState<{ [key: string]: string }>({});
   // Product Filters
   const [categoryFilter, setCategoryFilter] = useState<any>("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("all");
@@ -213,7 +214,7 @@ const BoutiqueDashboard = () => {
       toast({ title: "Out of Stock", description: "This product is currently unavailable.", variant: "destructive" });
       return;
     }
-    
+
     addItem({
       productId: product.id,
       variantId: product.itemCodeId,
@@ -619,19 +620,10 @@ const BoutiqueDashboard = () => {
                           <Link to={`/boutique/${product?.id}`} >
                             <h3 className="font-semibold text-warm-brown mb-1 text-xs sm:text-sm md:text-base line-clamp-2">{product.name}</h3>
                           </Link>
-                          {product?.subcategory  && (
-                          <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{product?.subcategory ?? "No Subcategory"}</p>
+                          {product?.subcategory && (
+                            <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">{product?.subcategory ?? "No Subcategory"}</p>
                           )}
                           <div className="flex items-center justify-between mb-1 sm:mb-2">
-                            {/* <div className="flex gap-1.5 mb-2">
-                              {product?.size?.map((color, index) => (
-                                <div
-                                  key={index}
-                                  className="w-3.5 h-3.5 rounded-full border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
-                                  style={{ backgroundColor: color }}
-                                />
-                              ))}
-                            </div> */}
                             <div>
                               <p className="text-[10px] sm:text-xs text-muted-foreground">Your Price</p>
                               <p className="text-sm sm:text-lg font-bold text-brand-orange">₹{product?.adminPrice ?? 0}</p>
@@ -662,12 +654,36 @@ const BoutiqueDashboard = () => {
                             </div>
                           )}
                           <div className="mb-2">
-                            <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">
-                              Select Size
-                            </p>
 
-                            <div className="flex flex-wrap gap-1.5">
-                              {/* {console.log(product?.size, 'product size')} */}
+                            <div className="mb-2">
+                              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">
+                                Select Size
+                              </p>
+
+                              <Select
+                                value={selectedSizes[product.id] || ""}
+                                onValueChange={(value) =>
+                                  setSelectedSizes((prev) => ({
+                                    ...prev,
+                                    [product.id]: value,
+                                  }))
+                                }
+                              >
+                                <SelectTrigger className="w-[120px] h-8 text-xs">
+                                  <SelectValue placeholder="Size" />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                  {product?.size?.map((size: string, index: number) => (
+                                    <SelectItem key={index} value={size}>
+                                      {size.toUpperCase()}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* <div className="flex flex-wrap gap-1.5">
                               {product?.size?.map((size: string, index: number) => (
                                 <button
                                   key={index}
@@ -689,7 +705,7 @@ const BoutiqueDashboard = () => {
                                   {size.toUpperCase()}
                                 </button>
                               ))}
-                            </div>
+                            </div> */}
                           </div>
                           <div className="flex gap-1 sm:gap-2 mb-1 sm:mb-2">
                             <Button variant={priceInfo ? "outline" : "brand"} size="sm" className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8 px-1.5 sm:px-3" onClick={() => handleUpdatePrice(product)}>
@@ -868,8 +884,8 @@ const BoutiqueDashboard = () => {
                     <CardTitle className="text-lg">Your Brand Page</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">Share your unique brand page with customers</p>
                   </div>
-                  <Button variant="brand" 
-                  onClick={() => navigate(`/shop/${user?._id}`)}
+                  <Button variant="brand"
+                    onClick={() => navigate(`/shop/${user?._id}`)}
                   // onClick={() => navigate(`/shop/${user?.shop_name?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`)}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" /> View Page
@@ -880,11 +896,11 @@ const BoutiqueDashboard = () => {
                 <div className="p-4 bg-muted rounded-lg">
                   <Label className="text-sm text-muted-foreground">Your Brand Link</Label>
                   <div className="flex items-center gap-2 mt-2">
-                    <Input 
-                    readOnly 
-                    value={`${window.location.origin}/shop/${user?._id}`} 
-                    // value={`${window.location.origin}/shop/${user?.shop_name?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`} 
-                    className="font-mono text-sm" />
+                    <Input
+                      readOnly
+                      value={`${window.location.origin}/shop/${user?._id}`}
+                      // value={`${window.location.origin}/shop/${user?.shop_name?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`} 
+                      className="font-mono text-sm" />
                     <Button variant="outline" size="icon" onClick={() => {
                       navigator.clipboard.writeText(`${window.location.origin}/shop/${user?.shop_name?.toLowerCase().replace(/\s+/g, '-') || 'my-boutique'}`);
                       toast({ title: "Link Copied!", description: "Share it with your customers." });

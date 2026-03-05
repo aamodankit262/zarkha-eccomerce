@@ -230,14 +230,21 @@ const BoutiqueBrandPage = () => {
             <span className="hidden sm:inline">Back</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button
+            {/* <Button
               variant="ghost"
               size="icon"
               onClick={() => toast({ title: "Added to Favorites!" })}
             >
               <Heart className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={handleShare}>
+            </Button> */}
+            <Button variant="ghost"
+              size="icon"
+              // onClick={handleShare}
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                toast({ title: "Link Copied!" });
+              }}
+            >
               <Share2 className="h-5 w-5" />
             </Button>
           </div>

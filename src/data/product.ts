@@ -6,7 +6,9 @@ interface Product {
   product_title: string;
   short_description: string;
   category: string;
+  category_name: string;
   subcategory: string;
+  subcategory_name: string;
   category_id: string;
   image: string;
   stock: number| null;
@@ -52,8 +54,8 @@ export  const boutiqueProducts = (products: any[]) => products?.map((p:Product) 
       product_id: p.product_id,
       name: p.product_title,
       image: p.image,
-      category: p.category,
-      subcategory: p?.subcategory,
+      category: p.category || p?.category_name,
+      subcategory: p?.subcategory || p?.subcategory_name,
       adminPrice: p.boutique_cost_price,
       mrp:  p?.mrp || "not available",
       sellingPrice: p?.selling_price || 0,

@@ -9,35 +9,23 @@ import {
   RotateCcw, ChevronDown, ChevronUp, Minus, Plus
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useBoutique } from "@/contexts/BoutiqueContext";
 import { useApi } from "@/hooks/useApi";
 import { boutiqueService } from "@/boutiqueServices/boutiqueService";
 import { NO_IMAGE } from "@/api/endpoints";
 import { logger } from "@/helper/logger";
 
-// Same product data as brand page - in real app from API
-// const catalogProducts = [
-//   { id: '1', name: 'Embroidered Silk Kurta Set', category: 'Kurta Sets', adminPrice: 1800, sellingPrice: 2499, mrp: 3500, image: '/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png', discount: 29, rating: 4.5, reviews: 45, inStock: true, description: 'Beautifully embroidered silk kurta set featuring intricate thread work and premium quality fabric. Perfect for festive occasions and celebrations.', fabric: 'Pure Silk', occasion: 'Festive, Party', work: 'Embroidery, Thread Work', wash: 'Dry Clean Only', sizes: ['S', 'M', 'L', 'XL', 'XXL'] },
-//   { id: '2', name: 'Printed Cotton Anarkali', category: 'Anarkalis', adminPrice: 1200, sellingPrice: 1799, mrp: 2500, image: '/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png', discount: 28, rating: 4.3, reviews: 32, inStock: true, description: 'Elegant printed cotton anarkali with flared silhouette. Comfortable and stylish for everyday and casual wear.', fabric: 'Cotton', occasion: 'Casual, Daily Wear', work: 'Printed', wash: 'Machine Washable', sizes: ['S', 'M', 'L', 'XL'] },
-//   { id: '3', name: 'Designer Lehenga Choli', category: 'Lehengas', adminPrice: 4500, sellingPrice: 6499, mrp: 9000, image: '/lovable-uploads/beea47d5-6ae4-460a-a065-76f4befc19cb.png', discount: 28, rating: 4.7, reviews: 67, inStock: true, description: 'Stunning designer lehenga choli with heavy embroidery and mirror work. Perfect for weddings and grand celebrations.', fabric: 'Georgette, Net', occasion: 'Wedding, Bridal', work: 'Heavy Embroidery, Mirror Work', wash: 'Dry Clean Only', sizes: ['S', 'M', 'L', 'XL'] },
-//   { id: '4', name: 'Banarasi Silk Saree', category: 'Sarees', adminPrice: 3200, sellingPrice: 4500, mrp: 6000, image: '/lovable-uploads/a75cb8b8-9eaa-400c-b4bc-8e4201532a4c.png', discount: 25, rating: 4.6, reviews: 89, inStock: true, description: 'Authentic Banarasi silk saree with rich zari work and traditional motifs. A timeless addition to your wardrobe.', fabric: 'Banarasi Silk', occasion: 'Wedding, Festive', work: 'Zari, Weaving', wash: 'Dry Clean Only', sizes: ['Free Size'] },
-//   { id: '5', name: 'Palazzo Suit Set', category: 'Palazzo Sets', adminPrice: 1500, sellingPrice: 2200, mrp: 3000, image: '/lovable-uploads/18b38e61-a1b9-470b-b5f8-9440d6e07cbf.png', discount: 27, rating: 4.4, reviews: 23, inStock: false, description: 'Trendy palazzo suit set with modern prints and comfortable fit. Ideal for office and casual outings.', fabric: 'Rayon', occasion: 'Casual, Office', work: 'Printed', wash: 'Machine Washable', sizes: ['S', 'M', 'L', 'XL', 'XXL'] },
-//   { id: '6', name: 'Festive Salwar Kameez', category: 'Salwar Suits', adminPrice: 2000, sellingPrice: 2800, mrp: 3800, image: '/lovable-uploads/15ff49d2-e060-4344-956a-c6030caf0a58.png', discount: 26, rating: 4.5, reviews: 56, inStock: true, description: 'Elegant festive salwar kameez with detailed embroidery and premium fabric quality. Perfect for festivals and special occasions.', fabric: 'Chanderi Silk', occasion: 'Festive, Party', work: 'Embroidery', wash: 'Dry Clean Only', sizes: ['S', 'M', 'L', 'XL'] },
-// ];
+
 
 const BoutiqueBrandProductDetail = () => {
   const { boutiqueId, productId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { productPrices } = useBoutique();
-  const [selectedSize, setSelectedSize] = useState("");
-  const [quantity, setQuantity] = useState(1);
+ 
+  // const [selectedSize, setSelectedSize] = useState("");
   const [showSpecs, setShowSpecs] = useState(true);
-  const [showDelivery, setShowDelivery] = useState(false);
 
   // const product = catalogProducts.find(p => p.id === productId);
   const { data: productRes, request: fetchProduct } = useApi(boutiqueService.brandProductDetail);
-  // const priceInfo = productPrices.find(pp => pp.productId === productId);
 
   useEffect(() => {
     if (productId && boutiqueId) {
@@ -81,13 +69,15 @@ const BoutiqueBrandProductDetail = () => {
             <span className="hidden sm:inline">Back to Shop</span>
           </button>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
+            {/* <Button variant="ghost" size="icon">
               <Heart className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => {
+            </Button> */}
+            <Button variant="ghost" size="icon" 
+            onClick={() => {
               navigator.clipboard.writeText(window.location.href);
               toast({ title: "Link Copied!" });
-            }}>
+            }}
+            >
               <Share2 className="h-5 w-5" />
             </Button>
           </div>
