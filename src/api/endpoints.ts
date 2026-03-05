@@ -126,7 +126,8 @@ export const API_ENDPOINTS = {
     INVENTORY_ADD: "/api/web/boutique/inventory/add",
     INVENTORY_LIST: "/api/web/boutique/inventory/list",
     //brandpage
-    BRAND_PAGE : "/api/web/boutique/brand-page"
+    BRAND_PAGE : "/api/web/boutique/brand-page",
+    // BRAND_PRODUCT_LIST : "/api/web/boutique/brand-page/{boutiqueId}/products"
    
    
   }

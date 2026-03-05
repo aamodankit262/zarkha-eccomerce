@@ -62,6 +62,18 @@ export interface BoutiqueProductListParams {
   limit?: number;
   discount?: any;
 }
+export interface BrandProductListParams {
+  search?: string;
+  category_id?: string;
+  subcategory_id?: string;
+  min_price?: number;
+  max_price?: number;
+  stock_status?: string;
+  page?: number;
+  limit?: number;
+  discount?: any;
+  sort?: any;
+}
 export interface SalesListParams {
   status?: "completed" | "pending";
   period?: string;
@@ -528,6 +540,37 @@ export const boutiqueService = {
   brandPage: async (partnerId : string) => {
     const res = await apiClient.get(
       `${API_ENDPOINTS.BOUTIQUE.BRAND_PAGE}/${partnerId} `
+    );
+    return res;
+  },
+  brandProductList: async (partnerId: string, params: BrandProductListParams) => {
+    const payload = {
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
+      ...(params.search && { search: params.search }),
+      ...(params.category_id && params.category_id !== "all" && { category_id: params.category_id }),
+      ...(params.subcategory_id && { subcategory_id: params.subcategory_id }),
+      ...(params.min_price !== undefined && { min_price: params.min_price }),
+      ...(params.max_price !== undefined && { max_price: params.max_price }),
+      ...(params.stock_status && { stock_status: params.stock_status }),
+      ...(params.discount && { discount: params.discount }),
+      ...(params.sort && { sort: params.sort }),
+    };
+    const res = await apiClient.post<any>(
+     `${API_ENDPOINTS.BOUTIQUE.BRAND_PAGE}/${partnerId}/products`,
+      payload
+    );
+    return res;
+  },
+  brandProductDetail: async ({
+    partnerId,
+    productId,
+  }: {
+    partnerId: string;
+    productId: string;
+  }): Promise<any> => {
+    const res = await apiClient.get<any>(
+      `${API_ENDPOINTS.BOUTIQUE.BRAND_PAGE}/${partnerId}/product/details?product_id=${productId}`,
     );
     return res;
   },

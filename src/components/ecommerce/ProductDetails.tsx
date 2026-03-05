@@ -135,9 +135,15 @@ const ProductDetailsPage = ({ onClose }: ProductDetailsPageProps) => {
     ) ?? [];
 
   const productDetails = [
-    { label: "Color", value: details?.color?.map((color, i) => color.color_name).join(",") || "-" },
+    // { label: "Color", value: details?.color?.map((color, i) => color.color_name).join(",") || "-" },
+    { label: "Top Color", value: "N/A" },
+    { label: "Bottom Color", value: "N/A" },
+    { label: "Dupatta Color", value: "N/A" },
     { label: "Work", value: details?.work || "N/A" },
-    { label: "Fabric", value: details?.fabric.join(",") || "N/A" },
+    // { label: "Fabric", value: details?.fabric.join(",") || "N/A" },
+    { label: "Top Fabric", value: details?.top_fabric || "N/A" },
+    { label: "Bottom Fabric", value: details?.bottom_fabric || "N/A" },
+    { label: "Dupatta Fabric", value: details?.dupatta_fabric || "N/A" },
     { label: "Fit Type", value: details?.fit_type || "N/A" },
   ];
   useEffect(() => {

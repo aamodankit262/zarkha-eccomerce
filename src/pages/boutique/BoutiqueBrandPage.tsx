@@ -44,48 +44,12 @@ import { useBoutique } from "@/contexts/BoutiqueContext";
 import { useApi } from "@/hooks/useApi";
 import { boutiqueService } from "@/boutiqueServices/boutiqueService";
 import { NO_IMAGE } from "@/api/endpoints";
+import { industryService } from "@/services/industryService";
+import { logger } from "@/helper/logger";
+import { useDebounce } from "@/hooks/useDebounce";
+import { boutiqueProducts } from "@/data/product";
+import Pagination from "@/components/ecommerce/Pagination";
 
-// Mock boutique data
-// const boutiques = [
-//   {
-//     id: "elegance-boutique",
-//     name: "Elegance Boutique",
-//     owner: "Priya Sharma",
-//     category: "Women Ethnic Wear",
-//     tagline: "Where Tradition Meets Elegance",
-//     description:
-//       "Welcome to Elegance Boutique, your one-stop destination for premium ethnic wear. We specialize in handcrafted designer pieces that blend traditional aesthetics with modern elegance. Every piece is carefully curated to ensure the finest quality and authentic craftsmanship.",
-//     story:
-//       "Founded in 2018 by Priya Sharma, Elegance Boutique started as a small family-run shop in Mumbai. With a passion for preserving traditional Indian textile arts while making them accessible to modern women, we have grown into a trusted name for ethnic fashion. Our journey is driven by a commitment to quality, authenticity, and customer satisfaction.",
-//     address: "123 Fashion Street, Linking Road, Mumbai - 400050",
-//     phone: "+91 9876543210",
-//     email: "hello@eleganceboutique.com",
-//     rating: 4.8,
-//     reviews: 256,
-//     since: "2018",
-//     happyCustomers: 3200,
-//     socialLinks: {
-//       instagram: "https://instagram.com/eleganceboutique",
-//       facebook: "https://facebook.com/eleganceboutique",
-//       website: "https://eleganceboutique.com",
-//     },
-//     coverImage: "/lovable-uploads/77d75687-0e00-4b74-8bf1-7c96b5fd6f5e.png",
-//     logo: "/lovable-uploads/8e7b5ac5-809f-4968-9838-2b60e5952347.png",
-//     highlights: [
-//       "Free Alterations",
-//       "Same Day Delivery",
-//       "Custom Designs",
-//       "100% Authentic",
-//     ],
-//     specialties: [
-//       "Bridal Lehengas",
-//       "Designer Sarees",
-//       "Party Wear",
-//       "Festive Collections",
-//     ],
-//     workingHours: "Mon-Sat: 10AM - 8PM, Sun: 11AM - 6PM",
-//   },
-// ];
 
 const catalogProducts = [
   {
@@ -181,55 +145,47 @@ const BoutiqueBrandPage = () => {
   const [linkCopied, setLinkCopied] = useState(false);
   const { data, request } = useApi(boutiqueService.brandPage);
   // const boutique = boutiques.find((b) => b.id === boutiqueId) || boutiques[0];
-
-  const categories = [...new Set(catalogProducts.map((p) => p.category))];
+  const { data: categories, request: fetchCategories } = useApi(industryService.getCat);
+  const { data: subcategories, request: fetchSubCategories } = useApi(industryService.getSubCat);
+  const {
+    data: productRes,
+    request: fetchProducts,
+  } = useApi(boutiqueService.brandProductList);
+  const debouncedSearch = useDebounce(searchQuery, 500);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  // const categories = [...new Set(catalogProducts.map((p) => p.category))];
 
   useEffect(() => {
     request(boutiqueId);
   }, [boutiqueId]);
-
+  useEffect(() => {
+    if (activeTab === "products") {
+      fetchCategories();
+    }
+  }, []);
+  useEffect(() => {
+    if (activeTab === 'products') {
+      fetchProducts(boutiqueId, {
+        page,
+        limit,
+        category_id: categoryFilter === "all" ? undefined : categoryFilter,
+        search: debouncedSearch || undefined,
+        sort: sortBy,
+      });
+    }
+  }, [page,
+    categoryFilter,
+    debouncedSearch,
+    activeTab,
+    sortBy,
+  ]);
+  logger.log("productRes:", productRes);
   const boutique = data?.body;
   // Only show products with display price set from product module
-  const visibleProducts = catalogProducts
-    .filter((p) => {
-      const priceInfo = productPrices.find((pp) => pp.productId === p.id);
-      return priceInfo && priceInfo.displayOnBrandPage !== false;
-    })
-    .map((p) => {
-      const priceInfo = productPrices.find((pp) => pp.productId === p.id);
-      const displayPrice = priceInfo!.sellingPrice;
-      const discountPercent = Math.round((1 - displayPrice / p.mrp) * 100);
-      return {
-        ...p,
-        sellingPrice: displayPrice,
-        discount: discountPercent,
-      };
-    });
-
-  const filteredProducts = visibleProducts.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "all" || p.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case "price-low":
-        return a.sellingPrice - b.sellingPrice;
-      case "price-high":
-        return b.sellingPrice - a.sellingPrice;
-      case "discount":
-        return b.discount - a.discount;
-      case "rating":
-        return b.rating - a.rating;
-      default:
-        return b.reviews - a.reviews;
-    }
-  });
-
+  const catalogProducts = boutiqueProducts(productRes?.body) || [];
+  const pagination = productRes?.pagination;
+  logger.log("pagination:", pagination);
   const handleShare = async () => {
     const shareUrl = window.location.href;
     if (navigator.share) {
@@ -240,11 +196,11 @@ const BoutiqueBrandPage = () => {
           url: shareUrl,
         });
       } catch {
-       toast({
-        title:"error",
-        description: "",
-        variant: 'destructive'
-       })
+        toast({
+          title: "error",
+          description: "",
+          variant: 'destructive'
+        })
       }
     } else {
       handleCopyLink();
@@ -291,7 +247,7 @@ const BoutiqueBrandPage = () => {
       {/* Hero */}
       <div className="relative h-56 md:h-72 overflow-hidden">
         <img
-          src={boutique?.coverImage ?? boutique?.brand_logo ?? NO_IMAGE}
+          src={boutique?.cover_image ?? boutique?.brand_logo ?? NO_IMAGE}
           alt={boutique?.boutique_name}
           className="w-full h-full object-cover"
         />
@@ -314,7 +270,7 @@ const BoutiqueBrandPage = () => {
                 <div className="flex-1">
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
                     <h1 className="text-2xl md:text-3xl font-bold text-warm-brown">
-                      {boutique?.boutique_name  ?? ''}
+                      {boutique?.boutique_name ?? ''}
                     </h1>
                     <Badge variant="outline" className="w-fit">
                       {boutique?.category ?? ''}
@@ -354,7 +310,7 @@ const BoutiqueBrandPage = () => {
                     {boutique?.social_links?.instagram && (
                       <Button variant="outline" size="sm" asChild>
                         <a
-                          href={boutique?.social_links?.instagram ?? '#'} 
+                          href={boutique?.social_links?.instagram ?? '#'}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -419,7 +375,7 @@ const BoutiqueBrandPage = () => {
                 <Package className="h-5 w-5 text-brand-orange" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{boutique?.products_count??0}</p>
+                <p className="text-2xl font-bold">{boutique?.products_count ?? 0}</p>
                 <p className="text-xs text-muted-foreground">Products</p>
               </div>
             </CardContent>
@@ -445,7 +401,7 @@ const BoutiqueBrandPage = () => {
                 <p className="text-xs text-muted-foreground">Reviews</p>
               </div>
             </CardContent>
-          </Card> 
+          </Card>
         </div>
 
         {/* Tabs */}
@@ -490,9 +446,9 @@ const BoutiqueBrandPage = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Categories</SelectItem>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
+                        {categories?.map((cat: any) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.category_name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -524,7 +480,7 @@ const BoutiqueBrandPage = () => {
               {catalogProducts.length} products found
             </p>
 
-            {catalogProducts.length === 0 ? (
+            {catalogProducts?.length === 0 ? (
               <Card>
                 <CardContent className="p-12 text-center">
                   <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -539,44 +495,34 @@ const BoutiqueBrandPage = () => {
               </Card>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {catalogProducts.map((product) => (
+                {catalogProducts?.map((product) => (
                   <Card
                     key={product.id}
                     className="overflow-hidden group hover:shadow-lg transition-shadow cursor-pointer"
+
                     onClick={() =>
                       navigate(
-                        `/shop/${boutiqueId || "elegance-boutique"}/product/${product.id}`,
+                        `/shop/${boutiqueId}/product/${product.id}`,
                       )
                     }
                   >
                     <div className="aspect-square relative overflow-hidden">
                       <img
-                        src={product.image}
+                        src={product.image || NO_IMAGE}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      {product.discount > 0 && (
+                      {/* {product.discount > 0 && (
                         <Badge className="absolute top-2 left-2 bg-green-600">
                           <Percent className="h-3 w-3 mr-1" />
-                          {product.discount}% off
+                          {product?.discount}% off
                         </Badge>
-                      )}
-                      {!product.inStock && (
+                      )} */}
+                      {product.stock == 0 && (
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                           <Badge variant="destructive">Out of Stock</Badge>
                         </div>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toast({ title: "Added to Wishlist!" });
-                        }}
-                      >
-                        <Heart className="h-4 w-4" />
-                      </Button>
                     </div>
                     <CardContent className="p-3">
                       <p className="text-xs text-muted-foreground mb-1">
@@ -585,27 +531,32 @@ const BoutiqueBrandPage = () => {
                       <h3 className="font-medium text-sm line-clamp-2 mb-2">
                         {product.name}
                       </h3>
-                      <div className="flex items-center gap-1 mb-2">
+                      {/* <div className="flex items-center gap-1 mb-2">
                         <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
                         <span className="text-xs font-medium">
-                          {product.rating}
+                          {product?.rating ?? 0}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          ({product.reviews})
+                          ({product?.review_count ?? 0})
                         </span>
-                      </div>
+                      </div> */}
                       <div className="flex items-baseline gap-2">
                         <span className="font-bold text-brand-orange">
-                          ₹{product.sellingPrice.toLocaleString()}
-                        </span>
-                        <span className="text-xs text-muted-foreground line-through">
-                          ₹{product.mrp.toLocaleString()}
+                          ₹{product?.sellingPrice ? product?.sellingPrice : 0}
                         </span>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
+            )}
+            {productRes?.total_pages > 1 && (
+              <Pagination
+                currentPage={productRes?.current_page}
+                totalPages={productRes?.total_pages}
+                onPageChange={setPage}
+              // onPageChange={(page) => setPage(page)}
+              />
             )}
           </TabsContent>
 
@@ -683,17 +634,23 @@ const BoutiqueBrandPage = () => {
                     <Sparkles className="h-5 w-5 text-brand-orange" />
                     Our Specialties
                   </h3>
-                  <div className="space-y-3">
-                    {boutique?.specialties?.map((s, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div className="w-2 h-2 rounded-full bg-brand-orange" />
-                        <span className="font-medium">{s}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {boutique?.our_specialties?.length > 0 ? (
+
+                    <div className="space-y-3">
+                      {boutique?.our_specialties?.map((s, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-brand-orange" />
+                          <span className="font-medium">{s}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No specialties added yet.</p>
+                  )}
+
                 </CardContent>
               </Card>
               <Card>
@@ -702,19 +659,23 @@ const BoutiqueBrandPage = () => {
                     <Award className="h-5 w-5 text-brand-orange" />
                     Why Choose Us
                   </h3>
-                  <div className="space-y-3">
-                    {boutique?.service_highlights?.map((h, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-brand-orange/10 flex items-center justify-center">
-                          <Check className="h-4 w-4 text-brand-orange" />
+                  {boutique?.service_highlights?.length > 0 ? (
+                    <div className="space-y-3">
+                      {boutique?.service_highlights?.map((h, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-brand-orange/10 flex items-center justify-center">
+                            <Check className="h-4 w-4 text-brand-orange" />
+                          </div>
+                          <span className="font-medium">{h}</span>
                         </div>
-                        <span className="font-medium">{h}</span>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No service highlights added yet.</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
